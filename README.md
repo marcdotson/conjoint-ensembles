@@ -1,2 +1,2 @@
 # clever-randomization
-Clever Randomization and Ensembling Strategies for Accommodating Multiple Data Pathologies in Conjoint Studies
+Using clever randomization and ensembling strategies to accommodate multiple data pathologies in conjoint studies.
