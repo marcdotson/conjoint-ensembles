@@ -1,5 +1,4 @@
 # HBMNL for discrete choice experiments
-
 data {
   int<lower=2> C; // number of alternatives (choices) per question
   int<lower=1> K; // number of feature variables
@@ -10,7 +9,6 @@ data {
   matrix[C, K] X[J, S]; // matrix of attributes for each obs
   matrix[G, J] Z; // vector of covariates for each respondent
 }
-
 transformed data {
   int<lower=1> N = J*S; // total number of inquiries
   int<lower=1> id[N]; // inquiry n belonging to individual with id
@@ -25,7 +23,6 @@ transformed data {
     }
   }
 }
-
 parameters {
   matrix[K, C] alpha;
   cholesky_factor_corr[K] L_Omega;
@@ -41,7 +38,6 @@ transformed parameters {
   L = diag_pre_multiply(tau, L_Omega);
   B = Z * mu + (L * alpha)';
 }
-
 model {
   //priors
   to_vector(alpha) ~ normal(0, 1);
