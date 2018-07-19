@@ -7,8 +7,9 @@ data {
   int<lower=1> G; // number of respondent covariates (demographics, etc)
   int<lower=1,upper=C> Y[J, S]; // observed responses
   matrix[C, K] X[J, S]; // matrix of attributes for each obs
-  matrix[G, J] Z; // vector of covariates for each respondent
+  matrix[J, G] Z; // vector of covariates for each respondent
 }
+
 transformed data {
   int<lower=1> N = J*S; // total number of inquiries
   int<lower=1> id[N]; // inquiry n belonging to individual with id
@@ -23,22 +24,23 @@ transformed data {
     }
   }
 }
+
 parameters {
-  matrix[K, N] alpha; // prior on variance of utilities B
+  matrix[K, J] alpha; // prior on variance of utilities B
   cholesky_factor_corr[K] L_Omega;
   vector<lower=0,upper=pi()/2>[K] tau_unif;
-  //matrix[J, K] mu; // prior on mean of utilities B
-  matrix[N, K] mu; // prior on mean of utilities B
+  matrix[G, K] mu; // prior on mean of utilities B
   real<lower=0> sigma;
 }
 
 transformed parameters {
-  matrix[N, K] B; // matrix of beta coefficients
+  matrix[J, K] B; // matrix of beta coefficients
   vector<lower=0>[K] tau; // prior scale
   for (k in 1:K) tau[k] = 2.5 * tan(tau_unif[k]);
-  //B = Z * mu + (diag_pre_multiply(tau,L_Omega) * alpha)';
-  B = mu + (diag_pre_multiply(tau,L_Omega) * alpha)';
+  // (JxGxGxK) + (KxJ)'
+  B = Z * mu + (diag_pre_multiply(tau,L_Omega) * alpha)';
 }
+
 model {
   //priors
   to_vector(alpha) ~ normal(0, 1);

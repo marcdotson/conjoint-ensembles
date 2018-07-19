@@ -43,7 +43,7 @@ def generate_simulated_data():
     # dictionary to store the simulated data and generation parameters
     data_dict = {'X':X,
                  'Y':Y.astype(int),
-                 'Z':Z,
+                 'Z':Z.T,
                  'Beta':Beta,
                  'Gamma':Gamma,
                  'Vbeta':Vbeta,
@@ -57,7 +57,7 @@ def generate_simulated_data():
 if __name__ == '__main__':
     data_dict = generate_simulated_data()
 
-    with open('./HBMNL.stan','r') as f:
+    with open('./MODELS/HBMNL.stan','r') as f:
         stan_model = f.read()
 
     sm = pystan.StanModel(model_code=stan_model)
