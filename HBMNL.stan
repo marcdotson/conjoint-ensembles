@@ -1,4 +1,4 @@
-# HBMNL for discrete choice experiments
+// HBMNL for discrete choice experiments
 data {
   int<lower=2> C; // number of alternatives (choices) per question
   int<lower=1> K; // number of feature variables
@@ -24,19 +24,20 @@ transformed data {
   }
 }
 parameters {
-  matrix[K, C] alpha;
+  matrix[K, N] alpha; // prior on variance of utilities B
   cholesky_factor_corr[K] L_Omega;
   vector<lower=0,upper=pi()/2>[K] tau_unif;
-  matrix[J, K] mu;
+  //matrix[J, K] mu; // prior on mean of utilities B
+  matrix[N, K] mu; // prior on mean of utilities B
   real<lower=0> sigma;
 }
 
 transformed parameters {
-  matrix[C, K] B; // matrix of beta coefficients
+  matrix[N, K] B; // matrix of beta coefficients
   vector<lower=0>[K] tau; // prior scale
   for (k in 1:K) tau[k] = 2.5 * tan(tau_unif[k]);
-  L = diag_pre_multiply(tau, L_Omega);
-  B = Z * mu + (L * alpha)';
+  //B = Z * mu + (diag_pre_multiply(tau,L_Omega) * alpha)';
+  B = mu + (diag_pre_multiply(tau,L_Omega) * alpha)';
 }
 model {
   //priors
@@ -46,6 +47,6 @@ model {
 
   // model fitting
   for (n in 1:N) {
-    Yy[n] ~ categorical_logit(Xx[n]*B[id[n]]);
+    Yy[n] ~ categorical_logit(Xx[n]*B[id[n]]');
   }
 }

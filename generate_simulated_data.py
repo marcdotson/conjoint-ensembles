@@ -34,7 +34,7 @@ def generate_simulated_data():
             X_scn = np.random.uniform(size=nalts*nlvls).reshape(nalts,nlvls)
             U_scn = X_scn.dot(beta.flatten()) - np.log(-np.log(np.random.uniform(size=nalts)))
     
-            Y[resp, scn] += np.argmax(U_scn)
+            Y[resp, scn] += np.argmax(U_scn) + 1
             X[resp, scn] += X_scn
     
         Z[:, resp] += z_resp
@@ -42,7 +42,7 @@ def generate_simulated_data():
     
     # dictionary to store the simulated data and generation parameters
     data_dict = {'X':X,
-                 'Y':Y,
+                 'Y':Y.astype(int),
                  'Z':Z,
                  'Beta':Beta,
                  'Gamma':Gamma,
@@ -57,5 +57,8 @@ def generate_simulated_data():
 if __name__ == '__main__':
     data_dict = generate_simulated_data()
 
-    sm = pystan.StanModel(model_code='./HBMNL.stan')
-    fit = sm.sampling(data=data_dict, iter=300, chains=2, max_tree_depth=3)
+    with open('./HBMNL.stan','r') as f:
+        stan_model = f.read()
+
+    sm = pystan.StanModel(model_code=stan_model)
+    fit = sm.sampling(data=data_dict, iter=300, chains=2, control={'max_treedepth':3})
