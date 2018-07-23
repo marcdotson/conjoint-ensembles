@@ -1,3 +1,4 @@
+import pickle
 import numpy as np
 import scipy as sp
 import matplotlib.pyplot as plt
@@ -60,5 +61,26 @@ if __name__ == '__main__':
     with open('./MODELS/HBMNL.stan','r') as f:
         stan_model = f.read()
 
-    sm = pystan.StanModel(model_code=stan_model)
-    fit = sm.sampling(data=data_dict, iter=300, chains=2, control={'max_treedepth':3})
+    try:
+        sm = pickle.load(open('./MODELS/HBMNL.pkl', 'rb'))
+
+    except:
+        sm = pystan.StanModel(model_code=stan_model)
+        with open('./MODELS/HBMNL.pkl','wb') as f:
+            pickle.dump(sm, f)
+
+    fit = sm.sampling(data=data_dict, iter=500, chains=4, control={'max_treedepth':5})
+    B = fit.extract(pars=['B'])['B'].mean(axis=0)
+
+    plt.figure(figsize=(12,8))
+    plt.subplot(311)
+    plt.imshow(B.T)
+    plt.title("Estimated Betas")
+    plt.subplot(312)
+    plt.imshow(data_dict['Beta'])
+    plt.title("Generated Betas")
+    plt.subplot(313)
+    plt.plot(np.arange(12), B.T.mean(axis=1), label='Estimated')
+    plt.plot(np.arange(12), data_dict['Beta'].mean(axis=1), label='Generated')
+    plt.title("Feature Avg Betas")
+    plt.show()
