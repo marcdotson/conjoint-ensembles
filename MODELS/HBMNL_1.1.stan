@@ -27,7 +27,7 @@ transformed parameters {
 
 model {
   //priors
-  to_vector(alpha) ~ normal(0, 1);
+  to_vector(alpha) ~ normal(0, 10);
   L_Omega ~ lkj_corr_cholesky(2);
   to_vector(mu) ~ normal(0, 5);
 
@@ -35,6 +35,16 @@ model {
   for (j in 1:J) {
     for (s in 1:S) {
       Y[j,s] ~ categorical_logit(X[j,s]*B[j]');
+    }
+  }
+}
+
+generated quantities {
+  // Yp is predicted choices for new data.
+  int<lower=1, upper=C> Yp[J, S];
+  for (j in 1:J) {
+    for (s in 1:S) {
+      Yp[j,s] = categorical_logit_rng(X[j,s]*B[j]');
     }
   }
 }

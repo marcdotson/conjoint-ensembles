@@ -43,7 +43,7 @@ transformed parameters {
 
 model {
   //priors
-  to_vector(alpha) ~ normal(0, 1);
+  to_vector(alpha) ~ normal(0, 10);
   L_Omega ~ lkj_corr_cholesky(2);
   to_vector(mu) ~ normal(0, 5);
 

@@ -4,13 +4,7 @@ import scipy as sp
 import matplotlib.pyplot as plt
 import pystan
 
-def generate_simulated_data():
-    
-    nresp = 100
-    nscns = 10
-    nalts = 4
-    nlvls = 12
-    ncovs = 1
+def generate_simulated_data(nresp=100, nscns=10, nalts=4, nlvls=12, ncovs=1):
     
     Gamma = np.random.uniform(-3, 4, size=ncovs * nlvls)
     Vbeta = np.diag(np.ones(nlvls)) + .5 * np.ones((nlvls, nlvls))
@@ -55,7 +49,7 @@ def generate_simulated_data():
                  'K':nlvls}
     return data_dict
 
-if __name__ == '__main__':
+def test01():
     data_dict = generate_simulated_data()
 
     model_name = str(input("MODEL NAME: "))
@@ -73,12 +67,10 @@ if __name__ == '__main__':
         with open('./MODELS/{0}.pkl'.format(model_name), 'wb') as f:
             pickle.dump(sm, f)
 
-    fit = sm.sampling(data=data_dict, iter=500, chains=4, control={'max_treedepth':5})
+    fit = sm.sampling(data=data_dict, iter=800, chains=2)
     B = fit.extract(pars=['B'])['B'].mean(axis=0)
 
-    show = str(input("print fit? [Y/n] "))
-    if show == "Y":
-        print(fit)
+    print(fit)
 
     # Plot the betas both generated and estimated
     plt.figure(figsize=(12,8))
@@ -92,14 +84,27 @@ if __name__ == '__main__':
     plt.title("Generated Betas")
 
     plt.subplot(413)
-    plt.plot(np.arange(12), B.T.mean(axis=1), label='Estimated')
-    plt.plot(np.arange(12), data_dict['Beta'].mean(axis=1), label='Generated')
+    plt.plot(np.arange(12), data_dict['Beta'].mean(axis=1), color='grey', lw=4, alpha=.7, label='Generated')
+    plt.plot(np.arange(12), B.T.mean(axis=1), color='r', label='Estimated')
     plt.legend()
     plt.title("Feature Avg Betas")
 
     plt.subplot(414)
     y = B.T.mean(axis=0)
-    plt.plot(np.arange(len(y)), y)
-    plt.plot(np.arange(len(y)), data_dict['Beta'].mean(axis=0))
+    plt.plot(np.arange(len(y)), data_dict['Beta'].mean(axis=0), color='grey', alpha=.7, lw=4)
+    plt.plot(np.arange(len(y)), y, color='r')
 
     plt.show()
+
+    plt.subplot(121)
+    plt.imshow(data_dict['Y'])
+
+    Y_pred = fit.extract(['Yp'])['Yp']
+    print(Y_pred.shape)
+    print(data_dict['Y'].shape)
+    plt.subplot(122)
+    plt.imshow(Y_pred[0,:,:])
+    plt.show()
+
+if __name__ == "__main__":
+    test01()
