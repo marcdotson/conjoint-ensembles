@@ -1,10 +1,6 @@
-import pickle
 import numpy as np
-import scipy as sp
-import matplotlib.pyplot as plt
-import pystan
 
-def generate_simulated_data(nresp=100, nscns=10, nalts=4, nlvls=12, ncovs=1):
+def generate_simulated_data(nresp=100, nscns=10, nalts=4, nlvls=12, ncovs=1, pathology=False):
     
     Gamma = np.random.uniform(-3, 4, size=ncovs * nlvls)
     Vbeta = np.diag(np.ones(nlvls)) + .5 * np.ones((nlvls, nlvls))
@@ -24,6 +20,10 @@ def generate_simulated_data(nresp=100, nscns=10, nalts=4, nlvls=12, ncovs=1):
             raise NotImplementedError
     
         beta = np.random.multivariate_normal(Gamma, Vbeta)
+        if pathology:
+            if np.random.choice([0,1],p=[.25,.75]):
+                beta[0] = 0
+                beta[1] = 0
     
         for scn in range(nscns):
             X_scn = np.random.uniform(size=nalts*nlvls).reshape(nalts,nlvls)
@@ -49,62 +49,4 @@ def generate_simulated_data(nresp=100, nscns=10, nalts=4, nlvls=12, ncovs=1):
                  'K':nlvls}
     return data_dict
 
-def test01():
-    data_dict = generate_simulated_data()
 
-    model_name = str(input("MODEL NAME: "))
-    if not model_name:
-        model_name = 'HBMNL'
-
-    with open('./MODELS/{0}.stan'.format(model_name), 'r') as f:
-        stan_model = f.read()
-
-    try:
-        sm = pickle.load(open('./MODELS/{0}.pkl'.format(model_name), 'rb'))
-
-    except:
-        sm = pystan.StanModel(model_code=stan_model)
-        with open('./MODELS/{0}.pkl'.format(model_name), 'wb') as f:
-            pickle.dump(sm, f)
-
-    fit = sm.sampling(data=data_dict, iter=800, chains=2)
-    B = fit.extract(pars=['B'])['B'].mean(axis=0)
-
-    print(fit)
-
-    # Plot the betas both generated and estimated
-    plt.figure(figsize=(12,8))
-
-    plt.subplot(411)
-    plt.imshow(B.T)
-    plt.title("Estimated Betas")
-
-    plt.subplot(412)
-    plt.imshow(data_dict['Beta'])
-    plt.title("Generated Betas")
-
-    plt.subplot(413)
-    plt.plot(np.arange(12), data_dict['Beta'].mean(axis=1), color='grey', lw=4, alpha=.7, label='Generated')
-    plt.plot(np.arange(12), B.T.mean(axis=1), color='r', label='Estimated')
-    plt.legend()
-    plt.title("Feature Avg Betas")
-
-    plt.subplot(414)
-    y = B.T.mean(axis=0)
-    plt.plot(np.arange(len(y)), data_dict['Beta'].mean(axis=0), color='grey', alpha=.7, lw=4)
-    plt.plot(np.arange(len(y)), y, color='r')
-
-    plt.show()
-
-    plt.subplot(121)
-    plt.imshow(data_dict['Y'])
-
-    Y_pred = fit.extract(['Yp'])['Yp']
-    print(Y_pred.shape)
-    print(data_dict['Y'].shape)
-    plt.subplot(122)
-    plt.imshow(Y_pred[0,:,:])
-    plt.show()
-
-if __name__ == "__main__":
-    test01()
