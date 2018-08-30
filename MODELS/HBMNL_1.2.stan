@@ -28,8 +28,8 @@ transformed parameters {
 model {
   //priors
   to_vector(alpha) ~ normal(0, 10);
-  L_Omega ~ lkj_corr_cholesky(2);
-  to_vector(mu) ~ normal(0, 5);
+  L_Omega ~ lkj_corr_cholesky(5);
+  to_vector(mu) ~ normal(0, 1);
 
   // model fitting
   for (j in 1:J) {
@@ -41,10 +41,10 @@ model {
 
 generated quantities {
   // Yp is predicted choices for new data.
-  int<lower=1, upper=C> Yp[J, S];
+  real log_lik[J, S];
   for (j in 1:J) {
     for (s in 1:S) {
-      Yp[j,s] = categorical_logit_rng(X[j,s]*B[j]');
+      log_lik[j,s] = categorical_logit_lpmf( Y[j,s] | to_vector(B[j]) );
     }
   }
 }
