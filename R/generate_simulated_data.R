@@ -59,8 +59,7 @@ Data <- list(nresp = nresp, nscns = nscns, nalts = nalts, nlvls = nlvls, ncovs =
 
 # Run model.
 out_test <- stan(
-  file = "hier_mnl.stan", data = Data, iter = 500, chains = 4,
-  control = list(adapt_delta = 0.99, max_treedepth = 5)
+  file = "../MODELS/HBMNL_1.1.stan", data = Data, iter = 500, chains = 4
 )
 
 # Trace plots.
@@ -84,6 +83,6 @@ summary(out_test, pars=c("Gamma"))$summary
 
 # Estimation --------------------------------------------------------------
 # Import data.
-load(file="Data/Traeger Refresh/choice_data.RData")
+#load(file="Data/Traeger Refresh/choice_data.RData")
 
 
