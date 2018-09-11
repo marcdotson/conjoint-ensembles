@@ -5,10 +5,6 @@
 # Load libraries.
 library(loo)
 library(rstan)
-library(tidyverse)
-library(mvtnorm)
-library(rstan)
-library(bayesplot)
 
 # Set Stan options.
 rstan_options(auto_write = TRUE)
@@ -25,6 +21,7 @@ ncovs <- 1      # Number of covariates for each respondent.
 Gamma <- matrix(runif(ncovs * nlvls, -3, 4), nrow = nlvls, ncol = ncovs)
 Vbeta <- diag(nlvls) + .5 * matrix(1, nrow = nlvls, ncol = 1) %*% t(matrix(1, nrow = nlvls, ncol = 1))
 
+
 # Generate data.
 Y <- matrix(nrow = nresp, ncol = nscns)
 X <- array(dim = c(nresp, nscns, nalts, nlvls))
@@ -36,7 +33,8 @@ for (resp in 1:nresp) {
   if (ncovs > 1) z_resp <- c(z_resp, round(runif(ncovs - 1)))
   
   # Generate individual-level betas.
-  beta <- rmvnorm(1, mean = Gamma %*% z_resp, sigma = Vbeta)
+  beta <- Gamma %*% z_resp + chol(Vbeta) %*% rnorm(nlvls)
+  #beta <- mvrnorm(1, mean = Gamma %*% z_resp, sigma = Vbeta)
     
   # Compute the latent utility a scenario at a time.
   for (scn in 1:nscns) {
@@ -58,14 +56,15 @@ for (resp in 1:nresp) {
 
 # Save data in a list.
 Data <- list(J = nresp, S = nscns, C = nalts, K = nlvls, G = ncovs,
-             Y = Y, X = X, Z = Z, Gamma = Gamma, Vbeta = Vbeta, Beta = Beta)
+             Y = Y, X = X, Z = t(Z), Gamma = Gamma, Vbeta = Vbeta, Beta = Beta)
 
-log_lik_list <- list()
-for (k in 1:K){
-    # Fit the k-th model with Stan
-    fit <- stan("./MODELS/HBMNL_1.1.stan", data=Data)
-    log_lik_list[[k]] <- extract(fit)[["log_lik"]]
-}
+fit <- stan("./MODELS/HBMNL_01.stan", data = Data, chains = 2, iter = 300, control=list(max_treedepth = 3), cores = 2)
 
-# determine model weights via cross-validation.
-M_weights <- model_weights(log_lik_list, method="stacking")
+#log_lik_list <- list()
+#K <- 3
+#for (k in 1:K){
+#    # Fit the k-th model with Stan
+#    fit <- stan("./MODELS/HBMNL_01.stan", data = Data, chains = 2, iter = 300, control=list(max_treedepth = 3))
+#
+#    log_lik_list[[k]] <- extract(fit)[["log_lik"]]
+#}
