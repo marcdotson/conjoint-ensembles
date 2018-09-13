@@ -8,6 +8,7 @@ data {
   int<lower=1,upper=C> Y[J, S]; // observed responses
   matrix[C, K] X[J, S]; // matrix of attributes for each obs
   matrix[J, G] Z; // vector of covariates for each respondent
+  vector[K] w; // vector of random perturbations
 }
 
 parameters {
@@ -20,9 +21,11 @@ parameters {
 
 transformed parameters {
   matrix[J, K] B; // matrix of beta coefficients
+  matrix[K, K] W; // identity matrix
   vector<lower=0>[K] tau; // prior scale
+  W = diag_matrix(w);
   for (k in 1:K) tau[k] = 2.5 * tan(tau_unif[k]);
-  B = Z * mu + (diag_pre_multiply(tau,L_Omega) * alpha)';
+  B = (Z * mu + (diag_pre_multiply(tau,L_Omega) * alpha)') * W;
 }
 
 model {
@@ -40,7 +43,7 @@ model {
 }
 
 generated quantities {
-  // Yp is predicted choices for new data.
+  // log_lik is predicted choices for new data.
   real log_lik[J, S];
   for (j in 1:J) {
     for (s in 1:S) {
