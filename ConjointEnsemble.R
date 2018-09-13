@@ -58,7 +58,8 @@ for (resp in 1:nresp) {
 Data <- list(J = nresp, S = nscns, C = nalts, K = nlvls, G = ncovs,
              Y = Y, X = X, Z = t(Z), Gamma = Gamma, Vbeta = Vbeta, Beta = Beta)
 
-fit <- stan("./MODELS/HBMNL_01.stan", data = Data, chains = 2, iter = 300, control=list(max_treedepth = 3), cores = 2)
+# fit <- stan("./MODELS/HBMNL_01.stan", data = Data, chains = 2, iter = 300, control=list(max_treedepth = 3), cores = 2)
+fit <- stan("Estimation/clever-randomization/MODELS/HBMNL_01.stan", data = Data, chains = 2, iter = 300, control=list(max_treedepth = 3), cores = 2)
 
 #log_lik_list <- list()
 #K <- 3
