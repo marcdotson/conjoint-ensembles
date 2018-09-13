@@ -69,3 +69,6 @@ for (k in 1:K){
 
     log_lik_list[[k]] <- extract(fit)[["log_lik"]]
 }
+
+model_weights <- model_weights(log_lik_list, method="stacking")
+print(model_weights)
