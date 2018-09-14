@@ -47,6 +47,7 @@ generated quantities {
   real log_lik[J, S];
   for (j in 1:J) {
     for (s in 1:S) {
+      //log_lik[j,s] = categorical_logit_lpmf( Y[j,s] | to_vector(B[j]) );
       log_lik[j,s] = categorical_logit_lpmf( Y[j,s] | to_vector(B[j]) );
     }
   }

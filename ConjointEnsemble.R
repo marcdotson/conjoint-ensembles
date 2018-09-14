@@ -3,6 +3,7 @@
 
 # Preamble ----------------------------------------------------------------
 # Load libraries.
+library(parallel)
 library(loo)
 library(rstan)
 
