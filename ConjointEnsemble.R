@@ -60,16 +60,28 @@ Data <- list(J = nresp, S = nscns, C = nalts, K = nlvls, G = ncovs,
              Y = Y, X = X, Z = t(Z), Gamma = Gamma, Vbeta = Vbeta,
              Beta = Beta, w = rbinom(nlvls, 1, .5))
 
-#fit <- stan("./MODELS/HBMNL_01.stan", data = Data, chains = 2, iter = 800, cores = 4)
+# fit <- stan("./MODELS/HBMNL_02.stan", data = Data, chains = 2, iter = 300, control=list(max_treedepth = 3), cores = 2)
+fit <- stan("Estimation/clever-randomization/MODELS/HBMNL_02.stan", data = Data, chains = 2, iter = 300, control=list(max_treedepth = 3), cores = 2)
 
-log_lik_list <- list()
+log_lik_list = log_lik_list_temp <- list()
 K <- 3
 for (k in 1:K){
     # Fit the k-th model with Stan
-    fit <- stan("./MODELS/HBMNL_02.stan", data = Data, chains = 2, iter = 800)
+    # fit <- stan("./MODELS/HBMNL_02.stan", data = Data, chains = 2, iter = 800)
+    fit <- stan("Estimation/clever-randomization/MODELS/HBMNL_02.stan", data = Data, chains = 2, iter = 800)
 
     log_lik_list[[k]] <- extract(fit)[["log_lik"]]
+    log_lik_list_temp[[k]] <- matrix(
+      NA, 
+      nrow = dim(log_lik_list[[k]])[1], 
+      ncol = dim(log_lik_list[[k]])[2] * dim(log_lik_list[[k]])[3]
+    )
+    for (i in 1:dim(log_lik_list[[k]])[1]) {
+      log_lik_list_temp[[k]][i,] <- as.vector(log_lik_list[[k]][1,,])
+    }
 }
+log_lik_list <- log_lik_list_temp
 
-model_weights <- model_weights(log_lik_list, method="stacking")
+model_weights <- loo_model_weights(log_lik_list, method="stacking")
 print(model_weights)
+
