@@ -1,5 +1,12 @@
 import numpy as np
 
+def pathology(beta, kind=None):
+    if kind == 'ANA':
+        beta *= np.random.choice([1, 0], size=len(beta), p=[.7, .3])
+    elif kind == 'screening':
+        beta += np.random.choice([0, -np.inf], size=len(beta), p=[.7, .3])
+    return beta
+
 def generate_simulated_design(nresp=100, nscns=10, nalts=4, nlvls=12, ncovs=1):
     
     # X is the experimental design
@@ -29,7 +36,7 @@ def generate_simulated_design(nresp=100, nscns=10, nalts=4, nlvls=12, ncovs=1):
     return data_dict
 
 
-def compute_beta_response(data_dict, pathology=False):
+def compute_beta_response(data_dict, pathology_type=None):
 
     # beta means
     Gamma = np.random.uniform(-3, 4, size=data_dict['G'] * data_dict['K'])
@@ -47,8 +54,8 @@ def compute_beta_response(data_dict, pathology=False):
             raise NotImplementedError
     
         beta = np.random.multivariate_normal(Gamma, Vbeta)
-        if pathology:
-            raise NotImplementedError
+        if pathology_type:
+            beta = pathology(beta, kind=pathology_type)
     
         for scn in range(data_dict['S']):
             X_scn = data_dict['X'][resp, scn]
@@ -59,17 +66,13 @@ def compute_beta_response(data_dict, pathology=False):
         Beta[:, resp] += beta.flatten()
 
     data_dict['Beta'] = Beta
-    data_dict['Y'] = Y
+    data_dict['Y'] = Y.astype(int)
     data_dict['Gamma'] = Gamma
     data_dict['Vbeta'] = Vbeta
     return data_dict
 
 
-def generate_simulated_data():
+def generate_simulated_data(pathology_type=None):
     data_dict = generate_simulated_design()
-    data_dict = compute_beta_response(data_dict)
-    print(data_dict.keys())
+    data_dict = compute_beta_response(data_dict, pathology_type=pathology_type)
     return data_dict
-
-
-generate_simulated_data()

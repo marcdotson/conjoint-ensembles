@@ -11,6 +11,11 @@ library(rstan)
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 
+pathology <- function(beta, nlvls) {
+  beta <- beta*rbinom(nlvls, 1, .5);
+  return(beta)
+}
+
 # Parameter Recovery ------------------------------------------------------
 nresp <- 100    # Number of respondents.
 nscns <- 10     # Number of choice scenarios for each respondent.
@@ -28,6 +33,7 @@ Y <- matrix(nrow = nresp, ncol = nscns)
 X <- array(dim = c(nresp, nscns, nalts, nlvls))
 Z <- matrix(nrow = ncovs, ncol = nresp)
 Beta <- matrix(nrow = nlvls, ncol = nresp)
+
 for (resp in 1:nresp) {
   # Generate covariates for the distribution of heterogeneity.
   z_resp <- 1
@@ -35,6 +41,8 @@ for (resp in 1:nresp) {
   
   # Generate individual-level betas.
   beta <- Gamma %*% z_resp + chol(Vbeta) %*% rnorm(nlvls)
+  # implement Pathology
+  beta <- pathology(beta, nlvls)
     
   # Compute the latent utility a scenario at a time.
   for (scn in 1:nscns) {
@@ -57,7 +65,7 @@ for (resp in 1:nresp) {
 # Save data in a list.
 Data <- list(J = nresp, S = nscns, C = nalts, K = nlvls, G = ncovs,
              Y = Y, X = X, Z = t(Z), Gamma = Gamma, Vbeta = Vbeta,
-             Beta = Beta, w = rbinom(nlvls, 1, .5))
+             Beta = Beta, w = rbinom(nlvls, 1, .5), Q = matrix(0, nrow=nresp, ncol=nlvls))
 
 log_lik_list = log_lik_list_temp <- list()
 K <- 3
