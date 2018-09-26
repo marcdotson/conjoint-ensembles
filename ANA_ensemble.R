@@ -65,8 +65,8 @@ for (resp in 1:nresp) {
 # Save data in a list.
 Data <- list(J = 100, S = nscns, C = nalts, K = nlvls, G = ncovs,
              Y = Y[1:100, ], X = X[1:100, , , ], Z = as.matrix(Z[1:100, 1]), Gamma = Gamma, Vbeta = Vbeta,
-             Beta = Beta[, 1:100], w = rbinom(nlvls, 1, .5))
-#             Ytest = Y[100:nresp, ], Xtest = X[100:nresp, , , ], Betatest = Beta[, 100:nresp])
+             Beta = Beta[, 1:100], w = rbinom(nlvls, 1, .5),
+             Ytest = Y[100:nresp, ], Xtest = X[100:nresp, , , ], Betatest = Beta[, 100:nresp])
 
 log_lik_list = log_lik_list_temp <- list()
 K <- 5
