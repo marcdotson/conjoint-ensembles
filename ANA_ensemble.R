@@ -72,7 +72,7 @@ log_lik_list = log_lik_list_temp <- list()
 K <- 5
 for (k in 1:K){
     # Fit the k-th model with Stan
-    fit <- stan("./MODELS/HBMNL_ana.stan", data = Data, chains = 2, iter = 300, cores = 4)
+    fit <- stan("./MODELS/HBMNL_ana2.stan", data = Data, chains = 2, iter = 300, cores = 4)
 
     log_lik_list[[k]] <- extract(fit)[["log_lik"]]
     log_lik_list_temp[[k]] <- matrix(

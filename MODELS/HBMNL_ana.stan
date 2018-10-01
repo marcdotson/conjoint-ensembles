@@ -9,7 +9,6 @@ data {
   matrix[C, K] X[J, S]; // matrix of attributes for each obs
   matrix[J, G] Z; // vector of covariates for each respondent
   vector[K] w; // vector of random perturbations
-  matrix[J, K] Q; // matrix of screening adjustments
 }
 
 parameters {
@@ -26,7 +25,7 @@ transformed parameters {
   vector<lower=0>[K] tau; // prior scale
   W = diag_matrix(w);
   for (k in 1:K) tau[k] = 2.5 * tan(tau_unif[k]);
-  B = (Z * mu + (diag_pre_multiply(tau,L_Omega) * alpha)') * W + Q;
+  B = (Z * mu + (diag_pre_multiply(tau,L_Omega) * alpha)') * W;
 }
 
 model {
