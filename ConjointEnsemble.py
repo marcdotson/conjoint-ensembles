@@ -5,7 +5,7 @@ import pickle
 import numpy as np
 
 
-model_name = 'HBMNL_02'
+model_name = 'HBMNL_vanilla'
 
 with open('./MODELS/{0}.stan'.format(model_name), 'r') as f:
     stan_model = f.read()

@@ -11,13 +11,8 @@ library(rstan)
 #rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 
-pathology <- function(beta, nlvls) {
-  beta <- beta*rbinom(nlvls, 1, .5);
-  return(beta)
-}
-
 # Parameter Recovery ------------------------------------------------------
-nresp <- 110    # Number of respondents.
+nresp <- 100    # Number of respondents.
 nscns <- 10     # Number of choice scenarios for each respondent.
 nalts <- 4      # Number of alternatives in each choice scenario.
 nlvls <- 12     # Number of attribute levels for each alternative.
@@ -32,7 +27,7 @@ Vbeta <- diag(nlvls) + .5 * matrix(1, nrow = nlvls, ncol = 1) %*% t(matrix(1, nr
 Y <- matrix(nrow = nresp, ncol = nscns)
 X <- array(dim = c(nresp, nscns, nalts, nlvls))
 Z <- matrix(nrow = nresp, ncol = ncovs)
-Beta <- matrix(nrow = nlvls, ncol = nresp)
+Beta <- matrix(nrow = nresp, ncol = nlvls)
 
 for (resp in 1:nresp) {
   # Generate covariates for the distribution of heterogeneity.
@@ -41,9 +36,7 @@ for (resp in 1:nresp) {
   
   # Generate individual-level betas.
   beta <- Gamma %*% z_resp + chol(Vbeta) %*% rnorm(nlvls)
-  # implement Pathology
-  beta <- pathology(beta, nlvls)
-    
+
   # Compute the latent utility a scenario at a time.
   for (scn in 1:nscns) {
     # Generate the design matrix for the given scenario.
@@ -59,21 +52,22 @@ for (resp in 1:nresp) {
   
   # Save out each respondent's data.
   Z[resp, ] <- as.vector(z_resp)
-  Beta[, resp] <- as.vector(beta)
+  Beta[resp, ] <- as.vector(beta)
 }
 
 # Save data in a list.
-Data <- list(J = 100, S = nscns, C = nalts, K = nlvls, G = ncovs,
-             Y = Y[1:100, ], X = X[1:100, , , ], Z = as.matrix(Z[1:100, 1]), Gamma = Gamma, Vbeta = Vbeta,
-             Beta = Beta[, 1:100], w = rbinom(nlvls, 1, .5),
-             Ytest = Y[100:nresp, ], Xtest = X[100:nresp, , , ], Betatest = Beta[, 100:nresp])
+Data <- list(J = nresp, S = nscns, C = nalts, K = nlvls, G = ncovs,
+             Y = Y, X = X, Z = Z, Gamma = Gamma, Vbeta = Vbeta, Beta = Beta)
 
-log_lik_list <- list()
-K <- 3
-for (k in 1:K){
-    # Fit the k-th model with Stan
-    fit <- stan("./MODELS/HBMNL_ana2.stan", data = Data, chains = 2, iter = 300, cores = 4)
-    log_lik_list[[k]] <- extract_log_lik(fit)
-}
-model_weights <- loo_model_weights(log_lik_list, method="stacking")
-print(model_weights)
+fit <- stan("./MODELS/HBMNL_vanilla.stan", data = Data, chains = 2, iter = 800, cores = 4)
+print(fit)
+
+#log_lik_list <- list()
+#K <- 3
+#for (k in 1:K){
+#    # Fit the k-th model with Stan
+#    fit <- stan("./MODELS/HBMNL_vanilla.stan", data = Data, chains = 2, iter = 800, cores = 4)
+#    log_lik_list[[k]] <- extract_log_lik(fit)
+#}
+#model_weights <- loo_model_weights(log_lik_list, method="stacking")
+#print(model_weights)

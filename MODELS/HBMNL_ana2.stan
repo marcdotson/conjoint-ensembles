@@ -21,11 +21,9 @@ parameters {
 
 transformed parameters {
   matrix[J, K] B; // matrix of beta coefficients
-  matrix[K, K] W; // identity matrix
   vector<lower=0>[K] tau; // prior scale
-  W = diag_matrix(w);
   for (k in 1:K) tau[k] = 2.5 * tan(tau_unif[k]);
-  B = (Z * mu + (diag_pre_multiply(tau,L_Omega) * alpha)') * W;
+  B = (Z * mu + (diag_pre_multiply(tau,L_Omega) * alpha)' ) * diag_matrix(w);
 }
 
 model {
@@ -47,7 +45,7 @@ generated quantities {
   real log_lik[J, S];
   for (j in 1:J) {
     for (s in 1:S) {
-      log_lik[j,s] = 1; // categorical_logit_lpmf( Y[j,s] | to_vector(B[j]) );
+      log_lik[j,s] = categorical_logit_lpmf( Y[j,s] | to_vector(B[j]) );
     }
   }
 }
