@@ -1,4 +1,27 @@
+'''
+Functions in this file:
+
+    pathology(beta, kind=None)
+
+    generate_simulated_design(nresp, nscns, nalts, nlvls, ncovs)
+
+    compute_beta_response(data_dict, pathology_type=None)
+
+    generate_simulated_data(pathology_type=None)
+
+    fit_model(data_dict, model_name)
+
+    get_loo_list(fit)
+
+'''
+
+
+from . import psis
+import pystan
+import pickle
 import numpy as np
+from scipy.optimize import minimize, LinearConstraint
+
 
 def pathology(beta, kind=None):
     if kind == 'ANA':
@@ -6,6 +29,7 @@ def pathology(beta, kind=None):
     elif kind == 'screening':
         beta += np.random.choice([0, -np.inf], size=len(beta), p=[.7, .3])
     return beta
+
 
 def generate_simulated_design(nresp=100, nscns=10, nalts=4, nlvls=12, ncovs=1):
     
@@ -69,6 +93,10 @@ def compute_beta_response(data_dict, pathology_type=None):
     data_dict['Y'] = Y.astype(int)
     data_dict['Gamma'] = Gamma
     data_dict['Vbeta'] = Vbeta
+
+    if pathology_type == 'ANA':
+        data_dict['w'] = np.random.binomial(1, .5, size=data_dict['K'])
+
     return data_dict
 
 
@@ -76,3 +104,66 @@ def generate_simulated_data(pathology_type=None):
     data_dict = generate_simulated_design()
     data_dict = compute_beta_response(data_dict, pathology_type=pathology_type)
     return data_dict
+
+
+
+
+def fit_model(data_dict, model_name='HBMNL_vanilla'):
+
+    with open('./MODELS/{0}.stan'.format(model_name), 'r') as f:
+        stan_model = f.read()
+    
+    try:
+        sm = pickle.load(open('./MODELS/{0}.pkl'.format(model_name), 'rb'))
+    
+    except:
+        sm = pystan.StanModel(model_code=stan_model)
+        with open('./MODELS/{0}.pkl'.format(model_name), 'wb') as f:
+            pickle.dump(sm, f)
+    
+    fit = sm.sampling(data=data_dict, iter=800, chains=2)
+
+    return fit
+
+def get_loos(fit):
+
+    log_lik = fit.extract(pars='log_lik')['log_lik']
+
+    LL = np.zeros((log_lik.shape[0], log_lik.shape[1]*log_lik.shape[2]))
+    for i in range(log_lik.shape[0]):
+        LL[i] = log_lik[i].flatten()
+
+    return psis.psisloo(LL)
+
+
+def stacking_weights(LL_list):
+    lpd_point = np.vstack(LL_list).T
+    N = lpd_point.shape[0]
+    K = lpd_point.shape[1]
+    exp_lpd_point = np.exp(lpd_point)
+
+    # neg_log_score_loo
+    def f(w):
+        w_full = np.hstack((w, 1-np.sum(w)))
+        S = 0
+        for i in range(N):
+            S += np.log(np.exp(lpd_point[i, :]).dot(w_full))
+        return -S
+
+    # grad_neg_log_score_loo
+    def grad_f(w):
+        w_full = np.hstack((w, 1-np.sum(w)))
+        grad = np.zeros(K-1)
+        for k in range(K-1):
+            for i in range(N):
+                grad[k] += (exp_lpd_point[i,k] - exp_lpd_point[i,-1]) / (exp_lpd_point[i, :].dot(w_full))
+        return -grad
+
+    ui = np.vstack((-np.ones(K-1), np.diag(np.ones(K-1))))
+    ci = np.zeros(K)
+    ci[0] = -1
+    x0 = (1/K)*np.ones(K-1)
+    lincon = ({'type': 
+    out = minimize(f, x0, method='COBYLA', jac=grad_f, constraints=[lincon])
+    return out
+

@@ -60,7 +60,6 @@ Data <- list(J = nresp, S = nscns, C = nalts, K = nlvls, G = ncovs,
              Y = Y, X = X, Z = Z, Gamma = Gamma, Vbeta = Vbeta, Beta = Beta)
 
 fit <- stan("./MODELS/HBMNL_vanilla.stan", data = Data, chains = 2, iter = 800, cores = 4)
-print(fit)
 
 #log_lik_list <- list()
 #K <- 3
