@@ -44,7 +44,7 @@ def generate_simulated_design(nresp=100, nscns=10, nalts=4, nlvls=12, ncovs=1):
             raise NotImplementedError
     
         for scn in range(nscns):
-            X_scn = np.random.uniform(size=nalts*nlvls).reshape(nalts,nlvls)
+            X_scn = np.random.choice([0,1], p =[.5,.5], size=nalts*nlvls).reshape(nalts,nlvls)
             X[resp, scn] += X_scn
     
         Z[:, resp] += z_resp

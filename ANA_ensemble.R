@@ -3,6 +3,7 @@
 
 # Preamble ----------------------------------------------------------------
 # Load libraries.
+Sys.setenv(USE_CXX14 = 1)
 library(parallel)
 library(loo)
 library(rstan)
