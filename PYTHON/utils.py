@@ -52,36 +52,36 @@ def generate_simulated_design(nresp=100, nscns=10, nalts=4, nlvls=12, ncovs=1):
     # dictionary to store the simulated data and generation parameters
     data_dict = {'X':X,
                  'Z':Z.T,
-                 'C':nalts,
-                 'J':nresp,
-                 'G':ncovs,
-                 'S':nscns,
-                 'K':nlvls}
+                 'A':nalts,
+                 'R':nresp,
+                 'C':ncovs,
+                 'T':nscns,
+                 'L':nlvls}
     return data_dict
 
 
 def compute_beta_response(data_dict, pathology_type=None):
 
     # beta means
-    Gamma = np.random.uniform(-3, 4, size=data_dict['G'] * data_dict['K'])
+    Gamma = np.random.uniform(-3, 4, size=data_dict['C'] * data_dict['L'])
     # beta variance-covariance
-    Vbeta = np.diag(np.ones(data_dict['K'])) + .5 * np.ones((data_dict['K'], data_dict['K']))
+    Vbeta = np.diag(np.ones(data_dict['L'])) + .5 * np.ones((data_dict['L'], data_dict['L']))
 
     # Y is the response
-    Y = np.zeros((data_dict['J'], data_dict['S']))
+    Y = np.zeros((data_dict['R'], data_dict['T']))
     # Beta is the respondent coefficients (part-worths/utilities)
-    Beta = np.zeros((data_dict['K'], data_dict['J']))
+    Beta = np.zeros((data_dict['L'], data_dict['R']))
     
-    for resp in range(data_dict['J']):
+    for resp in range(data_dict['R']):
         z_resp = 1
-        if data_dict['G'] > 1:
+        if data_dict['C'] > 1:
             raise NotImplementedError
     
         beta = np.random.multivariate_normal(Gamma, Vbeta)
         if pathology_type:
             beta = pathology(beta, kind=pathology_type)
     
-        for scn in range(data_dict['S']):
+        for scn in range(data_dict['T']):
             X_scn = data_dict['X'][resp, scn]
 
             U_scn = X_scn.dot(beta.flatten()) - np.log(-np.log(np.random.uniform(size=data_dict['C'])))
@@ -125,45 +125,45 @@ def fit_model(data_dict, model_name='HBMNL_vanilla'):
 
     return fit
 
-def get_loos(fit):
-
-    log_lik = fit.extract(pars='log_lik')['log_lik']
-
-    LL = np.zeros((log_lik.shape[0], log_lik.shape[1]*log_lik.shape[2]))
-    for i in range(log_lik.shape[0]):
-        LL[i] = log_lik[i].flatten()
-
-    return psis.psisloo(LL)
-
-
-def stacking_weights(LL_list):
-    lpd_point = np.vstack(LL_list).T
-    N = lpd_point.shape[0]
-    K = lpd_point.shape[1]
-    exp_lpd_point = np.exp(lpd_point)
-
-    # neg_log_score_loo
-    def f(w):
-        w_full = np.hstack((w, 1-np.sum(w)))
-        S = 0
-        for i in range(N):
-            S += np.log(np.exp(lpd_point[i, :]).dot(w_full))
-        return -S
-
-    # grad_neg_log_score_loo
-    def grad_f(w):
-        w_full = np.hstack((w, 1-np.sum(w)))
-        grad = np.zeros(K-1)
-        for k in range(K-1):
-            for i in range(N):
-                grad[k] += (exp_lpd_point[i,k] - exp_lpd_point[i,-1]) / (exp_lpd_point[i, :].dot(w_full))
-        return -grad
-
-    ui = np.vstack((-np.ones(K-1), np.diag(np.ones(K-1))))
-    ci = np.zeros(K)
-    ci[0] = -1
-    x0 = (1/K)*np.ones(K-1)
-    lincon = ({'type': 
-    out = minimize(f, x0, method='COBYLA', jac=grad_f, constraints=[lincon])
-    return out
-
+#def get_loos(fit):
+#
+#    log_lik = fit.extract(pars='log_lik')['log_lik']
+#
+#    LL = np.zeros((log_lik.shape[0], log_lik.shape[1]*log_lik.shape[2]))
+#    for i in range(log_lik.shape[0]):
+#        LL[i] = log_lik[i].flatten()
+#
+#    return psis.psisloo(LL)
+#
+#
+#def stacking_weights(LL_list):
+#    lpd_point = np.vstack(LL_list).T
+#    N = lpd_point.shape[0]
+#    K = lpd_point.shape[1]
+#    exp_lpd_point = np.exp(lpd_point)
+#
+#    # neg_log_score_loo
+#    def f(w):
+#        w_full = np.hstack((w, 1-np.sum(w)))
+#        S = 0
+#        for i in range(N):
+#            S += np.log(np.exp(lpd_point[i, :]).dot(w_full))
+#        return -S
+#
+#    # grad_neg_log_score_loo
+#    def grad_f(w):
+#        w_full = np.hstack((w, 1-np.sum(w)))
+#        grad = np.zeros(K-1)
+#        for k in range(K-1):
+#            for i in range(N):
+#                grad[k] += (exp_lpd_point[i,k] - exp_lpd_point[i,-1]) / (exp_lpd_point[i, :].dot(w_full))
+#        return -grad
+#
+#    ui = np.vstack((-np.ones(K-1), np.diag(np.ones(K-1))))
+#    ci = np.zeros(K)
+#    ci[0] = -1
+#    x0 = (1/K)*np.ones(K-1)
+#    lincon = ({'type': 
+#    out = minimize(f, x0, method='COBYLA', jac=grad_f, constraints=[lincon])
+#    return out
+#

@@ -11,6 +11,7 @@ generated quantities {
     // observables
     int<lower=1, upper=A> Y[R, T]; // outcome of choice task T for respondent R
     matrix[A, L] X[R, T]; // design matrix
+    matrix[R, C] Z; //covariates
 
     // unobservables
     matrix[R, L] Mu;
@@ -18,6 +19,8 @@ generated quantities {
     matrix[L, L] L_Omega = lkj_corr_cholesky_rng(L, 5);
     vector<lower=0>[L] tau;
     matrix[R, L] Beta;
+
+    for (r in 1:R) Z[r] = rep_row_vector(1, C);
 
     {
         vector[R*L] Mu_temp;
