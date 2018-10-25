@@ -15,13 +15,12 @@ parameters {
   cholesky_factor_corr[L] L_Omega;
   vector<lower=0,upper=pi()/2>[L] tau_unif;
   matrix[C, L] mu; // prior on mean of utilities B
-  real<lower=0> sigma;
 }
 
 transformed parameters {
   matrix[R, L] B; // matrix of beta coefficients
   vector<lower=0>[L] tau; // prior scale
-  for (k in 1:L) tau[k] = 2.5 * tan(tau_unif[k]);
+  for (l in 1:L) tau[l] = 2.5 * tan(tau_unif[l]);
   B = Z * mu + (diag_pre_multiply(tau,L_Omega) * alpha)';
 }
 
@@ -32,9 +31,9 @@ model {
   to_vector(mu) ~ normal(0, 1);
 
   // model fitting
-  for (j in 1:R) {
-    for (s in 1:T) {
-      Y[j,s] ~ categorical_logit(X[j,s]*B[j]');
+  for (r in 1:R) {
+    for (t in 1:T) {
+      Y[r, t] ~ categorical_logit(X[r, t]*B[r]');
     }
   }
 }
@@ -42,9 +41,9 @@ model {
 generated quantities {
   // Yp is predicted choices for new data.
   real Y_ppc[R, T];
-  for (j in 1:R) {
-    for (s in 1:T) {
-      Y_ppc[j,s] = categorical_logit_rng(to_vector(B[j]));
+  for (r in 1:R) {
+    for (t in 1:T) {
+      Y_ppc[r,t] = categorical_logit_rng(X[r,t] * B[r]');
     }
   }
 }

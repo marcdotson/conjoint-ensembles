@@ -1,2 +1,4 @@
 *.rds
 *.pkl
+*.ipynb
+__pycache__/

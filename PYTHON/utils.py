@@ -23,11 +23,20 @@ import numpy as np
 from scipy.optimize import minimize, LinearConstraint
 
 
-def pathology(beta, kind=None):
+def pathology(beta, kind=None, prob=[.5, .5]):
     if kind == 'ANA':
-        beta *= np.random.choice([1, 0], size=len(beta), p=[.7, .3])
+        beta *= np.random.choice([1, 0], size=len(beta), p=prob)
     elif kind == 'screening':
-        beta += np.random.choice([0, -np.inf], size=len(beta), p=[.7, .3])
+        beta += np.random.choice([0, -np.inf], size=len(beta), p=prob)
+    elif kind == 'systematicANA':
+        pathology_vector = np.ones_like(beta)
+        pathology_vector[:int(len(beta)//2)] = 0
+        beta *= pathology_vector
+    elif kind == 'randomANA':
+        if int(np.random.choice([1, 0], p=prob)):
+            pathology_vector = np.ones_like(beta)
+            pathology_vector[:int(len(beta)//2)] = 0
+            beta *= pathology_vector
     return beta
 
 
@@ -95,7 +104,7 @@ def compute_beta_response(data_dict, pathology_type=None):
     data_dict['Vbeta'] = Vbeta
 
     if pathology_type == 'ANA':
-        data_dict['w'] = np.random.binomial(1, .5, size=data_dict['K'])
+        data_dict['w'] = np.random.binomial(1, .5, size=data_dict['T'])
 
     return data_dict
 
@@ -110,18 +119,18 @@ def generate_simulated_data(pathology_type=None):
 
 def fit_model(data_dict, model_name='HBMNL_vanilla'):
 
-    with open('./MODELS/{0}.stan'.format(model_name), 'r') as f:
+    with open('./STAN/{0}.stan'.format(model_name), 'r') as f:
         stan_model = f.read()
     
     try:
-        sm = pickle.load(open('./MODELS/{0}.pkl'.format(model_name), 'rb'))
+        sm = pickle.load(open('./STAN/{0}.pkl'.format(model_name), 'rb'))
     
     except:
         sm = pystan.StanModel(model_code=stan_model)
-        with open('./MODELS/{0}.pkl'.format(model_name), 'wb') as f:
+        with open('./STAN/{0}.pkl'.format(model_name), 'wb') as f:
             pickle.dump(sm, f)
     
-    fit = sm.sampling(data=data_dict, iter=800, chains=2)
+    fit = sm.sampling(data=data_dict, iter=1000, chains=2)
 
     return fit
 
