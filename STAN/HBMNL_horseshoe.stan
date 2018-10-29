@@ -1,4 +1,4 @@
-// HBMNL for discrete choice experiments
+// HBMNL for ANA pathology
 data {
   int<lower=2> A; // number of alternatives (choices) per question
   int<lower=1> L; // number of feature variables
@@ -11,29 +11,21 @@ data {
 }
 
 parameters {
-  matrix[L, R] alpha; // prior on variance of utilities B
-  cholesky_factor_corr[L] L_Omega;
-  vector<lower=0,upper=pi()/2>[L] tau_unif;
-  matrix[C, L] mu; // prior on mean of utilities B
-}
-
-transformed parameters {
-  matrix[R, L] B; // matrix of beta coefficients
-  vector<lower=0>[L] tau; // prior scale
-  for (l in 1:L) tau[l] = 2.5 * tan(tau_unif[l]);
-  B = Z * mu + (diag_pre_multiply(tau,L_Omega) * alpha)';
+  real<lower=0> tau; // global prior for horseshoe
+  vector<lower=0>[R] lambda; // local prior for horseshoe
+  matrix[R, L] B; // the betas as a matrix
 }
 
 model {
   //priors
-  to_vector(alpha) ~ normal(0, 1);
-  L_Omega ~ lkj_corr_cholesky(5);
-  to_vector(mu) ~ normal(0, .5);
+  lambda ~ cauchy(0, 1);
+  tau ~ cauchy(0, 1);
 
   // model fitting
   for (r in 1:R) {
+    B[r]' ~ normal(0, lambda[r] * tau);
     for (t in 1:T) {
-      Y[r, t] ~ categorical_logit(X[r, t]*B[r]');
+      Y[r, t] ~ categorical_logit(X[r,t]*B[r]');
     }
   }
 }

@@ -20,19 +20,47 @@ from . import psis
 import pystan
 import pickle
 import numpy as np
+from matplotlib import colors
+import matplotlib.pyplot as plt
 from scipy.optimize import minimize, LinearConstraint
 
 
-def pathology(beta, kind=None, prob=[.5, .5]):
-    if kind == 'ANA':
+# set the colormap and centre the colorbar
+class MidpointNormalize(colors.Normalize):
+    """
+    Normalise the colorbar so that diverging bars work there way either side from a prescribed midpoint value)
+
+    e.g. im=ax1.imshow(array, norm=MidpointNormalize(midpoint=0.,vmin=-100, vmax=100))
+    """
+    def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
+        self.midpoint = midpoint
+        colors.Normalize.__init__(self, vmin, vmax, clip)
+
+    def __call__(self, value, clip=None):
+        # I'm ignoring masked values and all kinds of edge cases to make a
+        # simple example...
+        x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
+        return np.ma.masked_array(np.interp(value, x, y), np.isnan(value))
+
+    
+def pathology(beta, kind="none", prob=[.5, .5]):
+    if kind == 'none':
+        pass
+    elif kind == 'ANA':
         beta *= np.random.choice([1, 0], size=len(beta), p=prob)
     elif kind == 'screening':
-        beta += np.random.choice([0, -np.inf], size=len(beta), p=prob)
-    elif kind == 'systematicANA':
+        beta[-1] = -10000
+    elif kind == 'screening_inf':
+        beta[-1] = -np.inf
+    elif kind == 'screening_random':
+        if int(np.random.choice([1,0], p=prob)):
+            i = np.random.randint(len(beta))
+            beta[i] = -10000
+    elif kind == 'ANA_systematic':
         pathology_vector = np.ones_like(beta)
-        pathology_vector[:int(len(beta)//2)] = 0
+        pathology_vector[int(len(beta)//2):] = 0
         beta *= pathology_vector
-    elif kind == 'randomANA':
+    elif kind == 'ANA_random':
         if int(np.random.choice([1, 0], p=prob)):
             pathology_vector = np.ones_like(beta)
             pathology_vector[:int(len(beta)//2)] = 0
@@ -93,10 +121,10 @@ def compute_beta_response(data_dict, pathology_type=None):
         for scn in range(data_dict['T']):
             X_scn = data_dict['X'][resp, scn]
 
-            U_scn = X_scn.dot(beta.flatten()) - np.log(-np.log(np.random.uniform(size=data_dict['C'])))
+            U_scn = X_scn.dot(beta) - np.log(-np.log(np.random.uniform(size=data_dict['C'])))
             Y[resp, scn] += np.argmax(U_scn) + 1
     
-        Beta[:, resp] += beta.flatten()
+        Beta[:, resp] += beta
 
     data_dict['Beta'] = Beta
     data_dict['Y'] = Y.astype(int)
@@ -109,15 +137,13 @@ def compute_beta_response(data_dict, pathology_type=None):
     return data_dict
 
 
-def generate_simulated_data(pathology_type=None):
+def generate_simulated_data(pathology_type="none"):
     data_dict = generate_simulated_design()
     data_dict = compute_beta_response(data_dict, pathology_type=pathology_type)
     return data_dict
 
 
-
-
-def fit_model(data_dict, model_name='HBMNL_vanilla'):
+def get_model(model_name='HBMNL_vanilla'):
 
     with open('./STAN/{0}.stan'.format(model_name), 'r') as f:
         stan_model = f.read()
@@ -130,9 +156,91 @@ def fit_model(data_dict, model_name='HBMNL_vanilla'):
         with open('./STAN/{0}.pkl'.format(model_name), 'wb') as f:
             pickle.dump(sm, f)
     
-    fit = sm.sampling(data=data_dict, iter=1000, chains=2)
+    return sm
 
-    return fit
+
+def plot_ppc(data_dict, fit):
+    # define variables
+    Y = data_dict['Y'].flatten()
+    Y_ppc = fit.extract(pars=['Y_ppc'])['Y_ppc']
+    B = data_dict['A']+2
+    
+    fig = plt.figure(figsize=(8,8))
+    ax = plt.gca()
+    bins = [b - 0.5 for b in range(B + 1)]
+
+    idxs = [ idx for idx in range(B) for r in range(2) ]
+    xs = [ idx + delta for idx in range(B) for delta in [-0.5, 0.5]]
+
+    # make a histogram for each sample of the markov iteration
+    counts = [np.histogram(Y_ppc[n].flatten(), bins=bins)[0] for n in range(Y_ppc.shape[0])]
+    probs = [10, 20, 30, 40, 50, 60, 70, 80, 90]
+    # find the percentiles for each sample-histogram
+    creds = [np.percentile([count[b] for count in counts], probs) for b in range(B)]
+    pad_creds = [ creds[idx] for idx in idxs ]
+
+    ax.fill_between(xs, [c[0] for c in pad_creds], [c[8] for c in pad_creds], color='y', lw=0, alpha=.1)
+    ax.fill_between(xs, [c[1] for c in pad_creds], [c[7] for c in pad_creds], color='orange', lw=0, alpha=.1)
+    ax.fill_between(xs, [c[2] for c in pad_creds], [c[6] for c in pad_creds], color='orange', lw=0, alpha=.1)
+    ax.fill_between(xs, [c[3] for c in pad_creds], [c[5] for c in pad_creds], color='red', lw=0, alpha=.1)
+
+    ax.plot(xs, [c[4] for c in pad_creds], color='r', alpha=.3)
+    ax.hist(Y, bins=bins, histtype='step', color='#4b0082', alpha=.8)
+    plt.show()
+
+    
+def plot_betas(data_dict, fit):
+    # extract betas and posterior predictive checks
+    B = fit.extract(pars='B')['B']
+    Y_ppc = fit.extract(pars=['Y_ppc'])['Y_ppc']
+
+    max_beta = max(abs(B.mean(axis=0).max()), abs(data_dict['Beta'].max()))
+    # Plot the betas both generated and estimated
+    plt.figure(figsize=(16,8))
+
+    plt.subplot(411)
+    plt.imshow(B.mean(axis=0).T, cmap='RdGy_r', norm=MidpointNormalize(midpoint=0, vmin=-max_beta, vmax=max_beta))
+    plt.title("Estimated Betas")
+    plt.colorbar()
+
+    plt.subplot(412)
+    plt.imshow(data_dict['Beta'], cmap='RdGy_r', norm=MidpointNormalize(midpoint=0, vmin=-max_beta, vmax=max_beta))
+    plt.title("Generated Betas")
+    plt.colorbar()
+
+    plt.subplot(413)
+    plt.plot(np.arange(12), data_dict['Beta'].mean(axis=1), color='grey', lw=4, alpha=.7, label='Generated')
+    plt.plot(np.arange(12), B.mean(axis=0).T.mean(axis=1), color='r', label='Estimated')
+    plt.legend()
+    plt.title("Feature Level Betas (avg)")
+
+    plt.subplot(414)
+    y = B.mean(axis=0).T.mean(axis=0)
+    plt.plot(np.arange(len(y)), data_dict['Beta'].mean(axis=0), color='grey', alpha=.7, lw=4)
+    plt.plot(np.arange(len(y)), y, color='r')
+    plt.title("Respondent Betas (avg)")
+
+    plt.show()
+
+    
+def plot_respondent(r, data_dict, fit):
+    B = fit.extract(pars=['B'])['B']
+    plt.figure(figsize=(12,15))
+    for l in range(data_dict['L']):
+        ax = plt.subplot(4,3,l+1)
+        ax.hist(B[:,r,l], color='r', alpha=.5)
+        ax.axvline(data_dict['Beta'][l,r], color='k')
+        ax.set_title("Beta {0}".format(l+1))
+    plt.show()
+
+    plt.figure(figsize=(8,15))
+    for t in range(data_dict['T']):
+        ax = plt.subplot(5,2,t+1)
+        ax.hist(Y_ppc[:,r,t], color='r', alpha=.5)
+        ax.axvline(data_dict['Y'][r, t], color='k')
+        ax.set_title("Task {0}".format(t+1))
+    plt.show()
+
 
 #def get_loos(fit):
 #
