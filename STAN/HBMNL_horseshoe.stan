@@ -12,13 +12,13 @@ data {
 
 parameters {
   real<lower=0> tau; // global prior for horseshoe
-  vector<lower=0>[R] lambda; // local prior for horseshoe
+  matrix<lower=0>[R, L] lambda; // local prior for horseshoe
   matrix[R, L] B; // the betas as a matrix
 }
 
 model {
   //priors
-  lambda ~ cauchy(0, 1);
+  to_vector(lambda) ~ cauchy(0, 1);
   tau ~ cauchy(0, 1);
 
   // model fitting

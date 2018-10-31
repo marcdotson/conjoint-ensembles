@@ -14,11 +14,11 @@ generated quantities {
     matrix[R, C] Z; //covariates
 
     // unobservables
-    matrix[R, L] Mu;
-    matrix[L, R] alpha;
-    matrix[L, L] L_Omega = lkj_corr_cholesky_rng(L, 5);
-    vector<lower=0>[L] tau;
-    matrix[R, L] Beta;
+    matrix[R, L] Mu; // prior mean for multinormal betas
+    matrix[L, R] alpha; // prior variance vector for betas
+    matrix[L, L] L_Omega = lkj_corr_cholesky_rng(L, 5); // correlation matrix
+    vector<lower=0>[L] tau; // parameter of the covariance matrix
+    matrix[R, L] Beta; // respondent coefficients
 
     for (r in 1:R) Z[r] = rep_row_vector(1, C);
 
