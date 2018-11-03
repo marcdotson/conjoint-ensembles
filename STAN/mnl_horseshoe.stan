@@ -11,19 +11,25 @@ data {
 }
 
 parameters {
-  real<lower=0> tau; // global prior for horseshoe
+  matrix[R, L] beta_tilde;
   matrix<lower=0>[R, L] lambda; // local prior for horseshoe
-  matrix[R, L] B; // the betas as a matrix
+  real<lower=0> tau_tilde; // global prior for horseshoe
+  real<lower=0> B_sig; // scale for B
+}
+
+transformed parameters {
+  matrix[R, L] B = beta_tilde .* lambda * B_sig * tau_tilde;
 }
 
 model {
   //priors
+  to_vector(beta_tilde) ~ normal(0, 1);
   to_vector(lambda) ~ cauchy(0, 1);
-  tau ~ cauchy(0, 1);
+  tau_tilde ~ cauchy(0, 1);
+  B_sig ~ normal(0, 2);
 
   // model fitting
   for (r in 1:R) {
-    B[r]' ~ normal(0, lambda[r] * tau);
     for (t in 1:T) {
       Y[r, t] ~ categorical_logit(X[r,t]*B[r]');
     }

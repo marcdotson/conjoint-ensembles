@@ -49,7 +49,7 @@ def pathology(beta, kind="none", prob=[.5, .5]):
     elif kind == 'ANA':
         beta *= np.random.choice([1, 0], size=len(beta), p=prob)
     elif kind == 'screening':
-        beta[-1] = -10000
+        beta[-3:] -= 100
     elif kind == 'screening_inf':
         beta[-1] = -np.inf
     elif kind == 'screening_random':

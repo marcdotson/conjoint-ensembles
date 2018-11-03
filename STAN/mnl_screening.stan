@@ -10,21 +10,27 @@ data {
   matrix[R, C] Z; // vector of covariates for each respondent
 }
 
+transformed data {
+  real mu0 = 10;
+}
+
 parameters {
-  matrix<lower=0, upper=1>[C, L] mu; // prior on mean of utilities B
-  real<lower=0> c;
+  matrix[R, L] beta_tilde;
+  matrix<lower=0>[R, L] lambda;
+  real<lower=0> mu_tilde;
 }
 
 transformed parameters {
   matrix[R, L] B; // matrix of beta coefficients
 
-  B = -c * Z * mu;
+  B = beta_tilde - lambda * (mu_tilde + mu0);
 }
 
 model {
   //priors
-  to_vector(mu) ~ beta(.2, .2);
-  c ~ cauchy(10000, 5);
+  to_vector(beta_tilde) ~ normal(0, 1);
+  to_vector(lambda) ~ cauchy(0, 1);
+  mu_tilde ~ cauchy(0, 1);
 
   // model fitting
   for (r in 1:R) {
