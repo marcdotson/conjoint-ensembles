@@ -1,4 +1,17 @@
-// HBMNL for ANA pathology
+// HBMNL for discrete choice experiments
+functions {
+  matrix LeakyReLU(matrix X) {
+    matrix[rows(X), cols(X)] X_new;
+    for (j in 1:cols(X)) {
+      for (i in 1:rows(X)) {
+        if (X[i, j] <= -1) X_new[i, j] = -square(X[i, j]);
+        else X_new[i, j] = X[i, j];
+      }
+    }
+    return X;
+  }
+}
+
 data {
   int<lower=2> A; // number of alternatives (choices) per question
   int<lower=1> L; // number of feature variables
@@ -15,24 +28,21 @@ parameters {
   cholesky_factor_corr[L] L_Omega;
   vector<lower=0,upper=pi()/2>[L] tau_unif;
   matrix[C, L] mu; // prior on mean of utilities B
-  real<lower=0> ksi; // chi-squared for multi student t
 }
 
 transformed parameters {
   matrix[R, L] B; // matrix of beta coefficients
   vector<lower=0>[L] tau; // prior scale
-  real<lower=0> nu = 2.0; // prior for multi student t distribution
-
   for (l in 1:L) tau[l] = 2.5 * tan(tau_unif[l]);
-  B = Z * mu + nu*ksi*(diag_pre_multiply(tau,L_Omega) * alpha)';
+  B = Z * mu + (diag_pre_multiply(tau,L_Omega) * alpha)';
+  B = LeakyReLU(B);
 }
 
 model {
   //priors
   to_vector(alpha) ~ normal(0, 1);
-  L_Omega ~ lkj_corr_cholesky(5);
-  to_vector(mu) ~ normal(0, 1);
-  ksi ~ inv_chi_square(nu);
+  L_Omega ~ lkj_corr_cholesky(2);
+  to_vector(mu) ~ normal(0, 5);
 
   // model fitting
   for (r in 1:R) {
@@ -45,9 +55,11 @@ model {
 generated quantities {
   // Yp is predicted choices for new data.
   real Y_ppc[R, T];
+  matrix[R, T] log_lik;
   for (r in 1:R) {
     for (t in 1:T) {
-      Y_ppc[r,t] = categorical_logit_rng(X[r,t] * B[r]');
+      Y_ppc[r, t] = categorical_logit_rng(X[r, t] * B[r]');
+      log_lik[r, t] = categorical_logit_lpmf(Y[r, t] | X[r, t] * B[r]');
     }
   }
 }

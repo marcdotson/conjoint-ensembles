@@ -126,10 +126,8 @@ def compute_beta_response(data_dict, pathology_type=None):
     
         Beta[:, resp] += beta
 
-    data_dict['Beta'] = Beta
+    data_dict['B'] = Beta
     data_dict['Y'] = Y.astype(int)
-    data_dict['Gamma'] = Gamma
-    data_dict['Vbeta'] = Vbeta
 
     if pathology_type == 'ANA':
         data_dict['w'] = np.random.binomial(1, .5, size=data_dict['T'])
@@ -137,13 +135,30 @@ def compute_beta_response(data_dict, pathology_type=None):
     return data_dict
 
 
-def generate_simulated_data(pathology_type="none"):
-    data_dict = generate_simulated_design()
-    data_dict = compute_beta_response(data_dict, pathology_type=pathology_type)
+def generate_simulated_data(pathology_type="none", use_stan=False):
+    if use_stan:
+        sm = get_model(model_name='generate_data')
+        data_dict = {'A':4, 'L':12, 'T':10, 'R':100, 'C':1}
+        data = sm.sampling(data=data_dict,
+                           iter=100,
+                           warmup=0,
+                           chains=1,
+                           refresh=100,
+                           seed=1750532,
+                           algorithm="Fixed_param")
+        # pystan fit objects can take a long time to unpack...
+        data_dict.update(data.extract(pars=['X','Y','Z','B']))
+        for v in ['X', 'Y', 'Z', 'B']:
+            data_dict[v] = data_dict[v][-1]
+        data_dict['B'] = data_dict['B'].T
+        data_dict['Y'] = data_dict['Y'].astype(int)
+    else:
+        data_dict = generate_simulated_design()
+        data_dict = compute_beta_response(data_dict, pathology_type=pathology_type)
     return data_dict
 
 
-def get_model(model_name='HBMNL_vanilla'):
+def get_model(model_name='mnl_vanilla'):
 
     with open('./STAN/{0}.stan'.format(model_name), 'r') as f:
         stan_model = f.read()
@@ -189,36 +204,23 @@ def plot_ppc(data_dict, fit):
     plt.show()
 
     
-def plot_betas(data_dict, fit):
-    # extract betas and posterior predictive checks
-    B = fit.extract(pars='B')['B']
-    Y_ppc = fit.extract(pars=['Y_ppc'])['Y_ppc']
-
-    max_beta = max(abs(B.mean(axis=0).max()), abs(data_dict['Beta'].max()))
+def plot_betas(B, plot_title='model coefficients'):
+    max_beta = np.absolute(B).max()
     # Plot the betas both generated and estimated
     plt.figure(figsize=(16,8))
 
-    plt.subplot(411)
-    plt.imshow(B.mean(axis=0).T, cmap='RdGy_r', norm=MidpointNormalize(midpoint=0, vmin=-max_beta, vmax=max_beta))
-    plt.title("Estimated Betas")
-    plt.colorbar()
+    plt.subplot(311)
+    plt.imshow(B, cmap='RdGy_r', norm=MidpointNormalize(midpoint=0, vmin=-max_beta, vmax=max_beta))
+    plt.title(plot_title)
 
-    plt.subplot(412)
-    plt.imshow(data_dict['Beta'], cmap='RdGy_r', norm=MidpointNormalize(midpoint=0, vmin=-max_beta, vmax=max_beta))
-    plt.title("Generated Betas")
-    plt.colorbar()
+    plt.subplot(312)
+    plt.plot(np.arange(12), B.mean(axis=1), color='r')
+    plt.title("Feature Level Avg")
 
-    plt.subplot(413)
-    plt.plot(np.arange(12), data_dict['Beta'].mean(axis=1), color='grey', lw=4, alpha=.7, label='Generated')
-    plt.plot(np.arange(12), B.mean(axis=0).T.mean(axis=1), color='r', label='Estimated')
-    plt.legend()
-    plt.title("Feature Level Betas (avg)")
-
-    plt.subplot(414)
-    y = B.mean(axis=0).T.mean(axis=0)
-    plt.plot(np.arange(len(y)), data_dict['Beta'].mean(axis=0), color='grey', alpha=.7, lw=4)
+    plt.subplot(313)
+    y = B.mean(axis=0)
     plt.plot(np.arange(len(y)), y, color='r')
-    plt.title("Respondent Betas (avg)")
+    plt.title("Respondent Avg")
 
     plt.show()
 
@@ -229,7 +231,7 @@ def plot_respondent(r, data_dict, fit):
     for l in range(data_dict['L']):
         ax = plt.subplot(4,3,l+1)
         ax.hist(B[:,r,l], color='r', alpha=.5)
-        ax.axvline(data_dict['Beta'][l,r], color='k')
+        ax.axvline(data_dict['B'][l,r], color='k')
         ax.set_title("Beta {0}".format(l+1))
     plt.show()
 
