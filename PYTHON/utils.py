@@ -72,7 +72,7 @@ def generate_simulated_design(nresp=100, nscns=10, nalts=4, nlvls=12, ncovs=1):
     
     # X is the experimental design
     X = np.zeros((nresp, nscns, nalts, nlvls))
-    # Z is the covariates
+    # Z is a matrix for demographic attributes
     Z = np.zeros((ncovs, nresp))
     
     for resp in range(nresp):
@@ -140,16 +140,16 @@ def generate_simulated_data(pathology_type="none", use_stan=False):
         sm = get_model(model_name='generate_data')
         data_dict = {'A':4, 'L':12, 'T':10, 'R':100, 'C':1}
         data = sm.sampling(data=data_dict,
-                           iter=100,
+                           iter=10000,
                            warmup=0,
                            chains=1,
-                           refresh=100,
+                           refresh=10000,
                            seed=1750532,
                            algorithm="Fixed_param")
         # pystan fit objects can take a long time to unpack...
-        data_dict.update(data.extract(pars=['X','Y','Z','B']))
+        #data_dict.update(data.extract(pars=['X','Y','Z','B']))
         for v in ['X', 'Y', 'Z', 'B']:
-            data_dict[v] = data_dict[v][-1]
+            data_dict[v] = data.extract(pars=[v])[v][-1]
         data_dict['B'] = data_dict['B'].T
         data_dict['Y'] = data_dict['Y'].astype(int)
     else:
@@ -204,25 +204,28 @@ def plot_ppc(data_dict, fit):
     plt.show()
 
     
-def plot_betas(B, plot_title='model coefficients'):
-    max_beta = np.absolute(B).max()
+def plot_betas(B1, B2):
+    max_beta_01 = np.absolute(B1).max()
+    max_beta_02 = np.absolute(B2).max()
     # Plot the betas both generated and estimated
     plt.figure(figsize=(16,8))
 
-    plt.subplot(311)
-    plt.imshow(B, cmap='RdGy_r', norm=MidpointNormalize(midpoint=0, vmin=-max_beta, vmax=max_beta))
-    plt.title(plot_title)
-
-    plt.subplot(312)
-    plt.plot(np.arange(12), B.mean(axis=1), color='r')
-    plt.title("Feature Level Avg")
-
-    plt.subplot(313)
-    y = B.mean(axis=0)
-    plt.plot(np.arange(len(y)), y, color='r')
-    plt.title("Respondent Avg")
-
+    plt.subplot(211)
+    plt.imshow(B1, cmap='RdGy_r', norm=MidpointNormalize(midpoint=0, vmin=-max_beta_01, vmax=max_beta_01))
+    
+    plt.subplot(212)
+    plt.imshow(B2, cmap='RdGy_r', norm=MidpointNormalize(midpoint=0, vmin=-max_beta_02, vmax=max_beta_02))
+    
     plt.show()
+
+#     plt.subplot(312)
+#     plt.plot(np.arange(12), B.mean(axis=1), color='r')
+#     plt.title("Feature Level Avg")
+
+#     plt.subplot(313)
+#     y = B.mean(axis=0)
+#     plt.plot(np.arange(len(y)), y, color='r')
+#     plt.title("Respondent Avg")
 
     
 def plot_respondent(r, data_dict, fit):

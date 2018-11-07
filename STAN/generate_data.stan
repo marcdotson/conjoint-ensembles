@@ -52,9 +52,9 @@ generated quantities {
       }
       // randomly assign screening behavior pathology
       else if (bernoulli_rng(.5) == 1) {
-        for (l in 1:L) {
-          int p = bernoulli_rng(.5);
-          B[r, l] -= 100*p;
+      // Edge case if L <= 3
+        for (l in L-3:L) {
+          B[r, l] -= 100;
         }
       }
     }

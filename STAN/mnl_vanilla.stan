@@ -41,11 +41,15 @@ model {
 generated quantities {
   // Yp is predicted choices for new data.
   real Y_ppc[R, T];
-  matrix[R, T] log_lik;
-  for (r in 1:R) {
-    for (t in 1:T) {
-      Y_ppc[r, t] = categorical_logit_rng(X[r, t] * B[r]');
-      log_lik[r, t] = categorical_logit_lpmf(Y[r, t] | X[r, t] * B[r]');
+  vector[R*T] log_lik;
+  {
+    matrix[R, T] temp_log_lik;
+    for (r in 1:R) {
+      for (t in 1:T) {
+        Y_ppc[r, t] = categorical_logit_rng(X[r, t] * B[r]');
+        temp_log_lik[r, t] = categorical_logit_lpmf(Y[r, t] | X[r, t] * B[r]');
+      }
     }
+    log_lik = to_vector(temp_log_lik);
   }
 }

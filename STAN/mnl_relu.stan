@@ -1,10 +1,10 @@
 // HBMNL for discrete choice experiments
 functions {
-  matrix LeakyReLU(matrix X) {
+  matrix ReLU(matrix X) {
     matrix[rows(X), cols(X)] X_new;
     for (j in 1:cols(X)) {
       for (i in 1:rows(X)) {
-        if (X[i, j] <= -1) X_new[i, j] = -square(X[i, j]);
+        if (X[i, j] <= 0) X_new[i, j] = 0;
         else X_new[i, j] = X[i, j];
       }
     }
@@ -35,7 +35,7 @@ transformed parameters {
   vector<lower=0>[L] tau; // prior scale
   for (l in 1:L) tau[l] = 2.5 * tan(tau_unif[l]);
   B = Z * mu + (diag_pre_multiply(tau,L_Omega) * alpha)';
-  B = LeakyReLU(B);
+  B = ReLU(B);
 }
 
 model {
@@ -55,15 +55,11 @@ model {
 generated quantities {
   // Yp is predicted choices for new data.
   real Y_ppc[R, T];
-  vector[R*T] log_lik;
-  {
-    matrix[R, T] temp_log_lik;
-    for (r in 1:R) {
-      for (t in 1:T) {
-        Y_ppc[r, t] = categorical_logit_rng(X[r, t] * B[r]');
-        temp_log_lik[r, t] = categorical_logit_lpmf(Y[r, t] | X[r, t] * B[r]');
-      }
+  matrix[R, T] log_lik;
+  for (r in 1:R) {
+    for (t in 1:T) {
+      Y_ppc[r, t] = categorical_logit_rng(X[r, t] * B[r]');
+      log_lik[r, t] = categorical_logit_lpmf(Y[r, t] | X[r, t] * B[r]');
     }
-    log_lik = to_vector(temp_log_lik);
   }
 }
