@@ -44,21 +44,21 @@ training_vars <- list(R = nresp,
                       Z = as.matrix(simZ[1,,]))
 
 # Use the following Stan models in the ensemble
-#model_list <- c("./STAN/mnl_vanilla.stan",
-#                "./STAN/mnl_vanilla.stan",
-#                "./STAN/mnl_vanilla.stan",
-#                "./STAN/mnl_vanilla.stan",
-#                "./STAN/mnl_fhorseshoe.stan",
-#                "./STAN/mnl_fhorseshoe.stan",
-#                "./STAN/mnl_fhorseshoe.stan",
-#                "./STAN/mnl_fhorseshoe.stan",
-#                "./STAN/mnl_leakyrelu.stan",
-#                "./STAN/mnl_leakyrelu.stan",
-#                "./STAN/mnl_leakyrelu.stan",
-#                "./STAN/mnl_leakyrelu.stan")
 model_list <- c("./STAN/mnl_vanilla.stan",
+                "./STAN/mnl_vanilla.stan",
+                "./STAN/mnl_vanilla.stan",
+                "./STAN/mnl_vanilla.stan",
                 "./STAN/mnl_fhorseshoe.stan",
+                "./STAN/mnl_fhorseshoe.stan",
+                "./STAN/mnl_fhorseshoe.stan",
+                "./STAN/mnl_fhorseshoe.stan",
+                "./STAN/mnl_leakyrelu.stan",
+                "./STAN/mnl_leakyrelu.stan",
+                "./STAN/mnl_leakyrelu.stan",
                 "./STAN/mnl_leakyrelu.stan")
+#model_list <- c("./STAN/mnl_vanilla.stan",
+#                "./STAN/mnl_fhorseshoe.stan",
+#                "./STAN/mnl_leakyrelu.stan")
 
 
 # Fit each base model to training data
@@ -92,8 +92,6 @@ W <- loo_model_weights(log_lik_list,
                        method = 'stacking',
                        r_eff_list = r_eff_list,
                        optim_control = list(reltol = 1e-10))
-
-print(as.vector(W))
 
 ### GENERATE PREDICTIONS ###
 
@@ -142,16 +140,32 @@ for (k in 1:K) {
   prediction_fit_list[[k]] <- fit
 }
 
+weights <- as.vector(W)
 Y_count_list <- lapply(prediction_fit_list,
                        function(x) {
-                         extract(x, pars='Y_count')$Y_count
+                         Yc <- extract(x, pars='Y_count')$Y_count
+                         colSums(Yc, dims=1)
                        })
 
-weights <- as.vector(W)
 for (k in 1:K) {
-  weights[[k]]*Y_count_list[[k]]
+  Y_count_list[[k]] <- weights[[k]] * Y_count_list[[k]]
 }
 
+total_Y_count <- Reduce("+", Y_count_list)
 
+print(dim(total_Y_count))
+
+hit_count <- 0
+
+for (r in 1:Rtest) {
+  for (t in 1:Ttest) {
+    Y_predicted <- which.max(total_Y_count[r, t, ])
+    if (Y_predicted == testY[1, r, t]) {
+      hit_count <- hit_count + 1
+    }
+  }
+}
+
+print(hit_count/(Rtest*Ttest))
 
 ### END ###
