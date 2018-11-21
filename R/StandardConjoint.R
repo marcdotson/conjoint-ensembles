@@ -1,4 +1,5 @@
-# R script to run a pathology treatment ensemble # Preamble ----------------------------------------------------------------
+# R script to run a pathology treatment ensemble
+# Preamble ----------------------------------------------------------------
 # Load libraries.
 library(loo)
 library(rstan)
@@ -13,8 +14,6 @@ nalts = 4
 nlvls = 12
 ncovs = 1
 niter = 1000
-nchains = 2
-treedepth = 3
 random_seed = 9483721
 
 # input data for generate_data.stan
@@ -35,7 +34,7 @@ simX <- extract(train_data, permuted = TRUE)$X
 simY <- extract(train_data, permuted = TRUE)$Y
 simZ <- extract(train_data, permuted = TRUE)$Z
 
-# input data for the Stan base models
+# input data for the standard conjoint model
 training_vars <- list(R = nresp,
                       T = ntask,
                       A = nalts,
@@ -46,15 +45,7 @@ training_vars <- list(R = nresp,
                       Z = as.matrix(simZ[1,,]))
 
 # Use the following Stan models in the ensemble
-model_list <- c("./STAN/mnl_vanilla.stan",
-                "./STAN/mnl_vanilla.stan",
-                "./STAN/mnl_vanilla.stan",
-                "./STAN/mnl_fhorseshoe.stan",
-                "./STAN/mnl_fhorseshoe.stan",
-                "./STAN/mnl_fhorseshoe.stan")
-
-
-
+model_list <- c("./STAN/mnl_vanilla.stan")
 
 # Fit each base model to training data
 fit_list <- list()
@@ -64,35 +55,17 @@ for (k in 1:K){
     fit <- stan(model_list[[k]],
                 data = training_vars,
                 iter=niter,
-                chains = nchains,
-                control = list(adapt_delta = .9))#, max_treedepth = treedepth))
+                chains = 2,
+                control = list(adapt_delta = .9, max_treedepth = 6))
     fit_list[[k]] <- fit
 }
 
-
-### COMPUTE STACKING WEIGHTS ###
-
-# store each model's log likelihoods in a list
-#log_lik_list <- lapply(fit_list, extract_log_lik)
-
-# relative effective sample size helps loo computation accuracy
-#r_eff_list <- lapply(fit_list,
-#                     function(x) {
-#                       ll_array <- extract_log_lik(x, merge_chains = FALSE)
-#                       relative_eff(exp(ll_array))
-#                     })
-
-# compute stacking weights via loo
-#W <- loo_model_weights(log_lik_list,
-#                       method = 'stacking',
-#                       r_eff_list = r_eff_list,
-#                       optim_control = list(reltol = 1e-10))
 
 ### GENERATE PREDICTIONS ###
 
 # generate test or holdout data set
 Rtest = 50
-Ttest = 12
+Ttest = 10
 
 test_vars <- list(R = Rtest, T = Ttest, A = nalts, L = nlvls, C = ncovs)
 test_data <- stan("./STAN/generate_data.stan",
@@ -118,7 +91,7 @@ for (k in 1:K) {
   # input data for the prediction models
   testing_vars <- list(A = nalts,
                        L = nlvls,
-                       I = (nchains/2)*niter,
+                       I = niter,
                        R = nresp,
                        Rtest = Rtest,
                        Ttest = Ttest,
@@ -135,48 +108,27 @@ for (k in 1:K) {
   prediction_fit_list[[k]] <- fit
 }
 
-#weights <- as.vector(W)
 Y_count_list <- lapply(prediction_fit_list,
                        function(x) {
                          Yc <- extract(x, pars='Y_count')$Y_count
                          colSums(Yc, dims=1)
                        })
 
-#for (k in 1:K) {
-#  Y_count_list[[k]] <- weights[[k]] * Y_count_list[[k]]
-#}
+total_Y_count <- Reduce("+", Y_count_list)
 
+print(dim(total_Y_count))
 
-for (k in 1:K) {
-  hit_count <- 0
-  for (r in 1:Rtest) {
-    for (t in 1:Ttest) {
-      Y_predicted <- which.max(Y_count_list[[k]][r, t, ])
-      if (Y_predicted == testY[1, r, t]) {
-        hit_count <- hit_count + 1
-      }
+hit_count <- 0
+
+for (r in 1:Rtest) {
+  for (t in 1:Ttest) {
+    Y_predicted <- which.max(total_Y_count[r, t, ])
+    if (Y_predicted == testY[1, r, t]) {
+      hit_count <- hit_count + 1
     }
   }
-  print(model_list[[k]])
-  print(hit_count/(Rtest*Ttest))
 }
 
-#total_Y_count <- Reduce("+", Y_count_list)
-#
-#print(dim(total_Y_count))
-#
-#hit_count <- 0
-#
-#for (r in 1:Rtest) {
-#  for (t in 1:Ttest) {
-#    Y_predicted <- which.max(total_Y_count[r, t, ])
-#    if (Y_predicted == testY[1, r, t]) {
-#      hit_count <- hit_count + 1
-#    }
-#  }
-#}
-#
-##print(W)
-#print(hit_count/(Rtest*Ttest))
+print(hit_count/(Rtest*Ttest))
 
 ### END ###

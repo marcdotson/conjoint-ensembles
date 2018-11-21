@@ -50,8 +50,8 @@ def pathology(beta, kind="none", prob=[.5, .5]):
         beta *= np.random.choice([1, 0], size=len(beta), p=prob)
     elif kind == 'screening':
         beta[-3:] -= 100
-    elif kind == 'screening_inf':
-        beta[-1] = -np.inf
+    elif kind == 'exponential':
+        beta = np.random.exponential(size=len(beta))
     elif kind == 'screening_random':
         if int(np.random.choice([1,0], p=prob)):
             i = np.random.randint(len(beta))
@@ -65,6 +65,13 @@ def pathology(beta, kind="none", prob=[.5, .5]):
             pathology_vector = np.ones_like(beta)
             pathology_vector[:int(len(beta)//2)] = 0
             beta *= pathology_vector
+    elif kind == 'all':
+        # ANA
+        if int(np.random.choice([1,0], p=prob)):
+            beta *= np.random.choice([1, 0], size=len(beta), p=prob)
+        # Screening
+        if int(np.random.choice([0,1], p=prob)):
+            beta[-3:] -= 100
     return beta
 
 
@@ -207,14 +214,17 @@ def plot_ppc(data_dict, fit):
 def plot_betas(B1, B2):
     max_beta_01 = np.absolute(B1).max()
     max_beta_02 = np.absolute(B2).max()
+    max_beta = min(max_beta_01, max_beta_02)
     # Plot the betas both generated and estimated
     plt.figure(figsize=(16,8))
 
     plt.subplot(211)
-    plt.imshow(B1, cmap='RdGy_r', norm=MidpointNormalize(midpoint=0, vmin=-max_beta_01, vmax=max_beta_01))
+    plt.imshow(B1, cmap='RdGy_r', norm=MidpointNormalize(midpoint=0, vmin=-max_beta, vmax=max_beta))
+    plt.colorbar()
     
     plt.subplot(212)
-    plt.imshow(B2, cmap='RdGy_r', norm=MidpointNormalize(midpoint=0, vmin=-max_beta_02, vmax=max_beta_02))
+    plt.imshow(B2, cmap='RdGy_r', norm=MidpointNormalize(midpoint=0, vmin=-max_beta, vmax=max_beta))
+    plt.colorbar()
     
     plt.show()
 
