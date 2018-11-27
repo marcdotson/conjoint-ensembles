@@ -3,26 +3,22 @@ Functions in this file:
 
     pathology(beta, kind=None)
 
-    generate_simulated_design(nresp, nscns, nalts, nlvls, ncovs)
+    generate_simulated_design(nresp, ntask, nalts, nlvls, ncovs)
 
     compute_beta_response(data_dict, pathology_type=None)
 
     generate_simulated_data(pathology_type=None)
 
-    fit_model(data_dict, model_name)
-
-    get_loo_list(fit)
-
 '''
 
 
-from . import psis
 import pystan
 import pickle
 import numpy as np
 from matplotlib import colors
 import matplotlib.pyplot as plt
-from scipy.optimize import minimize, LinearConstraint
+from constants import *
+np.random.seed(seed=random_seed)
 
 
 # set the colormap and centre the colorbar
@@ -44,6 +40,7 @@ class MidpointNormalize(colors.Normalize):
 
     
 def pathology(beta, kind="none", prob=[.5, .5]):
+    # apply the pathologies
     if kind == 'none':
         pass
     elif kind == 'ANA':
@@ -75,10 +72,9 @@ def pathology(beta, kind="none", prob=[.5, .5]):
     return beta
 
 
-def generate_simulated_design(nresp=100, nscns=10, nalts=4, nlvls=12, ncovs=1):
-    
+def generate_simulated_design():
     # X is the experimental design
-    X = np.zeros((nresp, nscns, nalts, nlvls))
+    X = np.zeros((nresp, ntask, nalts, nlvls))
     # Z is a matrix for demographic attributes
     Z = np.zeros((ncovs, nresp))
     
@@ -87,7 +83,7 @@ def generate_simulated_design(nresp=100, nscns=10, nalts=4, nlvls=12, ncovs=1):
         if ncovs > 1:
             raise NotImplementedError
     
-        for scn in range(nscns):
+        for scn in range(ntask):
             X_scn = np.random.choice([0,1], p =[.5,.5], size=nalts*nlvls).reshape(nalts,nlvls)
             X[resp, scn] += X_scn
     
@@ -99,7 +95,7 @@ def generate_simulated_design(nresp=100, nscns=10, nalts=4, nlvls=12, ncovs=1):
                  'A':nalts,
                  'R':nresp,
                  'C':ncovs,
-                 'T':nscns,
+                 'T':ntask,
                  'L':nlvls}
     return data_dict
 
@@ -136,9 +132,6 @@ def compute_beta_response(data_dict, pathology_type=None):
     data_dict['B'] = Beta
     data_dict['Y'] = Y.astype(int)
 
-    if pathology_type == 'ANA':
-        data_dict['w'] = np.random.binomial(1, .5, size=data_dict['T'])
-
     return data_dict
 
 
@@ -151,7 +144,7 @@ def generate_simulated_data(pathology_type="none", use_stan=False):
                            warmup=0,
                            chains=1,
                            refresh=10000,
-                           seed=1750532,
+                           seed=random_seed,
                            algorithm="Fixed_param")
         # pystan fit objects can take a long time to unpack...
         #data_dict.update(data.extract(pars=['X','Y','Z','B']))
@@ -179,6 +172,15 @@ def get_model(model_name='mnl_vanilla'):
             pickle.dump(sm, f)
     
     return sm
+
+
+def fit_model_to_data(model, data, sampling_alg=None):
+    return model.sampling(
+            data,
+            iter=niter,
+            chains=nchains,
+            control={'adapt_delta':.9, 'max_treedepth':treedepth},
+            algorithm=sampling_alg)
 
 
 def plot_ppc(data_dict, fit):
@@ -237,7 +239,14 @@ def plot_betas(B1, B2):
 #     plt.plot(np.arange(len(y)), y, color='r')
 #     plt.title("Respondent Avg")
 
-    
+def plot_fit_results(FIT, DATA, f=""):
+    # plot results
+    print("Results for fit {0}".format(f))
+    B = FIT.extract(pars=['B'])['B'][-1].T
+    utils.plot_betas(B, DATA['B'])
+    utils.plot_ppc(DATA, FIT)
+
+
 def plot_respondent(r, data_dict, fit):
     B = fit.extract(pars=['B'])['B']
     plt.figure(figsize=(12,15))
@@ -257,45 +266,5 @@ def plot_respondent(r, data_dict, fit):
     plt.show()
 
 
-#def get_loos(fit):
-#
-#    log_lik = fit.extract(pars='log_lik')['log_lik']
-#
-#    LL = np.zeros((log_lik.shape[0], log_lik.shape[1]*log_lik.shape[2]))
-#    for i in range(log_lik.shape[0]):
-#        LL[i] = log_lik[i].flatten()
-#
-#    return psis.psisloo(LL)
-#
-#
-#def stacking_weights(LL_list):
-#    lpd_point = np.vstack(LL_list).T
-#    N = lpd_point.shape[0]
-#    K = lpd_point.shape[1]
-#    exp_lpd_point = np.exp(lpd_point)
-#
-#    # neg_log_score_loo
-#    def f(w):
-#        w_full = np.hstack((w, 1-np.sum(w)))
-#        S = 0
-#        for i in range(N):
-#            S += np.log(np.exp(lpd_point[i, :]).dot(w_full))
-#        return -S
-#
-#    # grad_neg_log_score_loo
-#    def grad_f(w):
-#        w_full = np.hstack((w, 1-np.sum(w)))
-#        grad = np.zeros(K-1)
-#        for k in range(K-1):
-#            for i in range(N):
-#                grad[k] += (exp_lpd_point[i,k] - exp_lpd_point[i,-1]) / (exp_lpd_point[i, :].dot(w_full))
-#        return -grad
-#
-#    ui = np.vstack((-np.ones(K-1), np.diag(np.ones(K-1))))
-#    ci = np.zeros(K)
-#    ci[0] = -1
-#    x0 = (1/K)*np.ones(K-1)
-#    lincon = ({'type': 
-#    out = minimize(f, x0, method='COBYLA', jac=grad_f, constraints=[lincon])
-#    return out
-#
+def get_hit_count():
+    pass

@@ -13,14 +13,15 @@ ntask = 10
 nalts = 4
 nlvls = 12
 ncovs = 1
-niter = 1000
-random_seed = 9483721
+niter = 300
+treedepth = 3
+random_seed = 1750532
 
 # input data for generate_data.stan
 train_vars <- list(R = nresp, T = ntask, A = nalts, L = nlvls, C = ncovs)
 
 # Generate training data set
-train_data <- stan("./STAN/generate_data.stan",
+train_data <- stan("./STAN/generate_data2.stan",
                    data = train_vars,
                    iter = 1,
                    chains = 1,
@@ -56,7 +57,7 @@ for (k in 1:K){
                 data = training_vars,
                 iter=niter,
                 chains = 2,
-                control = list(adapt_delta = .9, max_treedepth = 6))
+                control = list(adapt_delta = .9, max_treedepth = treedepth))
     fit_list[[k]] <- fit
 }
 
@@ -68,7 +69,7 @@ Rtest = 50
 Ttest = 10
 
 test_vars <- list(R = Rtest, T = Ttest, A = nalts, L = nlvls, C = ncovs)
-test_data <- stan("./STAN/generate_data.stan",
+test_data <- stan("./STAN/generate_data2.stan",
                   data = test_vars,
                   iter = 1,
                   chains = 1,
