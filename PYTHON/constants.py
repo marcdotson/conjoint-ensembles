@@ -1,5 +1,5 @@
-nresp = 150
-ntask = 20
+nresp = 100
+ntask = 15
 nalts = 4
 nlvls = 12
 ncovs = 1
@@ -10,8 +10,11 @@ random_seed = 1750532
 
 nresp_train = 100
 ntask_train = 10
-nresp_test = 50
-ntask_test = 10
+#nresp_test = 100
+ntask_test = 5
+
+K = ntask_train # K for k-fold CV
 
 N = nresp_train*ntask_train
-N_test = nresp_test*ntask_test
+Nk = nresp_train
+Ntest = nresp_train*ntask_test

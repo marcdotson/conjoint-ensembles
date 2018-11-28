@@ -266,5 +266,34 @@ def plot_respondent(r, data_dict, fit):
     plt.show()
 
 
+def get_data_dict(new_resp=False):
+    data_dict = generate_simulated_data(pathology_type='all')
+    
+    if new_resp:
+        data_dict['Xtrain'] = data_dict['X'][:nresp_train, :ntask_train, :, :]
+        data_dict['Ytrain'] = data_dict['Y'][:nresp_train, :ntask_train]
+        data_dict['Xtest'] = data_dict['X'][nresp_test:, -ntask_test:, :, :]
+        data_dict['Ytest'] = data_dict['Y'][nresp_test:, -ntask_test:]
+        
+        data_dict['Xtrain'] = data_dict['Xtrain'].reshape(N, nalts, nlvls)
+        data_dict['Ytrain'] = data_dict['Ytrain'].reshape(N)
+        data_dict['Xtest'] = data_dict['Xtest'].reshape(Ntest, nalts, nlvls)
+        data_dict['Ytest'] = data_dict['Ytest'].reshape(Ntest)
+
+    else:
+        data_dict['Xtrain'] = data_dict['X'][:nresp_train, :ntask_train, :, :]
+        data_dict['Ytrain'] = data_dict['Y'][:nresp_train, :ntask_train]
+        data_dict['Xtest'] = data_dict['X'][:nresp_train, -ntask_test:, :, :]
+        data_dict['Ytest'] = data_dict['Y'][:nresp_train, -ntask_test:]
+        
+        data_dict['Xtrain'] = data_dict['Xtrain'].reshape(N, nalts, nlvls)
+        data_dict['Ytrain'] = data_dict['Ytrain'].reshape(N)
+        data_dict['Xtest'] = data_dict['Xtest'].reshape(Ntest, nalts, nlvls)
+        data_dict['Ytest'] = data_dict['Ytest'].reshape(Ntest)
+
+    return data_dict
+
+
+
 def get_hit_count():
     pass
