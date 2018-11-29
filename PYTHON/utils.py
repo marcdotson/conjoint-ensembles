@@ -62,6 +62,9 @@ def pathology(beta, kind="none", prob=[.5, .5]):
             pathology_vector = np.ones_like(beta)
             pathology_vector[:int(len(beta)//2)] = 0
             beta *= pathology_vector
+    elif kind == 'basic':
+        beta = pathology(beta, kind='ANA')
+        beta = pathology(beta, kind='screening')
     elif kind == 'all':
         # ANA
         if int(np.random.choice([1,0], p=prob)):
@@ -69,6 +72,13 @@ def pathology(beta, kind="none", prob=[.5, .5]):
         # Screening
         if int(np.random.choice([0,1], p=prob)):
             beta[-3:] -= 100
+        if int(np.random.choice([0,1], p=prob)):
+            beta *= np.random.uniform(-10, 10, size=len(beta))
+        if int(np.random.choice([0,1], p=prob)):
+            beta = np.random.laplace(size=len(beta))
+        if int(np.random.choice([0,1], p=prob)):
+            beta += np.random.exponential(size=len(beta))
+
     return beta
 
 
@@ -266,7 +276,7 @@ def plot_respondent(r, data_dict, fit):
     plt.show()
 
 
-def get_data_dict(new_resp=False):
+def get_data_dict(kind='ensemble', new_resp=False, pathology_type='basic'):
     data_dict = generate_simulated_data(pathology_type='all')
     
     if new_resp:
@@ -274,11 +284,6 @@ def get_data_dict(new_resp=False):
         data_dict['Ytrain'] = data_dict['Y'][:nresp_train, :ntask_train]
         data_dict['Xtest'] = data_dict['X'][nresp_test:, -ntask_test:, :, :]
         data_dict['Ytest'] = data_dict['Y'][nresp_test:, -ntask_test:]
-        
-        data_dict['Xtrain'] = data_dict['Xtrain'].reshape(N, nalts, nlvls)
-        data_dict['Ytrain'] = data_dict['Ytrain'].reshape(N)
-        data_dict['Xtest'] = data_dict['Xtest'].reshape(Ntest, nalts, nlvls)
-        data_dict['Ytest'] = data_dict['Ytest'].reshape(Ntest)
 
     else:
         data_dict['Xtrain'] = data_dict['X'][:nresp_train, :ntask_train, :, :]
@@ -286,6 +291,7 @@ def get_data_dict(new_resp=False):
         data_dict['Xtest'] = data_dict['X'][:nresp_train, -ntask_test:, :, :]
         data_dict['Ytest'] = data_dict['Y'][:nresp_train, -ntask_test:]
         
+    if kind == 'ensemble':
         data_dict['Xtrain'] = data_dict['Xtrain'].reshape(N, nalts, nlvls)
         data_dict['Ytrain'] = data_dict['Ytrain'].reshape(N)
         data_dict['Xtest'] = data_dict['Xtest'].reshape(Ntest, nalts, nlvls)

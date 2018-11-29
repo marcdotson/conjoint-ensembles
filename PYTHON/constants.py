@@ -10,7 +10,7 @@ random_seed = 1750532
 
 nresp_train = 100
 ntask_train = 10
-#nresp_test = 100
+nresp_test = 100
 ntask_test = 5
 
 K = ntask_train # K for k-fold CV

@@ -16,10 +16,10 @@ data {
   int<lower=1> N; // number of observations
   int<lower=1> Ntest; // number of test observations
 
-  matrix[A, L] X[N]; // matrix of attributes for each obs
-  int<lower=1,upper=A> Y[N]; // observed responses
+  matrix[A, L] X[R, T]; // matrix of attributes for each obs
+  int<lower=1,upper=A> Y[R, T]; // observed responses
 
-  matrix[A, L] Xtest[Ntest]; // test design matrix
+  matrix[A, L] X[Ntest]; // test design matrix
 }
 
 parameters {
@@ -28,7 +28,7 @@ parameters {
 
 transformed parameters {
   vector[L] B; // matrix of beta coefficients
-  B = LeakyReLU(beta, L);
+  B = LeakyReLU(beta);
 }
 
 model {

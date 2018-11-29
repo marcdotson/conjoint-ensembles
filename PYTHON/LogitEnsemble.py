@@ -2,6 +2,9 @@ import numpy as np
 import utils
 from constants import *
 
+# X is R,T,A,L
+# Y is R,T
+
 data_dict = utils.get_data_dict()
 
 stan_data = {
@@ -12,8 +15,9 @@ stan_data = {
         }
 
 step = np.linspace(0,N,ntask_train+1).astype(np.int64)
+l_step = np.arange(0,L,2)
 
-model_list = ['mnl', 'mnl_fhorseshoe']
+model_list = ['mnl', 'mnl_fhorseshoe', 'mnl_leakyrelu']
 
 M = len(model_list)
 
@@ -41,6 +45,7 @@ for k in range(K):
         Yc = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0)
         Yhat_k = np.argmax(Yc, axis=1)
         Yhat_train[~k_fold, Yhat_k, m] += 1
+        #Yhat_train[~k_fold, :, m] = Yc
 
 
 # make predictions on full test set using full training set
@@ -64,6 +69,7 @@ for m in range(M):
     Yc_test = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0)
     Yhat_k = np.argmax(Yc_test, axis=1)
     Yhat_test[np.array([True]*Ntest), Yhat_k, m] += 1
+    #Yhat_test[:, :, m] += Yc_test
 
     model_scores.append(Ntest - np.count_nonzero(Yhat_k+1 - data_dict['Ytest']))
 
@@ -73,7 +79,7 @@ stan_data['M'] = M
 stan_data['Yhat_train'] = Yhat_train
 stan_data['Yhat_test'] = Yhat_test
 
-meta_model = utils.get_model(model_name='meta_mnl')
+meta_model = utils.get_model(model_name='meta_mnl2')
 FIT = utils.fit_model_to_data(meta_model, stan_data)
 
 Yc_stacking = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0)
@@ -82,6 +88,12 @@ Yhat_stacking = np.argmax(Yc_stacking, axis=1) + 1
 hit_count = Ntest - np.count_nonzero(Yhat_stacking - data_dict['Ytest'])
 print("\n\nMODEL SCORES\n\t", np.array(model_scores)/Ntest)
 print("ENSEMBLE SCORE\n\t",hit_count/Ntest)
+
 print(Yhat_test)
+yy = Yhat_test.sum(axis=2)
+
+print("3",len(yy[yy==3]))
+print("2",len(yy[yy==2]))
+print("1",(len(yy[yy==1])-len(yy[yy==2]))//3)
 
 ## END ##
