@@ -5,19 +5,19 @@ from constants import *
 # X is R,T,A,L
 # Y is R,T
 
-data_dict = utils.get_data_dict()
+data_dict_hmnl,data_dict = utils.get_data_dict(kind='ensemble',pathology_type='basic')
 
 stan_data = {
         'A':nalts,
-        'L':nlvls,
+        'L':nlvls//2,
         'loc':0,
         'scale':2
         }
 
 step = np.linspace(0,N,ntask_train+1).astype(np.int64)
-l_step = np.arange(0,L,2)
+l_step = np.arange(0,nlvls+1,6)
 
-model_list = ['mnl', 'mnl_fhorseshoe', 'mnl_leakyrelu']
+model_list = sorted(['mnl', 'mnl_fhorseshoe']*2)
 
 M = len(model_list)
 
@@ -33,11 +33,11 @@ for k in range(K):
         stan_data['Ntest'] = sum(~k_fold) # Nk
 
         # new training set = subset of full training set
-        stan_data['X'] = data_dict['Xtrain'][k_fold, :, :]
+        stan_data['X'] = data_dict['Xtrain'][k_fold, :, l_step[m%2]:l_step[m%2 + 1]]
         stan_data['Y'] = data_dict['Ytrain'][k_fold]
     
         # new test set = complement of new training set | full training set
-        stan_data['Xtest'] = data_dict['Xtrain'][~k_fold, :, :]
+        stan_data['Xtest'] = data_dict['Xtrain'][~k_fold, :, l_step[m%2]:l_step[m%2 + 1]]
     
         base_model = utils.get_model(model_name=model_list[m])
         FIT = utils.fit_model_to_data(base_model, stan_data)
@@ -57,11 +57,11 @@ for m in range(M):
     stan_data['Ntest'] = Ntest # length of test set
     
     # full training set
-    stan_data['X'] = data_dict['Xtrain']
+    stan_data['X'] = data_dict['Xtrain'][:, :, l_step[m%2]:l_step[m%2 + 1]]
     stan_data['Y'] = data_dict['Ytrain']
  
     # full test set
-    stan_data['Xtest'] = data_dict['Xtest']
+    stan_data['Xtest'] = data_dict['Xtest'][:,:,l_step[m%2]:l_step[m%2 + 1]]
 
     base_model = utils.get_model(model_name=model_list[m])
     FIT = utils.fit_model_to_data(base_model, stan_data)
@@ -78,6 +78,7 @@ for m in range(M):
 stan_data['M'] = M
 stan_data['Yhat_train'] = Yhat_train
 stan_data['Yhat_test'] = Yhat_test
+stan_data['L'] = nlvls
 
 meta_model = utils.get_model(model_name='meta_mnl2')
 FIT = utils.fit_model_to_data(meta_model, stan_data)
@@ -85,15 +86,51 @@ FIT = utils.fit_model_to_data(meta_model, stan_data)
 Yc_stacking = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0)
 Yhat_stacking = np.argmax(Yc_stacking, axis=1) + 1
 
-hit_count = Ntest - np.count_nonzero(Yhat_stacking - data_dict['Ytest'])
-print("\n\nMODEL SCORES\n\t", np.array(model_scores)/Ntest)
-print("ENSEMBLE SCORE\n\t",hit_count/Ntest)
+ensemble_hit_count = Ntest - np.count_nonzero(Yhat_stacking - data_dict['Ytest'])
 
-print(Yhat_test)
+##################################
+####### run standard model #######
+##################################
+
+stan_data = {
+        'A':nalts,
+        'L':nlvls,
+        'T':ntask_train,
+        'R':nresp_train,
+        'C':ncovs,
+        'Rtest':nresp_test,
+        'Ttest':ntask_test,
+        'X':data_dict_hmnl['Xtrain'],
+        'Y':data_dict_hmnl['Ytrain'],
+        'Z':data_dict_hmnl['Z'],
+        'Xtest': data_dict_hmnl['Xtest']
+        }
+
+
+# fit model to data
+base_model = utils.get_model(model_name='mnl_vanilla')
+FIT = utils.fit_model_to_data(base_model, stan_data)
+
+
+Yc = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0).reshape((Ntest, nalts))
+Yhat = np.argmax(Yc, axis=1) + 1
+print(Yhat)
+
+hit_count = Ntest - np.count_nonzero(Yhat - data_dict_hmnl['Ytest'].reshape(Ntest))
+print("\nMODEL SCORE\n\t",hit_count/Ntest)
+print("ENSEMBLE SCORE\n\t",ensemble_hit_count/Ntest)
+print("BASE MODEL SCORES\n\t", np.array(model_scores)/Ntest)
+
 yy = Yhat_test.sum(axis=2)
 
-print("3",len(yy[yy==3]))
-print("2",len(yy[yy==2]))
-print("1",(len(yy[yy==1])-len(yy[yy==2]))//3)
+coverage_list = []
+for j in range(Ntest):
+    coverage_list.append(max(yy[j, :]))
+coverage = np.array(coverage_list)
+
+print("BASE MODEL COVERAGE")
+for i in range(M):
+    print(i+1, len(coverage[coverage==i+1]))
+print(Yhat_test)
 
 ## END ##

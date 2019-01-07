@@ -277,7 +277,7 @@ def plot_respondent(r, data_dict, fit):
 
 
 def get_data_dict(kind='ensemble', new_resp=False, pathology_type='basic'):
-    data_dict = generate_simulated_data(pathology_type='all')
+    data_dict = generate_simulated_data(pathology_type=pathology_type)
     
     if new_resp:
         data_dict['Xtrain'] = data_dict['X'][:nresp_train, :ntask_train, :, :]
@@ -292,12 +292,15 @@ def get_data_dict(kind='ensemble', new_resp=False, pathology_type='basic'):
         data_dict['Ytest'] = data_dict['Y'][:nresp_train, -ntask_test:]
         
     if kind == 'ensemble':
-        data_dict['Xtrain'] = data_dict['Xtrain'].reshape(N, nalts, nlvls)
-        data_dict['Ytrain'] = data_dict['Ytrain'].reshape(N)
-        data_dict['Xtest'] = data_dict['Xtest'].reshape(Ntest, nalts, nlvls)
-        data_dict['Ytest'] = data_dict['Ytest'].reshape(Ntest)
+        ensemble_dict = data_dict.copy()
+        ensemble_dict['Xtrain'] = data_dict['Xtrain'].reshape(N, nalts, nlvls)
+        ensemble_dict['Ytrain'] = data_dict['Ytrain'].reshape(N)
+        ensemble_dict['Xtest'] = data_dict['Xtest'].reshape(Ntest, nalts, nlvls)
+        ensemble_dict['Ytest'] = data_dict['Ytest'].reshape(Ntest)
 
-    return data_dict
+        return data_dict,ensemble_dict
+    else:
+        return data_dict
 
 
 
