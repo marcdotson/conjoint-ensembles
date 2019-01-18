@@ -12,16 +12,16 @@ ntask = 10
 nalts = 4
 nlvls = 12
 ncovs = 1
-niter = 1000
+niter = 300
 nchains = 2
 treedepth = 3
-random_seed = 9483721
+random_seed = 1750532
 
 # input data for generate_data.stan
 train_vars <- list(R = nresp, T = ntask, A = nalts, L = nlvls, C = ncovs)
 
 # Generate training data set
-train_data <- stan("./STAN/generate_data.stan",
+train_data <- stan("./STAN/generate_data2.stan",
                    data = train_vars,
                    iter = 1,
                    chains = 1,
@@ -35,58 +35,40 @@ simX <- extract(train_data, permuted = TRUE)$X
 simY <- extract(train_data, permuted = TRUE)$Y
 simZ <- extract(train_data, permuted = TRUE)$Z
 
-# input data for the Stan base models
-training_vars <- list(R = nresp,
-                      T = ntask,
-                      A = nalts,
-                      L = nlvls,
-                      C = ncovs,
-                      X = as.array(simX[1,,,,]),
-                      Y = as.array(simY[1,,]),
-                      Z = as.matrix(simZ[1,,]))
-
 # Use the following Stan models in the ensemble
 model_list <- c("./STAN/mnl_vanilla.stan",
                 "./STAN/mnl_vanilla.stan",
                 "./STAN/mnl_vanilla.stan",
-                "./STAN/mnl_fhorseshoe.stan",
-                "./STAN/mnl_fhorseshoe.stan",
-                "./STAN/mnl_fhorseshoe.stan")
-
-
-
+                "./STAN/mnl_vanilla.stan")
 
 # Fit each base model to training data
+r_list <- c(1,26,51,76)
+R_list <- c(25,50,75,100)
 fit_list <- list()
 K <- length(model_list)
 for (k in 1:K){
-    # Fit the k-th model with Stan
-    fit <- stan(model_list[[k]],
-                data = training_vars,
-                iter=niter,
-                chains = nchains,
-                control = list(adapt_delta = .9))#, max_treedepth = treedepth))
-    fit_list[[k]] <- fit
+  r_ <- r_list[[k]]
+  R_ <- R_list[[k]]
+  # input data for the Stan base models
+  training_vars <- list(R = 25,
+                        T = ntask,
+                        A = nalts,
+                        L = nlvls,
+                        C = ncovs,
+                        X = as.array(simX[1,r_:R_,,,]),
+                        Y = as.array(simY[1,r_:R_,]),
+                        Z = as.matrix(simZ[1,r_:R_,]))
+
+
+  # Fit the k-th model with Stan
+  fit <- stan(model_list[[k]],
+              data = training_vars,
+              iter=niter,
+              chains = nchains,
+              control = list(adapt_delta = .9, max_treedepth = treedepth))
+  fit_list[[k]] <- fit
 }
 
-
-### COMPUTE STACKING WEIGHTS ###
-
-# store each model's log likelihoods in a list
-#log_lik_list <- lapply(fit_list, extract_log_lik)
-
-# relative effective sample size helps loo computation accuracy
-#r_eff_list <- lapply(fit_list,
-#                     function(x) {
-#                       ll_array <- extract_log_lik(x, merge_chains = FALSE)
-#                       relative_eff(exp(ll_array))
-#                     })
-
-# compute stacking weights via loo
-#W <- loo_model_weights(log_lik_list,
-#                       method = 'stacking',
-#                       r_eff_list = r_eff_list,
-#                       optim_control = list(reltol = 1e-10))
 
 ### GENERATE PREDICTIONS ###
 
@@ -95,7 +77,7 @@ Rtest = 50
 Ttest = 12
 
 test_vars <- list(R = Rtest, T = Ttest, A = nalts, L = nlvls, C = ncovs)
-test_data <- stan("./STAN/generate_data.stan",
+test_data <- stan("./STAN/generate_data2.stan",
                   data = test_vars,
                   iter = 1,
                   chains = 1,
@@ -119,7 +101,7 @@ for (k in 1:K) {
   testing_vars <- list(A = nalts,
                        L = nlvls,
                        I = (nchains/2)*niter,
-                       R = nresp,
+                       R = 25,
                        Rtest = Rtest,
                        Ttest = Ttest,
                        B = as.array(B_list[[k]]),
@@ -135,17 +117,11 @@ for (k in 1:K) {
   prediction_fit_list[[k]] <- fit
 }
 
-#weights <- as.vector(W)
 Y_count_list <- lapply(prediction_fit_list,
                        function(x) {
                          Yc <- extract(x, pars='Y_count')$Y_count
                          colSums(Yc, dims=1)
                        })
-
-#for (k in 1:K) {
-#  Y_count_list[[k]] <- weights[[k]] * Y_count_list[[k]]
-#}
-
 
 for (k in 1:K) {
   hit_count <- 0
@@ -160,23 +136,5 @@ for (k in 1:K) {
   print(model_list[[k]])
   print(hit_count/(Rtest*Ttest))
 }
-
-#total_Y_count <- Reduce("+", Y_count_list)
-#
-#print(dim(total_Y_count))
-#
-#hit_count <- 0
-#
-#for (r in 1:Rtest) {
-#  for (t in 1:Ttest) {
-#    Y_predicted <- which.max(total_Y_count[r, t, ])
-#    if (Y_predicted == testY[1, r, t]) {
-#      hit_count <- hit_count + 1
-#    }
-#  }
-#}
-#
-##print(W)
-#print(hit_count/(Rtest*Ttest))
 
 ### END ###

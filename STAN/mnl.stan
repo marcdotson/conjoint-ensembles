@@ -1,41 +1,26 @@
-// HBMNL for discrete choice experiments
-functions {
-  vector LeakyReLU(vector X, int L) {
-    vector[L] X_new;
-    for (j in 1:L) {
-      if (X[j] <= -1) X_new[j] = -square(X[j]);
-      else X_new[j] = X[j];
-    }
-    return X_new;
-  }
-}
-
+// multinomial logit for discrete choice experiments
 data {
   int<lower=2> A; // number of alternatives (choices) per question
   int<lower=1> L; // number of feature variables
   int<lower=1> N; // number of observations
-  int<lower=1> Ntest; // number of test observations
+  int<lower=1> Ntest; // number of out of sample observations
 
   matrix[A, L] X[N]; // matrix of attributes for each obs
-  int<lower=1,upper=A> Y[N]; // observed responses
+  int<lower=1, upper=A> Y[N]; // observed responses
 
-  matrix[A, L] Xtest[Ntest]; // test design matrix
+  matrix[A, L] Xtest[Ntest];
+
+  real loc; // location of B
+  real<lower=0> scale; // variance of B
+
 }
 
 parameters {
-  vector[L] beta; // coefficients
-}
-
-transformed parameters {
   vector[L] B; // matrix of beta coefficients
-  B = LeakyReLU(beta, L);
 }
 
 model {
-  //priors
-  to_vector(beta) ~ normal(0, 1);
-
-  // model fitting
+  B ~ normal(loc, scale); // prior for B
   for (n in 1:N) {
     Y[n] ~ categorical_logit(X[n]*B);
   }
