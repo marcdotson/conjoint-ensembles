@@ -1,23 +1,14 @@
-'''
-Functions in this file:
-
-    pathology(beta, kind=None)
-
-    generate_simulated_design(nresp, ntask, nalts, nlvls, ncovs)
-
-    compute_beta_response(data_dict, pathology_type=None)
-
-    generate_simulated_data(pathology_type=None)
-
-'''
-
-
 import pystan
 import pickle
 import numpy as np
 from matplotlib import colors
 import matplotlib.pyplot as plt
-from constants import *
+
+### STAN SAMPLER PARAMETERS ###
+niter = 300 # number of iterations in the HMC sampler (Stan param)
+nchains = 2 # number of markov chains (mostly useful for diagnostics)
+treedepth = 3 # how deep to explore the posterior space
+random_seed = 1750532
 np.random.seed(seed=random_seed)
 
 
@@ -298,30 +289,4 @@ def save_data_dict(data_dict, fpath):
                     B=data_dict['B'])
 
 
-def load_data_dict(fpath):
-    data_dict = dict()
-    data = np.load(fpath)
-
-    data_dict['X'] = data['X']
-    data_dict['Y'] = data['Y']
-
-    data_dict['Xtrain'] = data['Xtrain']
-    data_dict['Ytrain'] = data['Ytrain']
-
-    data_dict['Xtest'] = data['Xtest']
-    data_dict['Ytest'] = data['Ytest']
-
-    data_dict['R'] = data['X'].shape[0]
-    data_dict['T'] = data['X'].shape[1]
-    data_dict['A'] = data['X'].shape[2]
-    data_dict['L'] = data['X'].shape[3]
-    data_dict['C'] = 1
-
-    data_dict['K'] = 2
-    data_dict['N']
-
-    return data_dict
-
-
-
-
+### END ###
