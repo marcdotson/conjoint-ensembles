@@ -13,6 +13,12 @@ data {
   matrix[R, C] Z; // vector of covariates for each respondent
 
   matrix[A, L] Xtest[Rtest, Ttest]; // test design matrix
+
+  real mu_mean;
+  real alpha_mean;
+  real<lower=0> mu_scale;
+  real<lower=0> alpha_scale;
+  real<lower=0> lkj_param;
 }
 
 parameters {
@@ -32,9 +38,9 @@ transformed parameters {
 
 model {
   //priors
-  to_vector(alpha) ~ normal(0, 10);
-  to_vector(mu) ~ normal(0, 1);
-  L_Omega ~ lkj_corr_cholesky(5);
+  to_vector(alpha) ~ normal(alpha_mean, alpha_scale);
+  to_vector(mu) ~ normal(mu_mean, mu_scale);
+  L_Omega ~ lkj_corr_cholesky(lkj_param);
 
 
   // model fitting

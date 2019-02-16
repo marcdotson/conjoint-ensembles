@@ -3,5 +3,9 @@
 *.ipynb_checkpoints
 *__pycache__/
 __pycache__/
-DATA/
+DATA/01*/
+DATA/02*/
+DATA/03*/
+DATA/04*/
+DATA/05*/
 .Rproj.user

@@ -181,7 +181,8 @@ def fit_model_to_data(model, data, sampling_alg=None):
             iter=niter,
             chains=nchains,
             control={'adapt_delta':.9, 'max_treedepth':treedepth},
-            algorithm=sampling_alg)
+            algorithm=sampling_alg,
+            init_r=1)
 
 
 def plot_ppc(data_dict, fit):

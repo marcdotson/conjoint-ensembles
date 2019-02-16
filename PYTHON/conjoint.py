@@ -26,7 +26,7 @@ def get_data(choice=None):
         return np.load("./DATA/{0}/data_dict.npz".format(option_dict[choice]))
 
 
-def hbmnl(data_dict):
+def hbmnl(data_dict, mu=(0,1), alpha=(0,10), lkj_param=5):
     """
     Hierarchical Bayesian Multi-Nomial Logit for conjoint analysis.
 
@@ -58,7 +58,12 @@ def hbmnl(data_dict):
             'X':data_dict['Xtrain'],
             'Y':data_dict['Ytrain'].astype(np.int64),
             'Z':np.ones((nresp,1)),
-            'Xtest': data_dict['Xtest']
+            'Xtest': data_dict['Xtest'],
+            'mu_mean': mu[0],
+            'mu_scale': mu[1],
+            'alpha_mean': alpha[0],
+            'alpha_scale': alpha[1],
+            'lkj_param': lkj_param
             }
     
     
