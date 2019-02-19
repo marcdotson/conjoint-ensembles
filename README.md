@@ -19,7 +19,9 @@ practice.
 
 ## Project Organization
 
-  - PYTHON includes code written in python that compiles the stan models
-  - R includes code written in R
-  - STAN includes the multinomial logit models written in Stan
-  - Files ending in .ipynb are jupyter notebooks
+  - `Code`: includes utilities and model scripts written in python, R, and Stan
+  - `Data`: Simulated data sets used by conjoint models
+  - `Paper` includes the paper submitted for publication
+  - `Figures`: images and plots from demos, tutorials, and paper
+  - `Presentation`: slides, demos, and tutorials
+

@@ -1,21 +1,19 @@
 import numpy as np
-from . import utils
+import utils
 
 def get_data(choice=None):
     """
     """
-    option_dict = {"01":"01_PremiumChocolate",
-                   "02":"02_GroundBeef",
-                   "03":"03_ArtificialFlowers",
-                   "04":"04_FloorCleaningServices",
-                   "05":"05_InteriorPaint",
-                   "06":"06_PathologyNone",
-                   "07":"07_PathologyANA",
-                   "08":"08_PathologyScreening",
-                   "09":"09_PathologyMultiple"}
+    option_dict = {"01":"01_PathologyNone",
+                   "02":"02_PathologyANA",
+                   "03":"03_PathologyScreening",
+                   "04":"04_PathologyMultiple"}
 
     if choice:
-        return np.load("./DATA/{0}/data_dict.npz".format(option_dict[choice]))
+        try:
+            return np.load("../../Data/{0}/data_dict.npz".format(option_dict[choice]))
+        except:
+            raise ValueError("Could not find dataset for string key {0}".format(choice))
     else:
         print("\n\nAvailable Datasets:\n\n")
         for d in sorted(option_dict.values()):
@@ -23,7 +21,7 @@ def get_data(choice=None):
         choice = input("\n\nenter a number as shown above>> ")
         assert choice in option_dict.keys()
     
-        return np.load("./DATA/{0}/data_dict.npz".format(option_dict[choice]))
+        return np.load("../../Data/{0}/data_dict.npz".format(option_dict[choice]))
 
 
 def hbmnl(data_dict, mu=(0,1), alpha=(0,10), lkj_param=5):
@@ -75,7 +73,9 @@ def hbmnl(data_dict, mu=(0,1), alpha=(0,10), lkj_param=5):
     Yhat = np.argmax(Yc, axis=1) + 1
     
     hit_count = Ntest - np.count_nonzero(Yhat - data_dict['Ytest'].reshape(Ntest))
-    results = {}
+
+    # store results
+    results = dict()
     results["SCORE"] = hit_count/Ntest
 
     return results
@@ -185,7 +185,7 @@ def ensemble(data_dict):
     stan_data['Yhat_test'] = Yhat_test.copy()
     stan_data['L'] = nlvls
     
-    meta_model = utils.get_model(model_name='meta_mnl2')
+    meta_model = utils.get_model(model_name='meta_mnl')
     FIT = utils.fit_model_to_data(meta_model, stan_data)
     
     Yc_stacking = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0)
@@ -195,7 +195,7 @@ def ensemble(data_dict):
     ensemble_hit_count = Ntest - np.count_nonzero(Yhat_stacking - data['Ytest'])
     
     # store results
-    results = {}
+    results = dict()
     results["SCORE"] = ensemble_hit_count/Ntest
     results["BASE MODEL SCORES"] = np.array(model_scores)/Ntest
     results["MODEL WEIGHTS"] = np.around(model_weights.mean(axis=0),decimals=2)
@@ -215,15 +215,5 @@ def ensemble(data_dict):
 
     return results
 
-
-def compare_models(data_dict):
-    """
-    """
-
-    hbmnl_results = hbmnl(data_dict)
-    ensemble_results = ensemble(data_dict)
-
-    print(hbmnl_results)
-    print(ensemble_results)
 
 ## END ##
