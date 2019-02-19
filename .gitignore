@@ -12,6 +12,10 @@ DATA/03*/
 DATA/04*/
 DATA/05*/
 
+# Folders
+Output/*
+Readings/*
+
 # R Stuff
 .Rproj.user
 .Rhistory
