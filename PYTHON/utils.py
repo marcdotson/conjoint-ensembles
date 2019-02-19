@@ -1,23 +1,14 @@
-'''
-Functions in this file:
-
-    pathology(beta, kind=None)
-
-    generate_simulated_design(nresp, ntask, nalts, nlvls, ncovs)
-
-    compute_beta_response(data_dict, pathology_type=None)
-
-    generate_simulated_data(pathology_type=None)
-
-'''
-
-
 import pystan
 import pickle
 import numpy as np
 from matplotlib import colors
 import matplotlib.pyplot as plt
-from constants import *
+
+### STAN SAMPLER PARAMETERS ###
+niter = 300 # number of iterations in the HMC sampler (Stan param)
+nchains = 2 # number of markov chains (mostly useful for diagnostics)
+treedepth = 3 # how deep to explore the posterior space
+random_seed = 1750532
 np.random.seed(seed=random_seed)
 
 
@@ -190,7 +181,8 @@ def fit_model_to_data(model, data, sampling_alg=None):
             iter=niter,
             chains=nchains,
             control={'adapt_delta':.9, 'max_treedepth':treedepth},
-            algorithm=sampling_alg)
+            algorithm=sampling_alg,
+            init_r=1)
 
 
 def plot_ppc(data_dict, fit):
@@ -276,33 +268,26 @@ def plot_respondent(r, data_dict, fit):
     plt.show()
 
 
-def get_data_dict(kind='ensemble', new_resp=False, pathology_type='basic'):
+def get_data_dict(pathology_type='none', save=None):
+
     data_dict = generate_simulated_data(pathology_type=pathology_type)
     
-    if new_resp:
-        data_dict['Xtrain'] = data_dict['X'][:nresp_train, :ntask_train, :, :]
-        data_dict['Ytrain'] = data_dict['Y'][:nresp_train, :ntask_train]
-        data_dict['Xtest'] = data_dict['X'][nresp_test:, -ntask_test:, :, :]
-        data_dict['Ytest'] = data_dict['Y'][nresp_test:, -ntask_test:]
+    data_dict['Xtrain'] = data_dict['X'][:nresp_train, :ntask_train, :, :]
+    data_dict['Ytrain'] = data_dict['Y'][:nresp_train, :ntask_train]
+    data_dict['Xtest'] = data_dict['X'][:nresp_train, -ntask_test:, :, :]
+    data_dict['Ytest'] = data_dict['Y'][:nresp_train, -ntask_test:]
 
-    else:
-        data_dict['Xtrain'] = data_dict['X'][:nresp_train, :ntask_train, :, :]
-        data_dict['Ytrain'] = data_dict['Y'][:nresp_train, :ntask_train]
-        data_dict['Xtest'] = data_dict['X'][:nresp_train, -ntask_test:, :, :]
-        data_dict['Ytest'] = data_dict['Y'][:nresp_train, -ntask_test:]
-        
-    if kind == 'ensemble':
-        ensemble_dict = data_dict.copy()
-        ensemble_dict['Xtrain'] = data_dict['Xtrain'].reshape(N, nalts, nlvls)
-        ensemble_dict['Ytrain'] = data_dict['Ytrain'].reshape(N)
-        ensemble_dict['Xtest'] = data_dict['Xtest'].reshape(Ntest, nalts, nlvls)
-        ensemble_dict['Ytest'] = data_dict['Ytest'].reshape(Ntest)
-
-        return data_dict,ensemble_dict
-    else:
-        return data_dict
+    return data_dict
 
 
+def save_data_dict(data_dict, fpath):
+    np.savez(fpath, X=data_dict['X'],
+                    Y=data_dict['Y'],
+                    Xtrain=data_dict['Xtrain'],
+                    Ytrain=data_dict['Ytrain'],
+                    Xtest=data_dict['Xtest'],
+                    Ytest=data_dict['Ytest'],
+                    B=data_dict['B'])
 
-def get_hit_count():
-    pass
+
+### END ###
