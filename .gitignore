@@ -1,7 +1,4 @@
-*.rds
-*.pkl
-*.ipynb_checkpoints
-*__pycache__/
-__pycache__/
-DATA/
 .Rproj.user
+.Rhistory
+.RData
+.Ruserdata
