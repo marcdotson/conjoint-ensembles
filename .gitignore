@@ -15,6 +15,7 @@ DATA/05*/
 # Folders
 Output/*
 Readings/*
+Temporary/*
 
 # R Stuff
 .Rproj.user
