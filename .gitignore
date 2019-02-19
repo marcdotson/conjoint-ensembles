@@ -1,4 +1,22 @@
+# Python Stuff
+*.rds
+*.pkl
+*.ipynb_checkpoints
+*__pycache__/
+__pycache__/
+
+# Data Stuff
+DATA/01*/
+DATA/02*/
+DATA/03*/
+DATA/04*/
+DATA/05*/
+
+# R Stuff
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
+
+# Miscellaneous
+.DS_Store
