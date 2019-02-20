@@ -17,6 +17,10 @@ simultaneously accommodate multiple data pathologies in a single model.
 We provide tips and tricks on how to implement this approach in
 practice.
 
+For general details on GitHub usage, project organization, and project
+workflow, see [Research Assistant
+Training](https://github.com/marcdotson/ra-training).
+
 ## Project Organization
 
   - PYTHON includes code written in python that compiles the stan models
