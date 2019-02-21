@@ -1,16 +1,9 @@
 import pystan
 import pickle
 import numpy as np
+import pandas as pd
 
 
-### STAN SAMPLER PARAMETERS ###
-niter = 300 # number of iterations in the HMC sampler (Stan param)
-nchains = 2 # number of markov chains (mostly useful for diagnostics)
-treedepth = 3 # how deep to explore the posterior space
-random_seed = 1750532
-np.random.seed(seed=random_seed)
-
-    
 def pathology(beta, kind="none", prob=[.5, .5]):
     # apply the pathologies
     if kind == 'none':
@@ -117,26 +110,9 @@ def compute_beta_response(data_dict, pathology_type=None):
     return data_dict
 
 
-def generate_simulated_data(pathology_type="none", use_stan=False):
-    if use_stan:
-        sm = get_model(model_name='generate_data')
-        data_dict = {'A':4, 'L':12, 'T':10, 'R':100, 'C':1}
-        data = sm.sampling(data=data_dict,
-                           iter=10000,
-                           warmup=0,
-                           chains=1,
-                           refresh=10000,
-                           seed=random_seed,
-                           algorithm="Fixed_param")
-        # pystan fit objects can take a long time to unpack...
-        #data_dict.update(data.extract(pars=['X','Y','Z','B']))
-        for v in ['X', 'Y', 'Z', 'B']:
-            data_dict[v] = data.extract(pars=[v])[v][-1]
-        data_dict['B'] = data_dict['B'].T
-        data_dict['Y'] = data_dict['Y'].astype(int)
-    else:
-        data_dict = generate_simulated_design()
-        data_dict = compute_beta_response(data_dict, pathology_type=pathology_type)
+def generate_simulated_data(pathology_type="none"):
+    data_dict = generate_simulated_design()
+    data_dict = compute_beta_response(data_dict, pathology_type=pathology_type)
     return data_dict
 
 
@@ -156,37 +132,50 @@ def get_model(model_name='mnl_vanilla'):
     return sm
 
 
-def fit_model_to_data(model, data, sampling_alg=None):
-    return model.sampling(
-            data,
-            iter=niter,
-            chains=nchains,
-            control={'adapt_delta':.9, 'max_treedepth':treedepth},
-            algorithm=sampling_alg,
-            init_r=1)
+def fit_model_to_data(model, data, **kwargs):
+    """Runs the Stan sampler for model on data according to kwargs."""
+    return model.sampling(data, **kwargs)
 
 
+def get_data(path_to_data, holdout=5):
+    """
+    1. get X.csv and Y.csv
+    2. reformat data into ndarrays
+    3. split into Xtrain, Ytrain, Xtest, Ytest (take out some choice tasks)
+    4. save as dictionary of arrays X,Y,Xtrain,Ytrain,Xtest,Ytest
+    """
 
-def get_data_dict(pathology_type='none', save=None):
+    # dictionary to store the ndarrays
+    data_dict = dict()
 
-    data_dict = generate_simulated_data(pathology_type=pathology_type)
-    
-    data_dict['Xtrain'] = data_dict['X'][:nresp_train, :ntask_train, :, :]
-    data_dict['Ytrain'] = data_dict['Y'][:nresp_train, :ntask_train]
-    data_dict['Xtest'] = data_dict['X'][:nresp_train, -ntask_test:, :, :]
-    data_dict['Ytest'] = data_dict['Y'][:nresp_train, -ntask_test:]
+    # read in csv files and reformat
+    Xdf = pd.read_csv(path_to_data + "X.csv")
+    Ydf = pd.read_csv(path_to_data + "Y.csv")
+
+    # determine data dimensions
+    nresp = Xdf['resp'].max()
+    ntask = Xdf['task'].max()
+    nalts = Xdf['alt'].max()
+    nlvls = len(Xdf.columns) - 3
+
+    # format X and Y
+    X = Xdf.drop(['resp','task','alt'],axis=1).values
+    Y = Ydf.drop(['resp'],axis=1).values
+    X = X.reshape((nresp,ntask,nalts,nlvls))
+    Y = Y.astype(np.int64).reshape((nresp,ntask))
+
+    # store X and Y in dictionary
+    data_dict['X'] = X
+    data_dict['Y'] = Y
+
+    # store training and test sets
+    data_dict['Xtrain'] = X[:,:-holdout,:,:]
+    data_dict['Ytrain'] = Y[:,:-holdout]
+    data_dict['Xtest'] = X[:,-holdout:,:,:]
+    data_dict['Ytest'] = Y[:,-holdout:]
 
     return data_dict
 
-
-def save_data_dict(data_dict, fpath):
-    np.savez(fpath, X=data_dict['X'],
-                    Y=data_dict['Y'],
-                    Xtrain=data_dict['Xtrain'],
-                    Ytrain=data_dict['Ytrain'],
-                    Xtest=data_dict['Xtest'],
-                    Ytest=data_dict['Ytest'],
-                    B=data_dict['B'])
 
 
 ### END ###

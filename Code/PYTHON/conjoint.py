@@ -1,37 +1,20 @@
 import numpy as np
+import pandas as pd
 import utils
 
-def get_data(choice=None):
-    """
-    """
-    option_dict = {"01":"01_PathologyNone",
-                   "02":"02_PathologyANA",
-                   "03":"03_PathologyScreening",
-                   "04":"04_PathologyMultiple"}
 
-    if choice:
-        try:
-            return np.load("../../Data/{0}/data_dict.npz".format(option_dict[choice]))
-        except:
-            raise ValueError("Could not find dataset for string key {0}".format(choice))
-    else:
-        print("\n\nAvailable Datasets:\n\n")
-        for d in sorted(option_dict.values()):
-            print("\t",d)
-        choice = input("\n\nenter a number as shown above>> ")
-        assert choice in option_dict.keys()
-    
-        return np.load("../../Data/{0}/data_dict.npz".format(option_dict[choice]))
-
-
-def hbmnl(data_dict, mu=(0,1), alpha=(0,10), lkj_param=5):
+def hbmnl(data_dict, mu=(0,1), alpha=(0,10), lkj_param=5, **kwargs):
     """
     Hierarchical Bayesian Multi-Nomial Logit for conjoint analysis.
 
     INPUT
         data_dict (dict)
+        mu (tuple) mean and variance of the mean of the model prior
+        alpha (tuple) mean and variance of the variance of the model prior
+        lkj_param (float) adjusts the lkj covariance prior
+        **kwargs
 
-    OUTPUT
+    RETURNS
         results (dict)
 
     """
@@ -67,7 +50,7 @@ def hbmnl(data_dict, mu=(0,1), alpha=(0,10), lkj_param=5):
     
     # fit model to data
     base_model = utils.get_model(model_name='mnl_vanilla')
-    FIT = utils.fit_model_to_data(base_model, stan_data)
+    FIT = utils.fit_model_to_data(base_model, stan_data, **kwargs)
     
     Yc = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0).reshape((Ntest, nalts))
     Yhat = np.argmax(Yc, axis=1) + 1
@@ -83,14 +66,15 @@ def hbmnl(data_dict, mu=(0,1), alpha=(0,10), lkj_param=5):
 
 
 
-def ensemble(data_dict):
+def ensemble(data_dict, **kwargs):
     """
     Stacking Ensemble for conjoint analysis.
 
     INPUT
         data_dict (dict)
+        **kwargs
 
-    OUTPUT
+    RETURNS
         results (dict)
 
     """
@@ -145,7 +129,7 @@ def ensemble(data_dict):
             stan_data['Xtest'] = Xtest_lovo
         
             base_model = utils.get_model(model_name='mnl')
-            FIT = utils.fit_model_to_data(base_model, stan_data)
+            FIT = utils.fit_model_to_data(base_model, stan_data, **kwargs)
         
             Yc = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0)
             Yhat_k = np.argmax(Yc, axis=1)
@@ -186,7 +170,7 @@ def ensemble(data_dict):
     stan_data['L'] = nlvls
     
     meta_model = utils.get_model(model_name='meta_mnl')
-    FIT = utils.fit_model_to_data(meta_model, stan_data)
+    FIT = utils.fit_model_to_data(meta_model, stan_data, **kwargs)
     
     Yc_stacking = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0)
     Yhat_stacking = np.argmax(Yc_stacking, axis=1) + 1
@@ -214,6 +198,40 @@ def ensemble(data_dict):
     results["BASE MODEL COVERAGE"] = model_coverage
 
     return results
+
+
+def model_comparison(path_to_data, niters=300, nchains=2, control={'adapt_delta':.9, 'max_treedepth':3}):
+    """
+    Returns the score of hbmnl and conjoint.
+
+    INPUT
+        path_to_data (str) filepath to the data directory
+        niters (int) number of iterations for stan sampler
+        nchains (int) number of chains for stan sampler
+        control (dict) stan sampler parameters
+
+    RETURNS
+        hbmnl_result (float) score for hbmnl model
+        ensemble_result (float) score for ensemble model
+
+    """
+
+    data = utils.get_data(path_to_data)
+
+    hbmnl_result = hbmnl(
+            data,
+            iter=niters,
+            chains=nchains,
+            control=control)
+
+    ensemble_result = ensemble(
+            data,
+            iter=niters,
+            chains=nchains,
+            control=control)
+
+    return hbmnl_result, ensemble_result
+
 
 
 ## END ##
