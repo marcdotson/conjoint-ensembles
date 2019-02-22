@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import utils
+import time
 
 
 def hbmnl(data_dict, mu=(0,1), alpha=(0,10), lkj_param=5, **kwargs):
@@ -154,7 +155,7 @@ def ensemble(data_dict, **kwargs):
         stan_data['Xtest'] = Xtest_lovo
     
         base_model = utils.get_model(model_name='mnl')
-        FIT = utils.fit_model_to_data(base_model, stan_data)
+        FIT = utils.fit_model_to_data(base_model, stan_data, **kwargs)
     
         Yc_test = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0)
         Yhat_k = np.argmax(Yc_test, axis=1)
@@ -218,19 +219,24 @@ def model_comparison(path_to_data, niters=300, nchains=2, control={'adapt_delta'
 
     data = utils.get_data(path_to_data)
 
+    start = time.time()
     hbmnl_result = hbmnl(
             data,
             iter=niters,
             chains=nchains,
             control=control)
+    t1 = time.time() - start
 
+    start = time.time()
     ensemble_result = ensemble(
             data,
             iter=niters,
             chains=nchains,
             control=control)
+    t2 = time.time() - start
+    print("TIME:",t1,t2)
 
-    return hbmnl_result, ensemble_result
+    return hbmnl_result['SCORE'], ensemble_result['SCORE']
 
 
 
