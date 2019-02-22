@@ -12,6 +12,7 @@ DATA/R*
 # Folders
 Output/*
 Readings/*
+Temporary/*
 
 # R Stuff
 .Rproj.user
