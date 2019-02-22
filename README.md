@@ -23,9 +23,9 @@ Training](https://github.com/marcdotson/ra-training).
 
 ## Project Organization
 
-  - `Code`: includes utilities and model scripts written in python, R, and Stan
+  - `Code`: includes utilities and model scripts written in python, R,
+    and Stan
   - `Data`: Simulated data sets used by conjoint models
-  - `Paper` includes the paper submitted for publication
   - `Figures`: images and plots from demos, tutorials, and paper
+  - `Paper`: includes the paper submitted for publication
   - `Presentation`: slides, demos, and tutorials
-

@@ -11,7 +11,8 @@ For general details on GitHub usage, project organization, and project workflow,
 
 ## Project Organization
 
-+ PYTHON includes code written in python that compiles the stan models
-+ R includes code written in R
-+ STAN includes the multinomial logit models written in Stan
-+ Files ending in .ipynb are jupyter notebooks
+- `Code`: includes utilities and model scripts written in python, R, and Stan
+- `Data`: Simulated data sets used by conjoint models
+- `Figures`: images and plots from demos, tutorials, and paper
+- `Paper`: includes the paper submitted for publication
+- `Presentation`: slides, demos, and tutorials
