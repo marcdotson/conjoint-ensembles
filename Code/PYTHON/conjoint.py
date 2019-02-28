@@ -201,7 +201,7 @@ def ensemble(data_dict, **kwargs):
     return results
 
 
-def model_comparison(path_to_data, holdout=5, niters=300, nchains=2, control={'adapt_delta':.9, 'max_treedepth':3}, **kwargs):
+def model_comparison(path_to_data, holdout=5, **kwargs):
     """
     Returns the score of hbmnl and conjoint.
 
@@ -222,21 +222,11 @@ def model_comparison(path_to_data, holdout=5, niters=300, nchains=2, control={'a
     data = utils.get_data(path_to_data, holdout=holdout)
 
     start = time.time()
-    hbmnl_result = hbmnl(
-            data,
-            iter=niters,
-            chains=nchains,
-            control=control,
-            **kwargs)
+    hbmnl_result = hbmnl(data, **kwargs)
     t1 = time.time() - start
 
     start = time.time()
-    ensemble_result = ensemble(
-            data,
-            iter=niters,
-            chains=nchains,
-            control=control,
-            **kwargs)
+    ensemble_result = ensemble(data, **kwargs)
     t2 = time.time() - start
 
     hbmnl_result['TIME'] = t1
