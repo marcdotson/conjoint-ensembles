@@ -1,9 +1,7 @@
 import conjoint
 import pandas as pd
 
-#dataset = "01_PathologyNone"
-dataset = "02_PathologyANA"
-#dataset = "03_PathologyScreening"
+dataset = "03_PathologyScreening"
 #dataset = "04_PathologyMultiple"
 #dataset = "R1_PremiumChocolate"
 #dataset = "R2_GroundBeef"
