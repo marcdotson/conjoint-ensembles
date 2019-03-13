@@ -17,4 +17,3 @@ For general details on GitHub usage, project organization, and project workflow,
 - `Paper`: includes the paper submitted for publication
 - `Presentation`: slides, demos, and tutorials
 
-TEST. TEST. TEST.
