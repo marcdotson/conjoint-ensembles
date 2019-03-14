@@ -16,5 +16,3 @@ For general details on GitHub usage, project organization, and project workflow,
 - `Figures`: images and plots from demos, tutorials, and paper
 - `Paper`: includes the paper submitted for publication
 - `Presentation`: slides, demos, and tutorials
-
-TEST. TEST. TEST.
