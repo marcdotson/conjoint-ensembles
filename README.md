@@ -29,4 +29,3 @@ Training](https://github.com/marcdotson/ra-training).
   - `Figures`: images and plots from demos, tutorials, and paper
   - `Paper`: includes the paper submitted for publication
   - `Presentation`: slides, demos, and tutorials
-
