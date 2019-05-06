@@ -3,11 +3,13 @@ Code
 
 ## R
 
+  - `03_model-calibration.R`: Script for calibrating the model.
   - `conj_hmnl.R`: A random-walk Metropolis-Hastings algorithm for an
     HMNL with a conjuctive screen.
   - `conj_hmnl.cpp`: Supporting C++ functions for `conj_hmnl.R`.
   - `simulation-experiment.R`: Data simulation in R and parameter
     recovery using a Stan model.
+  - `stan_utility.R`: Utility functions for evaluating Stan model fit.
   - `hit_prob.R`: Function for computing a model’s hit probability.
   - `hit_rate.R`: Function for computing a model’s hit rate.
 
@@ -25,5 +27,5 @@ Code
   - `hmnl.stan`: Hierarchical multinomial logit model.
   - `meta_mnl.stan`: Aggregate multinomial logit meta-learning model.
   - `mnl.stan`: Aggregate multinomial logit model.
-  - `mnl_vanilla.stan`: An original hierarchical multinomial logit
-    model?
+  - `mnl_vanilla.stan`: An original hierarchical multinomial logit model
+    with testing included in the `generated quantities` block.
