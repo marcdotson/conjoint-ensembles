@@ -1,7 +1,7 @@
 import conjoint
 import pandas as pd
 
-dataset = "R1_PremiumChocolate"
+dataset = "01_PathologyNone"
 
 RESULTS = pd.DataFrame()
 dataset_list = list()
@@ -11,7 +11,7 @@ hbmnl_time = list()
 ensemble_time = list()
 run_list = list()
 
-for run in range(5):
+for run in range(1):
     print(dataset,run)
 
     path_to_data = "../../Data/{0}/".format(dataset)

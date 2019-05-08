@@ -50,8 +50,8 @@ def hbmnl(data_dict, mu=(0,1), alpha=(0,10), lkj_param=5, **kwargs):
     
     
     # fit model to data
-    base_model = utils.get_model(model_name='mnl_vanilla')
-    FIT = utils.fit_model_to_data(base_model, stan_data, **kwargs)
+    MODEL = utils.get_model(model_name='mnl_vanilla')
+    FIT = utils.fit_model_to_data(MODEL, stan_data, **kwargs)
     
     Yc = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0).reshape((Ntest, nalts))
     Yhat = np.argmax(Yc, axis=1) + 1
@@ -67,7 +67,7 @@ def hbmnl(data_dict, mu=(0,1), alpha=(0,10), lkj_param=5, **kwargs):
 
 
 
-def ensemble(data_dict, **kwargs):
+def ensemble(data_dict, base_model='base_mnl', meta_model='meta_mnl', **kwargs):
     """
     Stacking Ensemble for conjoint analysis.
 
@@ -85,68 +85,80 @@ def ensemble(data_dict, **kwargs):
     ntask = data_dict['X'].shape[1]
     nalts = data_dict['X'].shape[2]
     nlvls = data_dict['X'].shape[3]
-    N = nresp*data_dict['Xtrain'].shape[1]
-    Ntest = nresp*data_dict['Xtest'].shape[1]
+    ntask_train = data_dict['Xtrain'].shape[1]
+    ntask_test = data_dict['Xtest'].shape[1]
+    #N = nresp*data_dict['Xtrain'].shape[1]
+    #Ntest = nresp*data_dict['Xtest'].shape[1]
     K = 2
     M = nlvls
     
     # initialize and format data for stan model
     data = {}
-    data['Xtrain'] = data_dict['Xtrain'].reshape(N, nalts, nlvls)
-    data['Ytrain'] = data_dict['Ytrain'].reshape(N)
-    data['Xtest'] = data_dict['Xtest'].reshape(Ntest, nalts, nlvls)
-    data['Ytest'] = data_dict['Ytest'].reshape(Ntest)
-    data['Ytrain'] = data['Ytrain'].astype(np.int64)
-    data['Ytest'] = data['Ytest'].astype(np.int64)
+    #data['Xtrain'] = data_dict['Xtrain'].reshape(N, nalts, nlvls)
+    #data['Ytrain'] = data_dict['Ytrain'].reshape(N)
+    #data['Xtest'] = data_dict['Xtest'].reshape(Ntest, nalts, nlvls)
+    #data['Ytest'] = data_dict['Ytest'].reshape(Ntest)
+    data['Xtrain'] = data_dict['Xtrain'].copy()
+    data['Xtest'] = data_dict['Xtest'].copy()
+    data['Ytrain'] = data_dict['Ytrain'].astype(np.int64)
+    data['Ytest'] = data_dict['Ytest'].astype(np.int64)
     stan_data = {
             'A':nalts,
             'L':nlvls-1,
+            'R':nresp,
+            'Rtest':nresp,
             'loc':0,
             'scale':2
             }
     
     # fit model to data
-    step = [0, N//2, N]
-    Yhat_train = np.zeros((N,nalts,M))
+    Tstep = [0, ntask_train//2, ntask_train]
+
+    Yhat_train = np.zeros((nresp, ntask_train, nalts, M))
     for k in range(K):
         for m in range(M):
     
-            k_fold = np.array([True]*N)
-            k_fold[step[k]:step[k+1]] = False
-    
+            Tk_fold = np.array([True]*ntask_train)
+            Tk_fold[Tstep[k]:Tstep[k+1]] = False
+   
             # set the K-fold temporary values of N and Ntest
-            stan_data['N'] = sum(k_fold)
-            stan_data['Ntest'] = sum(~k_fold)
+            stan_data['T'] = sum(Tk_fold)
+            stan_data['Ttest'] = sum(~Tk_fold)
     
             # new training set = subset of full training set
             # LOVO = Leave One Variable Out
-            Xtrain_lovo = np.delete(data['Xtrain'][k_fold, :, :], m, 2)
-            Xtest_lovo = np.delete(data['Xtrain'][~k_fold, :, :], m, 2)
+            Xtrain_lovo = np.delete(data['Xtrain'][:, Tk_fold, :, :], m, 3)
+            Xtest_lovo = np.delete(data['Xtrain'][:, ~Tk_fold, :, :], m, 3)
     
             stan_data['X'] = Xtrain_lovo
-            stan_data['Y'] = data['Ytrain'][k_fold]
+            stan_data['Y'] = data['Ytrain'][:, Tk_fold]
         
             # new test set = complement of new training set | full training set
             stan_data['Xtest'] = Xtest_lovo
         
-            base_model = utils.get_model(model_name='mnl')
-            FIT = utils.fit_model_to_data(base_model, stan_data, **kwargs)
+            MODEL = utils.get_model(model_name=base_model)
+            FIT = utils.fit_model_to_data(MODEL, stan_data, **kwargs)
         
             Yc = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0)
             Yhat_k = np.argmax(Yc, axis=1)
-            Yhat_train[~k_fold, Yhat_k, m] += 1
+            print(Yhat_train.shape)
+            print(len(Yhat_k))
+            input()
+            Yhat_train[:, ~Tk_fold, Yhat_k, m] += 1
     
     # make predictions on full test set using full training set
     model_scores = []
-    Yhat_test = np.zeros((Ntest,nalts,M))
+    Yhat_test = np.zeros((nresp, ntask_test, nalts, M))
     for m in range(M):
     
-        stan_data['N'] = N # length of training set
-        stan_data['Ntest'] = Ntest # length of test set
+        #stan_data['N'] = N # length of training set
+        #stan_data['Ntest'] = Ntest # length of test set
+        stan_data['T'] = ntask_train
+        stan_data['Ttest'] = ntask_test
         
         # full training set
-        Xtrain_lovo = np.delete(data['Xtrain'], m, 2)
-        Xtest_lovo = np.delete(data['Xtest'], m, 2)
+        Xtrain_lovo = np.delete(data['Xtrain'], m, 3)
+        Xtest_lovo = np.delete(data['Xtest'], m, 3)
     
         stan_data['X'] = Xtrain_lovo
         stan_data['Y'] = data['Ytrain']
@@ -154,14 +166,14 @@ def ensemble(data_dict, **kwargs):
         # full test set
         stan_data['Xtest'] = Xtest_lovo
     
-        base_model = utils.get_model(model_name='mnl')
-        FIT = utils.fit_model_to_data(base_model, stan_data, **kwargs)
+        MODEL = utils.get_model(model_name=base_model)
+        FIT = utils.fit_model_to_data(MODEL, stan_data, **kwargs)
     
         Yc_test = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0)
         Yhat_k = np.argmax(Yc_test, axis=1)
-        Yhat_test[np.array([True]*Ntest), Yhat_k, m] += 1
+        Yhat_test[:, np.array([True]*ntask_test), Yhat_k, m] += 1
     
-        model_scores.append(Ntest - np.count_nonzero(Yhat_k+1 - data['Ytest']))
+        model_scores.append(nresp*ntask_test - np.count_nonzero(Yhat_k+1 - data['Ytest']))
     
     
     # Fit stacking model to full test data using augmented training set
@@ -170,25 +182,25 @@ def ensemble(data_dict, **kwargs):
     stan_data['Yhat_test'] = Yhat_test.copy()
     stan_data['L'] = nlvls
     
-    meta_model = utils.get_model(model_name='meta_mnl')
+    meta_model = utils.get_model(model_name=meta_model)
     FIT = utils.fit_model_to_data(meta_model, stan_data, **kwargs)
     
     Yc_stacking = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0)
     Yhat_stacking = np.argmax(Yc_stacking, axis=1) + 1
     model_weights = FIT.extract(pars=['B'])['B']
     
-    ensemble_hit_count = Ntest - np.count_nonzero(Yhat_stacking - data['Ytest'])
+    ensemble_hit_count = nresp*ntask_test - np.count_nonzero(Yhat_stacking - data['Ytest'])
     
     # store results
     results = dict()
-    results["SCORE"] = ensemble_hit_count/Ntest
-    results["BASE MODEL SCORES"] = np.array(model_scores)/Ntest
+    results["SCORE"] = ensemble_hit_count/(nresp*ntask_test)
+    results["BASE MODEL SCORES"] = np.array(model_scores)/(nresp*ntask_test)
     results["MODEL WEIGHTS"] = np.around(model_weights.mean(axis=0),decimals=2)
     
     yy = Yhat_test.sum(axis=2)
     
     coverage_list = []
-    for j in range(Ntest):
+    for j in range(nresp*ntask_test):
         coverage_list.append(max(yy[j, :]))
     coverage = np.array(coverage_list)
     
@@ -201,7 +213,7 @@ def ensemble(data_dict, **kwargs):
     return results
 
 
-def model_comparison(path_to_data, holdout=5, **kwargs):
+def model_comparison(path_to_data, holdout=5, base_model='base_mnl', meta_model='meta_mnl', **kwargs):
     """
     Returns the score of hbmnl and conjoint.
 
@@ -226,7 +238,7 @@ def model_comparison(path_to_data, holdout=5, **kwargs):
     t1 = time.time() - start
 
     start = time.time()
-    ensemble_result = ensemble(data, **kwargs)
+    ensemble_result = ensemble(data, base_model=base_model, meta_model=meta_model, **kwargs)
     t2 = time.time() - start
 
     hbmnl_result['TIME'] = t1
