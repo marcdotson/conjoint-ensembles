@@ -44,11 +44,11 @@ We will present the theoretical justification for our approach and practical str
 
 ### Attribute Non-Attendance
 
-Respondents may ignore an attribute because it either does not affect their utility or they want to simplify the choice task (Alemu et al. 2012). This pathology is called attribute non-attendance (ANA). Yegoryan et al. (2018) found that the majority of respondents used only three to four attributes out of the six available. Because of ANA, a model that assumes the use of all attributes may be biased. One of the best approaches to mitigate the effect of ANA has been a latent class model (Hess & Hensher 2013, Hole 2013).
+Respondents may ignore an attribute because it either does not affect their utility or they want to simplify the choice task (Alemu et al. 2012). This pathology is called attribute non-attendance (ANA). Yegoryan et al. (2018) found that the majority of respondents used only three to four attributes out of the six available. Because of ANA, a model that assumes the use of all attributes may be biased. One of the best approaches found to mitigate the effect of ANA is a latent class model (Hess & Hensher 2013, Hole 2013).
 
 ### Screening Rules
 
-
+Respondents come with priorities, which manifest themselves in the way respondents screen alternatives. Within conjoint, alternatives that pass a respondent's 'screen' are evaluated; alternatives that do not pass the screen will not be evaluated. They might have a minimum requirements that must be met (conjunctive screening rule), or missing features must be made up for by including new features (disjunctive), or they come to a decision by considering all of the attributes and by adding the positive and negative.   Models have also been constructed to account for conjunctive, disjunctive, and compensatory screening rules (Gilbride & Allenby 2004).
 
 ## Ensemble Approaches to Prediction
 
