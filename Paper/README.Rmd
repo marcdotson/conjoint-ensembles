@@ -38,15 +38,17 @@ In this paper we explore alternative strategies for simultaneously accommodating
 
 Our approach draws on the intuition of Brieman (2001) and is closely related to Kevin Lattery’s 2015 Sawtooth Software Conference presentation and corresponding paper.  Lattery (2015) shows improvement in predictive fit from an ensemble of diverse models that was created using Latent Class methods. Our paper extends this work by considering alternative strategies to create diversity in the ensemble of models used for prediction.   Specifically, we show that certain types of randomization can be introduced into the construction of an ensemble in order to mitigate particular data pathologies. For example, the type of randomization used to accommodate the use of choice heuristics differs from the type of randomization used to deal with respondent quality.
 
-We will presents the theoretical justification for our approach and practical strategies for implementation.
+We will present the theoretical justification for our approach and practical strategies for implementation.
 
 ## Data Pathologies/Accommodating Data Pathologies
 
 ### Attribute Non-Attendance
 
-Respondents may ignore an attribute because it either does not affect their utility or they want to simplify the choice task (Alemu et al. 2012). This pathology is called attribute non-attendance (ANA). Yegoryan et al. (2018) found that the majority of respondents used only three to four attributes out of the six available. Because of ANA, a model that assumes the use of all attributes may be biased. There is a growing literature around using a Latent Class Model to mitigate the effect of ANA...
+Respondents may ignore an attribute because it either does not affect their utility or they want to simplify the choice task (Alemu et al. 2012). This pathology is called attribute non-attendance (ANA). Yegoryan et al. (2018) found that the majority of respondents used only three to four attributes out of the six available. Because of ANA, a model that assumes the use of all attributes may be biased. One of the best approaches to mitigate the effect of ANA has been a latent class model (Hess & Hensher 2013, Hole 2013).
 
 ### Screening Rules
+
+
 
 ## Ensemble Approaches to Prediction
 
@@ -199,4 +201,14 @@ generated quantities {
   }
 }
 ```
+## References
 
+Alemu, M. H., Morkbak, M. R., Olsen, S. B., & Jensen, C. L. (2013). Attending to the reasons for attribute non-attendance in choice experiments. Environmental and Resource Economics, 54 (3), 333–359.
+
+Yegoryan, N., Guhl, D., & Klapper, D. (2018). Inferring Attribute Non-Attendance Using Eye Tracking in Choice-Based Conjoint Analysis. 
+
+Hess, S., & Hensher, D. A. (2013). Making use of respondent reported processing information
+to understand attribute importance: A latent variable scaling approach. Transportation, 40 (2), 397–412.
+
+Hole, A. R. (2011). A discrete choice model with endogenous attribute attendance. Economic
+Letters, 110 (3), 203–205.
