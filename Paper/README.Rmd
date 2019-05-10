@@ -44,6 +44,8 @@ We will presents the theoretical justification for our approach and practical st
 
 ### Attribute Non-Attendance
 
+Respondents may ignore an attribute because it either does not affect their utility or they want to simplify the choice task (Alemu et al. 2012). This pathology is called attribute non-attendance (ANA). Yegoryan et al. (2018) found that the majority of respondents used only three to four attributes out of the six available. Because of ANA, a model that assumes the use of all attributes may be biased. There is a growing literature around using a Latent Class Model to mitigate the effect of ANA...
+
 ### Screening Rules
 
 ## Ensemble Approaches to Prediction
