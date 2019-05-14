@@ -41,3 +41,7 @@ RESULTS['run'] = run_list
 RESULTS.to_csv("./{0}_results.csv".format(dataset))
 
 print(RESULTS)
+
+show_details = input("Show details? ")
+if show_details:
+    print(hbmnl_result,"\n\n",ensemble_result)

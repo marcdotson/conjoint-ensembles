@@ -114,7 +114,7 @@ def ensemble(data_dict, base_model='base_mnl', meta_model='meta_mnl', **kwargs):
     # fit model to data
     Tstep = [0, ntask_train//2, ntask_train]
 
-    Yhat_train = np.zeros((nresp, ntask_train, nalts, M))
+    Yhat_train = np.zeros((nresp*ntask_train, nalts, M))
     for k in range(K):
         for m in range(M):
     
@@ -141,14 +141,15 @@ def ensemble(data_dict, base_model='base_mnl', meta_model='meta_mnl', **kwargs):
         
             Yc = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0)
             Yhat_k = np.argmax(Yc, axis=1)
-            print(Yhat_train.shape)
-            print(len(Yhat_k))
-            input()
-            Yhat_train[:, ~Tk_fold, Yhat_k, m] += 1
-    
+
+            kfold = np.array([False]*nresp*ntask_train).reshape(nresp, ntask_train)
+            kfold[:, ~Tk_fold] = True
+            kfold = kfold.flatten()
+            Yhat_train[kfold, Yhat_k, m] += 1
+
     # make predictions on full test set using full training set
     model_scores = []
-    Yhat_test = np.zeros((nresp, ntask_test, nalts, M))
+    Yhat_test = np.zeros((nresp*ntask_test, nalts, M))
     for m in range(M):
     
         #stan_data['N'] = N # length of training set
@@ -171,16 +172,19 @@ def ensemble(data_dict, base_model='base_mnl', meta_model='meta_mnl', **kwargs):
     
         Yc_test = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0)
         Yhat_k = np.argmax(Yc_test, axis=1)
-        Yhat_test[:, np.array([True]*ntask_test), Yhat_k, m] += 1
+        Yhat_test[np.array([True]*nresp*ntask_test), Yhat_k, m] += 1
     
         model_scores.append(nresp*ntask_test - np.count_nonzero(Yhat_k+1 - data['Ytest']))
     
     
     # Fit stacking model to full test data using augmented training set
+    stan_data['N'] = nresp*ntask_train
+    stan_data['Ntest'] = nresp*ntask_test
     stan_data['M'] = M
     stan_data['Yhat_train'] = Yhat_train.copy()
     stan_data['Yhat_test'] = Yhat_test.copy()
     stan_data['L'] = nlvls
+    stan_data['Y'] = data_dict['Ytrain'].flatten()
     
     meta_model = utils.get_model(model_name=meta_model)
     FIT = utils.fit_model_to_data(meta_model, stan_data, **kwargs)
