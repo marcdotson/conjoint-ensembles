@@ -1,7 +1,7 @@
 import conjoint
 import pandas as pd
 
-dataset = "01_PathologyNone"
+dataset = "04_PathologyMultiple"
 
 RESULTS = pd.DataFrame()
 dataset_list = list()
@@ -19,6 +19,8 @@ for run in range(1):
     hbmnl_result,ensemble_result = conjoint.model_comparison(
                 path_to_data,
                 holdout=1, 
+                base_model='base_mnl2',
+                meta_model='meta_mnl',
                 iter=300, 
                 chains=2,
                 control={'adapt_delta':.9, 'max_treedepth':3},

@@ -87,17 +87,13 @@ def ensemble(data_dict, base_model='base_mnl', meta_model='meta_mnl', **kwargs):
     nlvls = data_dict['X'].shape[3]
     ntask_train = data_dict['Xtrain'].shape[1]
     ntask_test = data_dict['Xtest'].shape[1]
-    #N = nresp*data_dict['Xtrain'].shape[1]
-    #Ntest = nresp*data_dict['Xtest'].shape[1]
+    N = nresp*ntask_train
+    Ntest = nresp*ntask_test
     K = 2
     M = nlvls
     
     # initialize and format data for stan model
     data = {}
-    #data['Xtrain'] = data_dict['Xtrain'].reshape(N, nalts, nlvls)
-    #data['Ytrain'] = data_dict['Ytrain'].reshape(N)
-    #data['Xtest'] = data_dict['Xtest'].reshape(Ntest, nalts, nlvls)
-    #data['Ytest'] = data_dict['Ytest'].reshape(Ntest)
     data['Xtrain'] = data_dict['Xtrain'].copy()
     data['Xtest'] = data_dict['Xtest'].copy()
     data['Ytrain'] = data_dict['Ytrain'].astype(np.int64)
@@ -114,7 +110,7 @@ def ensemble(data_dict, base_model='base_mnl', meta_model='meta_mnl', **kwargs):
     # fit model to data
     Tstep = [0, ntask_train//2, ntask_train]
 
-    Yhat_train = np.zeros((nresp*ntask_train, nalts, M))
+    Yhat_train = np.zeros((N, nalts, M))
     for k in range(K):
         for m in range(M):
     
@@ -139,21 +135,19 @@ def ensemble(data_dict, base_model='base_mnl', meta_model='meta_mnl', **kwargs):
             MODEL = utils.get_model(model_name=base_model)
             FIT = utils.fit_model_to_data(MODEL, stan_data, **kwargs)
         
-            Yc = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0)
+            Yc = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0).reshape((nresp*stan_data['Ttest'], nalts))
             Yhat_k = np.argmax(Yc, axis=1)
 
-            kfold = np.array([False]*nresp*ntask_train).reshape(nresp, ntask_train)
+            kfold = np.array([False]*N).reshape(nresp, ntask_train)
             kfold[:, ~Tk_fold] = True
             kfold = kfold.flatten()
             Yhat_train[kfold, Yhat_k, m] += 1
 
     # make predictions on full test set using full training set
     model_scores = []
-    Yhat_test = np.zeros((nresp*ntask_test, nalts, M))
+    Yhat_test = np.zeros((Ntest, nalts, M))
     for m in range(M):
     
-        #stan_data['N'] = N # length of training set
-        #stan_data['Ntest'] = Ntest # length of test set
         stan_data['T'] = ntask_train
         stan_data['Ttest'] = ntask_test
         
@@ -170,41 +164,41 @@ def ensemble(data_dict, base_model='base_mnl', meta_model='meta_mnl', **kwargs):
         MODEL = utils.get_model(model_name=base_model)
         FIT = utils.fit_model_to_data(MODEL, stan_data, **kwargs)
     
-        Yc_test = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0)
+        Yc_test = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0).reshape(Ntest, nalts)
         Yhat_k = np.argmax(Yc_test, axis=1)
-        Yhat_test[np.array([True]*nresp*ntask_test), Yhat_k, m] += 1
+        Yhat_test[np.array([True]*Ntest), Yhat_k, m] += 1
     
-        model_scores.append(nresp*ntask_test - np.count_nonzero(Yhat_k+1 - data['Ytest']))
+        model_scores.append(Ntest - np.count_nonzero(Yhat_k+1 - data['Ytest'].flatten()))
     
     
     # Fit stacking model to full test data using augmented training set
     stan_data['N'] = nresp*ntask_train
-    stan_data['Ntest'] = nresp*ntask_test
+    stan_data['Ntest'] = Ntest
     stan_data['M'] = M
     stan_data['Yhat_train'] = Yhat_train.copy()
     stan_data['Yhat_test'] = Yhat_test.copy()
     stan_data['L'] = nlvls
-    stan_data['Y'] = data_dict['Ytrain'].flatten()
+    stan_data['Y'] = data['Ytrain'].flatten()
     
-    meta_model = utils.get_model(model_name=meta_model)
-    FIT = utils.fit_model_to_data(meta_model, stan_data, **kwargs)
+    MODEL = utils.get_model(model_name=meta_model)
+    FIT = utils.fit_model_to_data(MODEL, stan_data, **kwargs)
     
-    Yc_stacking = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0)
+    Yc_stacking = FIT.extract(pars=['Yc'])['Yc'].sum(axis=0).reshape((Ntest, nalts))
     Yhat_stacking = np.argmax(Yc_stacking, axis=1) + 1
     model_weights = FIT.extract(pars=['B'])['B']
     
-    ensemble_hit_count = nresp*ntask_test - np.count_nonzero(Yhat_stacking - data['Ytest'])
+    ensemble_hit_count = Ntest - np.count_nonzero(Yhat_stacking - data['Ytest'].flatten())
     
     # store results
     results = dict()
-    results["SCORE"] = ensemble_hit_count/(nresp*ntask_test)
-    results["BASE MODEL SCORES"] = np.array(model_scores)/(nresp*ntask_test)
+    results["SCORE"] = ensemble_hit_count/Ntest
+    results["BASE MODEL SCORES"] = np.array(model_scores)/Ntest
     results["MODEL WEIGHTS"] = np.around(model_weights.mean(axis=0),decimals=2)
     
     yy = Yhat_test.sum(axis=2)
     
     coverage_list = []
-    for j in range(nresp*ntask_test):
+    for j in range(Ntest):
         coverage_list.append(max(yy[j, :]))
     coverage = np.array(coverage_list)
     
