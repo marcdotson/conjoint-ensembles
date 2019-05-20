@@ -1,26 +1,27 @@
 import numpy as np
+import pandas as pd
 import matplotlib as mpl
 from matplotlib import colors
 import matplotlib.pyplot as plt
 
 # define plot style
 
-mpl.rcParams["font.family"]: monospace
+mpl.rcParams["font.family"]: "monospace"
 mpl.rcParams["figure.subplot.wspace"]: 0.6
 mpl.rcParams["figure.subplot.hspace"]: 0.6
-mpl.rcParams["text.color"]: grey
-mpl.rcParams["axes.titlesize"]: x-large
+mpl.rcParams["text.color"]: "grey"
+mpl.rcParams["axes.titlesize"]: "x-large"
 mpl.rcParams["axes.titlepad"]: 12.0
-mpl.rcParams["axes.labelcolor"]: grey
+mpl.rcParams["axes.labelcolor"]: "grey"
 mpl.rcParams["axes.labelpad"]: 8.0
 mpl.rcParams["axes.spines.left"]: False
 mpl.rcParams["axes.spines.top"]: False
 mpl.rcParams["axes.spines.right"]: False
 mpl.rcParams["axes.spines.bottom"]: False
 mpl.rcParams["xtick.top"]: False
-mpl.rcParams["xtick.color"]: grey
+mpl.rcParams["xtick.color"]: "grey"
 mpl.rcParams["ytick.right"]: False
-mpl.rcParams["ytick.color"]: grey
+mpl.rcParams["ytick.color"]: "grey"
 
 # set the colormap and centre the colorbar
 class MidpointNormalize(colors.Normalize):
@@ -122,4 +123,24 @@ def plot_respondent(r, data_dict, fit):
         ax.set_title("Task {0}".format(t+1))
     plt.show()
 
+def plot_comparison_results():
+    dataset_list = [
+            "01_PathologyNone",
+            "02_PathologyANA",
+            "03_PathologyScreening",
+            "04_PathologyMultiple",
+            "R1_PremiumChocolate",
+            "R3_ArtificialFlowers",
+            "R4_FloorCleaningServices"
+    ]
 
+    for dataset in dataset_list:
+        df = pd.read_csv("{0}_results.csv".format(dataset))
+        plt.hist(df['hbmnl_score'], bins=5, color='grey', alpha=.5, label='hbmnl')
+        plt.hist(df['ensemble_score'], bins=5, color='r', alpha=.5, label='ensemble')
+        plt.legend()
+        plt.title(dataset)
+        plt.show()
+
+if __name__ == "__main__":
+    plot_comparison_results()
