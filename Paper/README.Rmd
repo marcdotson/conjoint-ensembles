@@ -48,7 +48,7 @@ Respondents may ignore an attribute because it either does not affect their util
 
 ### Screening Rules
 
-Research in market-based product design has often used compensatory preference models (that assume an additive part-worth rule), however literature has shown that consumers often use noncompensatory heuristics (Shin & Ferguson 2016). It cannot be assumed that respondents only come to a decision by considering all of the attributes, adding up all the positives and negatives, and choosing the best net sum.  Respondents come with priorities and use heuristics: they might have a minimum requirement that must be met or they may require the inclusion of other features to make up for missing features. Within conjoint, alternatives that pass a respondent's mental 'screen' are evaluated; alternatives that do not pass the screen will not be evaluated. Models have been constructed to account for the bias from both noncompensatory and compensatory screening rules (Gilbride & Allenby 2004).
+Research in market-based product design has often used compensatory preference models (that assume an additive part-worth rule), however literature has shown that consumers often use noncompensatory heuristics (Shin & Ferguson 2016). It cannot be assumed that respondents only come to a decision by considering all of the attributes, adding up all the positives and negatives, and choosing the best net sum.  Respondents come with priorities and use heuristics: they might have a minimum requirement that must be met or they may require the inclusion of other features to make up for missing features. Within conjoint, alternatives that pass a respondent's mental 'screen' are evaluated; alternatives that do not pass the screen are not evaluated. Models have been constructed to account for the bias that comes from both noncompensatory and compensatory screening rules (Gilbride & Allenby 2004).
 
 ## Ensemble Approaches to Prediction
 
@@ -212,3 +212,7 @@ to understand attribute importance: A latent variable scaling approach. Transpor
 
 Hole, A. R. (2011). A discrete choice model with endogenous attribute attendance. Economic
 Letters, 110 (3), 203–205.
+
+Gilbride, T., Allenby, G. (2004). A Choice Model with Conjunctive, Disjunctive, and Compensatory Screening Rules. Marketing Science, Volume 23 No. 3.
+
+Shin, J., Ferguson, S. (2016). Exploring Product Solution Differences Due to Choice Model Selection in the Presence of Noncompensatory Decisions With Conjunctive Screening Rules. Journal of Mechanical Design.
