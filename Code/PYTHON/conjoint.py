@@ -4,7 +4,7 @@ import utils
 import time
 
 
-def hbmnl(data_dict, mu=(0,1), alpha=(0,10), lkj_param=5, **kwargs):
+def hbmnl(data_dict, mu=(0,1), alpha=(0,10), lkj_param=2, return_fit=False, **kwargs):
     """
     Hierarchical Bayesian Multi-Nomial Logit for conjoint analysis.
 
@@ -24,6 +24,8 @@ def hbmnl(data_dict, mu=(0,1), alpha=(0,10), lkj_param=5, **kwargs):
     nresp = data_dict['X'].shape[0]
     nalts = data_dict['X'].shape[2]
     nlvls = data_dict['X'].shape[3]
+    nresp_train = data_dict['Xtrain'].shape[0]
+    nresp_test = data_dict['Xtest'].shape[0]
     ntask_train = data_dict['Xtrain'].shape[1]
     ntask_test = data_dict['Xtest'].shape[1]
     N = nresp*ntask_train
@@ -33,9 +35,9 @@ def hbmnl(data_dict, mu=(0,1), alpha=(0,10), lkj_param=5, **kwargs):
             'A':nalts,
             'L':nlvls,
             'T':ntask_train,
-            'R':nresp,
+            'R':nresp_train,
             'C':1,
-            'Rtest':nresp,
+            'Rtest':nresp_test,
             'Ttest':ntask_test,
             'X':data_dict['Xtrain'],
             'Y':data_dict['Ytrain'].astype(np.int64),
@@ -43,6 +45,9 @@ def hbmnl(data_dict, mu=(0,1), alpha=(0,10), lkj_param=5, **kwargs):
             'Xtest': data_dict['Xtest'],
             'mu_mean': mu[0],
             'mu_scale': mu[1],
+            #'tau_mean': alpha[0],
+            #'tau_scale': alpha[1],
+            #'Omega_shape': lkj_param
             'alpha_mean': alpha[0],
             'alpha_scale': alpha[1],
             'lkj_param': lkj_param
@@ -62,7 +67,10 @@ def hbmnl(data_dict, mu=(0,1), alpha=(0,10), lkj_param=5, **kwargs):
     results = dict()
     results["SCORE"] = hit_count/Ntest
 
-    return results
+    if return_fit:
+        return results, FIT
+    else:
+        return results
 
 
 
@@ -116,6 +124,7 @@ def ensemble(data_dict, base_model='base_mnl', meta_model='meta_mnl', **kwargs):
     
             Tk_fold = np.array([True]*ntask_train)
             Tk_fold[Tstep[k]:Tstep[k+1]] = False
+            np.random.shuffle(Tk_fold)
    
             # set the K-fold temporary values of N and Ntest
             stan_data['T'] = sum(Tk_fold)
@@ -229,7 +238,10 @@ def model_comparison(path_to_data, holdout=5, base_model='base_mnl', meta_model=
 
     """
 
-    data = utils.get_data(path_to_data, holdout=holdout)
+    if type(path_to_data) is str:
+        data = utils.get_data(path_to_data, holdout=holdout)
+    elif type(path_to_data) is dict:
+        data = path_to_data
 
     start = time.time()
     hbmnl_result = hbmnl(data, **kwargs)
