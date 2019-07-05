@@ -2,6 +2,7 @@ import pystan
 import pickle
 import numpy as np
 import pandas as pd
+from itertools import product, combinations
 
 
 def pathology(beta, kind="none", prob=[.5, .5]):
@@ -47,6 +48,32 @@ def pathology(beta, kind="none", prob=[.5, .5]):
     return beta
 
 
+def generate_factorial_design(nresp, nalt, nlvls):
+    P = []
+    C = []
+    for p in product([0,1], repeat=nlvls):
+        P.append(list(p))
+
+    for c in combinations(P, nalt):
+        C.append(list(c))
+
+    C = np.array(C)
+    X = np.zeros((nresp, C.shape[0], nalt, nlvls))
+    for r in range(nresp):
+        X[r,:,:,:] = C
+        Z = np.ones((nresp,1))
+
+    data_dict = {'X':X,
+                 'Z':Z,
+                 'A':nalt,
+                 'R':nresp,
+                 'C':1,
+                 'T':C.shape[0],
+                 'L':nlvls}
+
+    return data_dict
+
+
 def generate_simulated_design():
     # X is the experimental design
     X = np.zeros((nresp, ntask, nalts, nlvls))
@@ -75,10 +102,11 @@ def generate_simulated_design():
     return data_dict
 
 
-def compute_beta_response(data_dict, pathology_type=None):
+def compute_beta_response(data_dict, pathology_type=None, add_noise=True):
 
     # beta means
-    Gamma = np.random.uniform(-3, 4, size=data_dict['C'] * data_dict['L'])
+    Gamma = np.random.uniform(-3,4,size=data_dict['C'] * data_dict['L'])
+
     # beta variance-covariance
     Vbeta = np.diag(np.ones(data_dict['L'])) + .5 * np.ones((data_dict['L'], data_dict['L']))
 
@@ -99,7 +127,10 @@ def compute_beta_response(data_dict, pathology_type=None):
         for scn in range(data_dict['T']):
             X_scn = data_dict['X'][resp, scn]
 
-            U_scn = X_scn.dot(beta) - np.log(-np.log(np.random.uniform(size=data_dict['C'])))
+            U_scn = X_scn.dot(beta)
+            if add_noise:
+                U_scn -= np.log(-np.log(np.random.uniform(size=data_dict['C'])))
+
             Y[resp, scn] += np.argmax(U_scn) + 1
     
         Beta[:, resp] += beta
