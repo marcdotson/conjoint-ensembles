@@ -3,9 +3,15 @@ Code
 
 ## R
 
-  - `03_model-calibration.R`: Script for calibrating the model.
+  - `01_simulate-data.R`: Simulate data with and without data
+    pathologies present.
+  - `02_clever-randomization.R`: Induce clever randomization on a given
+    dataset for use in the ensemble.
+  - `03_conjoint-ensemble.R`: Run the conjoint ensemble.
+  - `04_pathology-models.R`: Run models specific to each pathology.
+  - `05_model-comparison.R`: Compare fit across models.
   - `conj_hmnl.R`: A random-walk Metropolis-Hastings algorithm for an
-    HMNL with a conjuctive screen.
+    HMNL with a conjunctive screen.
   - `conj_hmnl.cpp`: Supporting C++ functions for `conj_hmnl.R`.
   - `simulation-experiment.R`: Data simulation in R and parameter
     recovery using a Stan model.
