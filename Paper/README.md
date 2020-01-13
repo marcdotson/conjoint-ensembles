@@ -6,12 +6,12 @@ Multiple Data Pathologies in Conjoint Studies
 
 Respondent behavior in conjoint studies often deviates from the
 assumptions of random utility theory. We refer to deviations from
-normative choice behavior as data pathologies. A variety of models have
-been developed that attempt to correct for specific pathologies (i.e.,
-screening rules, respondent quality, attribute non-attendance, etc.).
-While useful, these approaches tend to be both conceptually complex and
+normative choice behavior as data pathologies.A variety of models have
+been developed that attempt to correct for specific pathologies (e.g.,
+screening rules, respondent quality, attribute non-attendance). While
+useful, these approaches tend to be both conceptually complex and
 computationally intensive. As such, these approaches have not widely
-diffused into the practice of marketing research. In this paper we draw
+diffused into the practice of marketing research.In this paper we draw
 on innovations in machine learning to develop a practical approach that
 relies on (clever) randomization strategies and ensembling to
 simultaneously accommodate multiple data pathologies in a single model.
@@ -24,10 +24,7 @@ License: This work is licensed under a [Creative Commons
 Attribution-ShareAlike 4.0 International
 License](https://creativecommons.org/licenses/by-sa/4.0/).
 
-## Introduction
-
-  - Define data pathologies
-  - Prediction WRT conjoint
+## 1\. Introduction
 
 Ensemble-based approaches currently dominate the world of competitive
 out-of-sample prediction. From Kaggle to the Netflix Prize, the
@@ -42,46 +39,26 @@ In the world of conjoint, most studies are conducted using a single
 model. When the aim of a conjoint study is solely inference and not
 prediction, a single-model approach is arguably best. The academic
 literature for conjoint is filled with models designed to improve
-inference, especially when respondents behave in ways that are
-“pathological” to the standard model. However, there are three reasons
-to argue for an ensemble-based approach to conjoint analysis. First, the
-end goal of many conjoint studies is prediction in the form of accurate
-market simulations. Second, we still have uncertainty about the correct
-model for any given conjoint study. Third, there is no single model that
-accounts for all the respondent behaviors that result in the “data
-pathologies” that have been addressed separately in the literature.
+inference, especially when respondents behave in ways that deviate from
+the standard model. For example, models that account for screening
+behavior, respondent quality, and attribute non-attendance account
+specifically for deviations. We refer to these and other
+respondent-level behaviors that deviate from the assumptions of the
+normative model of consumer choice as “data pathologies.”
 
-The remainder of the paper will be organized as follows. In Section 2,
-we walk through ensemble approaches to prediction. In Section 3, we
-detail our ensemble approach to conjoint analysis. In Section 4, we
-provide results from simulation studies and an empirical application. In
-Section 5, we conclude.
-
-### Previous Material
-
-Many academic innovations in conjoint modeling in the recent past have
-focused on developing models that capture individual data pathologies.
-By data pathologies, we refer to respondent-specific behaviors that
-deviate from one or more of the core assumptions of random utility
-theory. Examples of these types of models include those that deal with
-screening rules, attribute non-attendance, deviations from IIA choice
-behavior, respondent quality, etc.
-
-While each of these models have been shown to improve both model fit and
-inference in contexts where a particular data pathology is present, none
-of these approaches has had a meaningful impact on the practice of
-conjoint. In our opinion, this is the result of three key factors.
-
-  - The derivation and implementation of these models is complex. They
-    are tough for practitioners to understand, implement and sell to
-    clients.
-  - There is a lack of commercial software than can be used to easily
-    implement and simulate from these models. Custom coding is required
-    that can dramatically increase the expense and cycle time of a
-    project.  
-  - Each model is designed to capture a single pathology in the data.
-    While this is useful, it is highly likely that multiple pathologies
-    may be present and problematic in any given study.
+While each of the models that address a specific data pathology have
+been shown to improve both model fit and inference in contexts where
+that particular data pathology is present, none of these approaches has
+had a meaningful impact on the practice of conjoint. In our opinion,
+this is the result of three key factors. First, the derivation and
+implementation of these models is complex and thus tough for
+practitioners to understand, implement, and sell to clients. Second,
+there is a lack of commercial software than can be used to easily
+implement and simulate from these models. The custom coding is required
+that can dramatically increase the expense and cycle time of a project.
+Third, each model is designed to capture a single pathology in the data.
+While this is useful, it is highly likely that multiple pathologies may
+be present and problematic in any given study.
 
 In this paper we explore alternative strategies for simultaneously
 accommodating multiple data pathologies in a single modeling framework.
@@ -91,30 +68,26 @@ in prediction resulting from averaging (or taking the consensus
 prediction) from an ensemble of diverse models. Breiman’s approach
 relies on the use of randomization to create diversity in the data used
 to calibrate an ensemble of models, thus helping hedge against model
-misspecification and over-fitting.
+misspecification and overfitting.
 
-Our approach draws on the intuition of Brieman (2001) and is closely
-related to Kevin Lattery’s 2015 Sawtooth Software Conference
-presentation and corresponding paper. Lattery (2015) shows improvement
-in predictive fit from an ensemble of diverse models that was created
-using Latent Class methods. Our paper extends this work by considering
-alternative strategies to create diversity in the ensemble of models
-used for prediction. Specifically, we show that certain types of
-randomization can be introduced into the construction of an ensemble in
-order to mitigate particular data pathologies. For example, the type of
-randomization used to accommodate the use of choice heuristics differs
-from the type of randomization used to deal with respondent quality.
+We argue there are three reasons to argue for an ensemble-based approach
+to conjoint analysis. First, the end goal of many conjoint studies is
+prediction in the form of accurate market simulations and thus a
+single-model approach is a mismatch with the objective. Second, we still
+have uncertainty about the correct model for any given conjoint study,
+in particular it is often impossible to no a prior what data pathology
+is present and thus which pathology-specific model to employ. Third,
+there is no single model that accounts for all the respondent behaviors
+that result in the data pathologies that have been addressed separately
+in the literature.
 
-We will presents the theoretical justification for our approach and
-practical strategies for implementation.
+The remainder of the paper will be organized as follows. In Section 2,
+we walk through ensemble approaches to prediction. In Section 3, we
+specify our ensemble approach to conjoint analysis. In Section 4, we
+provide results from simulation studies. We provide evidence from
+empirical applications in Section 5. Finally, in Section 6, we conclude.
 
-## Data Pathologies/Accommodating Data Pathologies
-
-### Attribute Non-Attendance
-
-### Screening Rules
-
-## Ensemble Approaches to Prediction
+## 2\. Ensemble Approaches to Prediction
 
 Often, scientific models are used for explanation, meaning they are used
 to test causal theories (Schmueli 2010). While important for social
@@ -235,7 +208,7 @@ number of pathologies, easier to understand conceptually, and fairly
 easy to implement. The ensemble will continue to improve as additional
 base models are included with the existing base models.
 
-## Model Specification
+## 3\. Model Specification
 
   - Describe Stacking as an ensemble approach
       - Point estimates versus distributions
@@ -316,12 +289,11 @@ ability to predict within the training set. Weight the base model
 prediction distributions of the holdout set by the generated
 coefficients. This generates new weighted prediction distributions. Find
 the mode of this new predictive distribution. This mode is the
-ensemble’s
-prediction.
+ensemble’s prediction.
 
 <img src="../Figures/Figure_1.png" title="The x-axis represents the induced pathology." alt="The x-axis represents the induced pathology." width="75%" style="display: block; margin: auto;" />
 
-## Simulation Studies
+## 4\. Simulation Studies
 
 <!-- \begin{table}[] -->
 
@@ -353,9 +325,9 @@ prediction.
 
 <!-- \end{table} -->
 
-## Empirical Application
+## 5\. Empirical Application
 
-## Conclusion
+## 6\. Conclusion
 
 <!-- \newpage -->
 

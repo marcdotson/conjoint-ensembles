@@ -7,46 +7,27 @@ output:
 
 ## Abstract
 
-Respondent behavior in conjoint studies often deviates from the assumptions of random utility theory.  We refer to deviations from normative choice behavior as data pathologies.  A variety of models have been developed that attempt to correct for specific pathologies (i.e., screening rules, respondent quality, attribute non-attendance, etc.).  While useful, these approaches tend to be both conceptually complex and computationally intensive.  As such, these approaches have not widely diffused into the practice of marketing research.  In this paper we draw on innovations in machine learning to develop a practical approach that relies on (clever) randomization strategies and ensembling to simultaneously accommodate multiple data pathologies in a single model.  We provide tips and tricks on how to implement this approach in practice.
+Respondent behavior in conjoint studies often deviates from the assumptions of random utility theory. We refer to deviations from normative choice behavior as data pathologies.A variety of models have been developed that attempt to correct for specific pathologies (e.g., screening rules, respondent quality, attribute non-attendance). While useful, these approaches tend to be both conceptually complex and computationally intensive. As such, these approaches have not widely diffused into the practice of marketing research.In this paper we draw on innovations in machine learning to develop a practical approach that relies on (clever) randomization strategies and ensembling to simultaneously accommodate multiple data pathologies in a single model. We provide tips and tricks on how to implement this approach in practice.
 
 Keywords: Choice Modeling, Machine Learning, Random Forests
 
 License: This work is licensed under a [Creative Commons Attribution-ShareAlike 4.0 International License](https://creativecommons.org/licenses/by-sa/4.0/).
 
-## Introduction
-
-- Define data pathologies
-- Prediction WRT conjoint
+## 1. Introduction
 
 Ensemble-based approaches currently dominate the world of competitive out-of-sample prediction. From Kaggle to the Netflix Prize, the predictive power inherent in using many models overshadows prediction reliant on the performance of a single model. The primary reason ensembles predict so well is that they serve as a hedge against model misspecification. Since we have uncertainty about the correct model for any given context, running many models and producing a consensus is a simple yet powerful way to improve predictions.
 
-In the world of conjoint, most studies are conducted using a single model. When the aim of a conjoint study is solely inference and not prediction, a single-model approach is arguably best. The academic literature for conjoint is filled with models designed to improve inference, especially when respondents behave in ways that are “pathological” to the standard model. However, there are three reasons to argue for an ensemble-based approach to conjoint analysis. First, the end goal of many conjoint studies is prediction in the form of accurate market simulations. Second, we still have uncertainty about the correct model for any given conjoint study. Third, there is no single model that accounts for all the respondent behaviors that result in the “data pathologies” that have been addressed separately in the literature.
+In the world of conjoint, most studies are conducted using a single model. When the aim of a conjoint study is solely inference and not prediction, a single-model approach is arguably best. The academic literature for conjoint is filled with models designed to improve inference, especially when respondents behave in ways that deviate from the standard model. For example, models that account for screening behavior, respondent quality, and attribute non-attendance account specifically for deviations. We refer to these and other respondent-level behaviors that deviate from the assumptions of the normative model of consumer choice as "data pathologies."
 
-The remainder of the paper will be organized as follows. In Section 2, we walk through ensemble approaches to prediction. In Section 3, we detail our ensemble approach to conjoint analysis. In Section 4, we provide results from simulation studies and an empirical application. In Section 5, we conclude.
+While each of the models that address a specific data pathology have been shown to improve both model fit and inference in contexts where that particular data pathology is present, none of these approaches has had a meaningful impact on the practice of conjoint.  In our opinion, this is the result of three key factors. First, the derivation and implementation of these models is complex and thus tough for practitioners to understand, implement, and sell to clients. Second, there is a lack of commercial software than can be used to easily implement and simulate from these models. The custom coding is required that can dramatically increase the expense and cycle time of a project. Third, each model is designed to capture a single pathology in the data. While this is useful, it is highly likely that multiple pathologies may be present and problematic in any given study.
 
-### Previous Material
+In this paper we explore alternative strategies for simultaneously accommodating multiple data pathologies in a single modeling framework. Our approach draws heavily on innovations in machine learning, in particular the work of Breiman (2001) who showed remarkable improvement in prediction resulting from averaging (or taking the consensus prediction) from an ensemble of diverse models. Breiman’s approach relies on the use of randomization to create diversity in the data used to calibrate an ensemble of models, thus helping hedge against model misspecification and overfitting.
 
-Many academic innovations in conjoint modeling in the recent past have focused on developing models that capture individual data pathologies. By data pathologies, we refer to respondent-specific behaviors that deviate from one or more of the core assumptions of random utility theory.  Examples of these types of models include those that deal with screening rules, attribute non-attendance, deviations from IIA choice behavior, respondent quality, etc.
+We argue there are three reasons to argue for an ensemble-based approach to conjoint analysis. First, the end goal of many conjoint studies is prediction in the form of accurate market simulations and thus a single-model approach is a mismatch with the objective. Second, we still have uncertainty about the correct model for any given conjoint study, in particular it is often impossible to no a prior what data pathology is present and thus which pathology-specific model to employ. Third, there is no single model that accounts for all the respondent behaviors that result in the data pathologies that have been addressed separately in the literature.
 
-While each of these models have been shown to improve both model fit and inference in contexts where a particular data pathology is present, none of these approaches has had a meaningful impact on the practice of conjoint.  In our opinion, this is the result of three key factors.
+The remainder of the paper will be organized as follows. In Section 2, we walk through ensemble approaches to prediction. In Section 3, we specify our ensemble approach to conjoint analysis. In Section 4, we provide results from simulation studies. We provide evidence from empirical applications in Section 5. Finally, in Section 6, we conclude.
 
-- The derivation and implementation of these models is complex.  They are tough for practitioners to understand, implement and sell to clients. 
-- There is a lack of commercial software than can be used to easily implement and simulate from these models.  Custom coding is required that can dramatically increase the expense and cycle time of a project.  
-- Each model is designed to capture a single pathology in the data.  While this is useful, it is highly likely that multiple pathologies may be present and problematic in any given study.
-
-In this paper we explore alternative strategies for simultaneously accommodating multiple data pathologies in a single modeling framework. Our approach draws heavily on innovations in machine learning, in particular the work of Breiman (2001) who showed remarkable improvement in prediction resulting from averaging (or taking the consensus prediction) from an ensemble of diverse models. Breiman’s approach relies on the use of randomization to create diversity in the data used to calibrate an ensemble of models, thus helping hedge against model misspecification and over-fitting.  
-
-Our approach draws on the intuition of Brieman (2001) and is closely related to Kevin Lattery’s 2015 Sawtooth Software Conference presentation and corresponding paper.  Lattery (2015) shows improvement in predictive fit from an ensemble of diverse models that was created using Latent Class methods. Our paper extends this work by considering alternative strategies to create diversity in the ensemble of models used for prediction.   Specifically, we show that certain types of randomization can be introduced into the construction of an ensemble in order to mitigate particular data pathologies. For example, the type of randomization used to accommodate the use of choice heuristics differs from the type of randomization used to deal with respondent quality.
-
-We will presents the theoretical justification for our approach and practical strategies for implementation.
-
-## Data Pathologies/Accommodating Data Pathologies
-
-### Attribute Non-Attendance
-
-### Screening Rules
-
-## Ensemble Approaches to Prediction
+## 2. Ensemble Approaches to Prediction
 
 Often, scientific models are used for explanation, meaning they are used to test causal theories (Schmueli 2010). While important for social science research, explanatory models may not yield good predictions. Profit-maximizing firms depend on the ability to anticipate consumer response to product offerings. Hence, what the firm truly desires is a good predictive model. For conjoint analysis, the hierarchical linear model is a good explanatory model but its predictions do not take full advantage of the complexity in the data. This is particularly pronounced when the data contains multiple data pathologies. Predictive accuracy can be improved without totally sacrificing the ability to understand why respondents made their choices.
 
@@ -64,7 +45,7 @@ We could choose the base models a different way. For example, each base models c
 
 The ensemble approach does come with some disadvantages. For example, our inferences are certainly biased. However, a relatively small increase in bias results in a much larger increase in predictive accuracy (Schmueli 2010). The ensemble approach is also scalable in the number of pathologies, easier to understand conceptually, and fairly easy to implement. The ensemble will continue to improve as additional base models are included with the existing base models.
 
-## Model Specification
+## 3. Model Specification
 
 - Describe Stacking as an ensemble approach
   + Point estimates versus distributions
@@ -92,7 +73,7 @@ Concatenate the predictions from the two halves of the training set. Regress (lo
 knitr::include_graphics("../Figures/Figure_1.png")
 ```
 
-## Simulation Studies
+## 4. Simulation Studies
 
 <!-- \begin{table}[] -->
 <!-- \centering -->
@@ -110,9 +91,9 @@ knitr::include_graphics("../Figures/Figure_1.png")
 <!-- \caption{Based on the average of 10 runs, each run having a different data set. For a given run, the same data set was used for all models.} -->
 <!-- \end{table} -->
 
-## Empirical Application
+## 5. Empirical Application
 
-## Conclusion
+## 6. Conclusion
 
 <!-- \newpage -->
 <!-- \bibliographystyle{apalike} -->
