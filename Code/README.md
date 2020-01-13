@@ -3,21 +3,14 @@ Code
 
 ## R
 
-  - `01_simulate-data.R`: Simulate data with and without data
+  - `01_simulate-data.R`: Simulate data with and without one or more
     pathologies present.
-  - `02_clever-randomization.R`: Induce clever randomization on a given
-    dataset for use in the ensemble.
-  - `03_conjoint-ensemble.R`: Run the conjoint ensemble.
+  - `02_clean-data.R`: Clean and restructure empirical application data
+    for use in the ensemble.
+  - `03_conjoint-ensemble.R`: Induce randomization, run the ensemble,
+    and produce a consensus.
   - `04_pathology-models.R`: Run models specific to each pathology.
   - `05_model-comparison.R`: Compare fit across models.
-  - `conj_hmnl.R`: A random-walk Metropolis-Hastings algorithm for an
-    HMNL with a conjunctive screen.
-  - `conj_hmnl.cpp`: Supporting C++ functions for `conj_hmnl.R`.
-  - `simulation-experiment.R`: Data simulation in R and parameter
-    recovery using a Stan model.
-  - `stan_utility.R`: Utility functions for evaluating Stan model fit.
-  - `hit_prob.R`: Function for computing a model’s hit probability.
-  - `hit_rate.R`: Function for computing a model’s hit rate.
 
 ## Python
 
@@ -30,8 +23,8 @@ Code
 
 ## Stan
 
-  - `hmnl.stan`: Hierarchical multinomial logit model.
+  - `hmnl_vanilla.stan`: Vanilla hierarchical multinomial logit with
+    testing included in the `generated quantities` block.
+  - `hmnl.stan`: Hierarchical multinomial logit.
   - `meta_mnl.stan`: Aggregate multinomial logit meta-learning model.
-  - `mnl.stan`: Aggregate multinomial logit model.
-  - `mnl_vanilla.stan`: An original hierarchical multinomial logit model
-    with testing included in the `generated quantities` block.
+  - `mnl.stan`: Aggregate multinomial logit.
