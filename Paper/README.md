@@ -89,11 +89,18 @@ empirical applications in Section 5. Finally, in Section 6, we conclude.
 
 ## 2\. Ensemble Approaches to Prediction
 
+  - We may want to merge with the introduction (this is where we’ll need
+    a number of references).
+  - Update the end of the section once we’ve determined which
+    randomization scheme(s) we actually use.
+  - Flesh out the “topological coverage” justification for the ensemble
+    (consider moving to model specification).
+
 Often, scientific models are used for explanation, meaning they are used
 to test causal theories (Schmueli 2010). While important for social
 science research, explanatory models may not yield good predictions.
 Profit-maximizing firms depend on the ability to anticipate consumer
-response to product offerings. Hence, what the firm truly desires is a
+response to product offerings. Hence, what the firm often requires is a
 good predictive model. For conjoint analysis, the hierarchical linear
 model is a good explanatory model but its predictions do not take full
 advantage of the complexity in the data. This is particularly pronounced
@@ -105,73 +112,80 @@ One way to achieve greater predictive accuracy is to use a collection of
 individual or base models aggregated in such a way that the aggregated
 model performs better than any individual model with respect to some
 performance criterion. This approach is called *ensembling* and was
-formally introduced in (Breiman 2001). To see why an ensemble approach
+formally introduced in Breiman (2001). To see why an ensemble approach
 is the preferable strategy for dealing with multiple data pathologies in
 conjoint studies, consider the following alternative strategies.
 
-The first alternative solution is to include the effects of the data
-pathology in a specific model. Several papers have been published to
-this effect \[*citation needed*\]. The advantage of this approach is
-that the model will be the optimal model. However, this approach has
-several disadvantages. The most obvious is that in order to account for
-the pathology, the tailored model must increase in complexity. This
+The first strategy is to include the effects of the data pathology in a
+specific model. Several papers have been published to this effect
+\[*citation needed*\]. The advantage of this approach is that the model
+will be the optimal model. However, this approach has several
+disadvantages. The most obvious is that in order to account for the
+pathology, the tailored model must increase in complexity. This
 complexity is both technical and conceptual. More complex models are
-less likely to be used by practitioners. Furthermore, this assumes that
-the modeler is able to exactly specify the data generating process of
-the pathology. This is a strong assumption and likely does not hold in
-the majority of cases. In addition to the increased complexity, tailored
-models are more computationally intensive than standard models. In this
-case, the marginal benefit provided by the tailored model would have to
-exceed the marginal cost associated with the additional computation.
-Computational complexity usually increases super-linearly whereas
-improved model performance is sub-linear or linear at best. Even if some
-practitioners are able to account for the pathology and can afford the
-increased computational cost, the tailored model is not robust to
-pathologies in the data other than those accounted for by the model. If
-other pathologies are unexpectedly present, the model will perform
-suboptimally.
+less likely to be used by practitioners.
 
-The second alternative solution is to account for data pathologies in a
-way that is more flexible than the first solution. This could be
-reasonably done during the process of constructing the priors of a
-Bayesian model. This is the more principled modeling approach since
-knowledge of potential data pathologies constitutes prior information
-that should be represented by the prior distribution. The model can
-represent any number of data pathologies as well as their interactions
-by using a mixture prior. Additionally, we can still use the standard
-multinomial logit model or any model of discrete choice that can be
-formulated as a Bayesian model; accounting for pathologies in the prior
-means we don’t have to change the structure of our model. With this, we
-get accurate inference on all of the parameters jointly and the
-resulting predictions are more reliable. Of course, the ideal case is
-unrealistic and presents a variety of problems. Certainly, if only a few
-pathologies are present, then the mixture model approach is best.
-However, the computational intensity spikes for nontrivial pathologies.
+Furthermore, this strategy assumes that the analyst is able to exactly
+specify the data generating process of the pathology. This is a strong
+assumption and likely does not hold in the majority of cases. In
+addition to the increased complexity, tailored models are more
+computationally intensive than standard models. In this case, the
+marginal benefit provided by the tailored model would have to exceed the
+marginal cost associated with the additional computation. Computational
+complexity usually increases super-linearly whereas improved model
+performance is sub-linear or linear at best.
+
+Even if some practitioners are able to account for the pathology and can
+afford the increased computational cost, the tailored model is not
+robust to pathologies in the data other than those accounted for by the
+model. If other pathologies are unexpectedly present, the model will
+perform suboptimally.
+
+The second strategy is to account for data pathologies in a way that is
+more flexible than the first strategy. This could be reasonably done
+during the process of constructing the priors of a Bayesian model. This
+is a similarly principled modeling approach since knowledge of potential
+data pathologies constitutes prior information that can be represented
+by the prior distribution. The model can represent any number of data
+pathologies as well as their interactions by using a mixture prior.
+
+Additionally, we can still use the standard multinomial logit model or
+any model of discrete choice that can be formulated as a Bayesian model;
+accounting for pathologies in the prior means we don’t have to change
+the structure of our model. With this, we get accurate inference on all
+of the parameters jointly and the resulting predictions are more
+reliable. Of course, the ideal case is unrealistic and presents a
+variety of problems. Certainly, if only a few pathologies are present,
+then the mixture model approach is best. However, the computational
+intensity spikes for nontrivial pathologies.
+
 In some cases, a sufficiently complicated prior may lead to an
 intractable posterior, at least given the current tools for Bayesian
-analysis. Furthermore, knowledge of the pathologies is expected to be
+analysis. Furthermore, knowledge of the pathologies is assumed to be
 known beforehand. Sometimes this is reasonable but for general purpose
 software solutions, this is unrealistic. In addition, the different
 pathologies may interfere with each other in the prior. This can create
-multi-modal posteriors (which results in model and computational
+multimodal posteriors (which results in model and computational
 complexity) or unidentifiable regions in the posterior (which prevents
-the model from capturing the effects of the pathology). Finally, adding
-additional structure for pathologies that in reality are not present is
-undesirable but largely unavoidable. This leaves us with a method that
-is complete in scope but computationally unrealistic and does not scale
-linearly with the addition of more pathologies.
+the model from capturing the effects of the pathology).
 
-Instead of the above alternatives, we advocate an ensemble approach. If
+Finally, adding additional structure for pathologies that in reality are
+not present is undesirable but largely unavoidable. This leaves us with
+a method that is complete in scope but computationally unrealistic and
+does not scale linearly with the addition of more pathologies.
+
+Instead of the above strategies, we advocate an ensemble approach. If
 the ideal model is a Bayesian mixture model, we can approximate the
 mixture model with an ensemble of base models fit to different subsets
 of the input data. The critical assumption here is that the “true”
 mixture model can be approximated as a convex combination of base
 models. The goal is to choose a list of base models such that the ideal
-mixture model is in the span of our list of base models. The way to
-create this list is by assigning each base model to “cover” a specific
-subset of the input data. This list of base models is chosen such that
-their union forms a topological cover of the input space. Note that it
-is not necessary to specify the exact base models that form the
+mixture model is in the span of our list of base models.
+
+The way to create this list is by assigning each base model to “cover” a
+specific subset of the input data. This list of base models is chosen
+such that their union forms a topological cover of the input space. Note
+that it is not necessary to specify the exact base models that form the
 theoretically true convex combination of base models; it is sufficient
 to provide a list of models from which the convex combination can be
 generated. Additionally, it is not necessary that the base models be
@@ -191,14 +205,14 @@ available will cause the ensemble to outperform the standard
 hierarchical model in terms of out of sample predictive performance.
 
 We could choose the base models a different way. For example, each base
-models could be specified with a different prior that accounts for a
+model could be specified with a different prior that accounts for a
 specific pathology or respondent behavior. Then the base models will
 generate predictions that account for the effects of each pathology
-respectively. Other ways of specifying base models include dropping
+respectively. **Other ways of specifying base models include dropping
 individuals or choice-tasks from the design matrix. In this paper, we
 show results for the ensemble generated by base models trained on
 ![l-1](https://latex.codecogs.com/png.latex?l-1 "l-1") feature
-variables.
+variables.**
 
 The ensemble approach does come with some disadvantages. For example,
 our inferences are certainly biased. However, a relatively small
