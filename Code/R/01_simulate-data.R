@@ -1,3 +1,7 @@
+# START WITH EXISTING DATA; HOW WAS IT SIMULATED?
+# NO NEED TO SPLIT INTO TRAIN/TEST WHEN USING LOO.
+# IMPLEMENT MODIFICATION TO SIMULATE FOR PATHOLOGIES.
+
 # Preamble ----------------------------------------------------------------
 # Load libraries.
 library(tidyverse)
@@ -6,70 +10,70 @@ library(rstan)
 library(bayesplot)
 
 # Set Stan options.
-rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
+rstan_options(auto_write = TRUE)
 
-# Parameter Recovery ------------------------------------------------------
-nresp <- 100    # Number of respondents.
-nscns <- 10     # Number of choice scenarios for each respondent.
-nalts <- 4      # Number of alternatives in each choice scenario.
-nlvls <- 12     # Number of attribute levels for each alternative.
-ncovs <- 1      # Number of covariates for each respondent.
+# Set the seed.
+set.seed(42)
 
-# True Gamma (ncovs x nlvls) values and Vbeta (nlvls x nlvls) values.
-Gamma <- matrix(runif(ncovs * nlvls, -3, 4), nrow = nlvls, ncol = ncovs)
-Vbeta <- diag(nlvls) + .5 * matrix(1, nrow = nlvls, ncol = 1) %*% t(matrix(1, nrow = nlvls, ncol = 1))
+ind_non <- 0 # Indicates no pathologies.
+ind_scr <- 0 # Indicates screening.
+ind_ana <- 0 # Indicates attribute non-attendance.
+ind_sna <- 0 # Indicates screening and attribute non-attendance.
 
-# Generate data.
-Y <- matrix(nrow = nresp, ncol = nscns)
-X <- array(dim = c(nresp, nscns, nalts, nlvls))
-Z <- matrix(nrow = ncovs, ncol = nresp)
-Beta <- matrix(nrow = nlvls, ncol = nresp)
-for (resp in 1:nresp) {
+# Simulate Data -----------------------------------------------------------
+N <- 500          # Number of respondents.
+S <- 10           # Number of choice tasks per respondent.
+P <- 4            # Number of alternatives per choice task.
+L <- 12           # Number of (estimable) attribute levels.
+C <- 1            # Number of covariates.
+
+# True Theta (C x L) values and Sigma (L x L) values.
+Theta <- matrix(runif(C * L, -3, 4), byrow = FALSE, nrow = C, ncol = L)
+Sigma <- diag(L) + .5 * matrix(1, nrow = L, ncol = 1) %*% t(matrix(1, nrow = L, ncol = 1))
+
+# Generate Y, X, Z, and Beta.
+Y <- matrix(NA, nrow = N, ncol = S)
+X <- array(NA, dim = c(N, S, P, L))
+Z <- matrix(NA, nrow = N, ncol = C)
+Beta <- matrix(NA, nrow = N, ncol = L)
+Y_list = X_list <- NULL
+for (n in 1:N) {
   # Generate covariates for the distribution of heterogeneity.
-  z_resp <- 1
-  if (ncovs > 1) z_resp <- c(z_resp, round(runif(ncovs - 1)))
+  Z[n, 1] <- 1
+  if (C > 1) Z[n, -1] <- c(z_temp, round(runif(C - 1)))
   
   # Generate individual-level betas.
-  beta <- rmvnorm(1, mean = Gamma %*% z_resp, sigma = Vbeta)
-    
+  Beta[n,] <- mvtnorm::rmvnorm(1, mean=t(Theta) %*% Z[n,], sigma = Sigma)
+  
   # Compute the latent utility a scenario at a time.
-  for (scn in 1:nscns) {
-    # Generate the design matrix for the given scenario.
-    X_scn <- matrix(round(runif(nalts * nlvls)), nrow = nalts, ncol = nlvls)
+  X_temp <- NULL
+  for (s in 1:S) {
+    # Generate or draw the design matrix for the given scenario.
+    X[n, s,,] <- matrix(round(runif(P * L)), nrow = P, ncol = L)
     
     # Compute and the latent utility for each alternative and find the max.
-    U_scn <- X_scn %*% as.vector(beta) + matrix((-log(-log(runif(nalts)))), ncol = 1)
+    U <- X[n, s,,] %*% Beta[n,] + matrix((-log(-log(runif(P)))), ncol = 1)
+    Y[n, s] <- which(U == max(U))
     
-    # Save each scenario's data.
-    Y[resp, scn] <- which(U_scn == max(U_scn))
-    X[resp, scn, , ] <- X_scn
+    # Save out each design matrix as a list.
+    X_temp <- rbind(X_temp, X[n, s,,])
   }
   
-  # Save out each respondent's data.
-  Z[, resp] <- as.vector(z_resp)
-  Beta[, resp] <- as.vector(beta)
+  # Also save out each respondent's data as a list.
+  Y_list[[n]] <- Y[n,]
+  X_list[[n]] <- X_temp
 }
 
-# Save data in a list.
-Data <- list(nresp = nresp, nscns = nscns, nalts = nalts, nlvls = nlvls, ncovs = ncovs,
-             Y = Y, X = X, Z = Z, Gamma = Gamma, Vbeta = Vbeta, Beta = Beta)
-
-# Run model.
-out_test <- stan(
-  file = "../MODELS/HBMNL_1.1.stan", data = Data, iter = 500, chains = 4
+sim_data <- list(
+  Y = Y,
+  X = X,
+  Z = Z,
+  Y_list = Y_list,
+  X_list = X_list,
+  Theta = Theta,
+  Sigma = Sigma,
+  Beta = Beta
 )
 
-# Trace plots.
-plot(out_test, plotfun = "trace", pars = "Gamma")
-# plot(out_test, plotfun = "trace", pars = "tau")
-# plot(out_test, plotfun = "trace", pars = "Omega")
-
-# Interval plots.
-plot(out_test, pars = "Gamma")
-# plot(out_test, pars = c("Gamma", "tau", "Omega"))
-# plot(out_test, pars = c("Gamma", "Vbeta"))
-
-# Numeric summary.
-summary(out_test, pars=c("Gamma"))$summary
-
+readr::write_rds(sim_data, here::here("Data", "hmnl_sim_data.rds"))

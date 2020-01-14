@@ -1,12 +1,12 @@
 // HBMNL for discrete choice experiments
 data {
-  int<lower=2> A; // number of alternatives (choices) per question
-  int<lower=1> L; // number of feature variables
-  int<lower=1> R; // number of respondents
-  int<lower=1> T; // number of questions (unique inquiries)
-  int<lower=1> C; // number of respondent covariates (demographics, etc)
-  int<lower=1> Rtest;
-  int<lower=1> Ttest;
+  int<lower=2> A;     // number of alternatives (choices) per question
+  int<lower=1> L;     // number of feature variables
+  int<lower=1> R;     // number of respondents
+  int<lower=1> T;     // number of questions (unique inquiries)
+  int<lower=1> C;     // number of respondent covariates (demographics, etc)
+  int<lower=1> Rtest; // number of respondents in the test design matrix
+  int<lower=1> Ttest; // number of questions/alternatives in the test design matrix
 
   matrix[A, L] X[R, T]; // matrix of attributes for each obs
   int<lower=1, upper=A> Y[R, T]; // observed responses

@@ -1,3 +1,5 @@
+# Start with loo.
+
 hit_rate = function(betadraw,Y,X) {
   # Compute the hit rate for the indicated model.
   #   betadraw - post-burn-in beta draws for the model of interest
