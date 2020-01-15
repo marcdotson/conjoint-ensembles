@@ -53,10 +53,12 @@ model {
 // Quantities conditioned on parameter draws.
 generated quantities {
   // Log likelihood to estimate loo.
-  matrix[N, S] log_lik;
+  vector[N * S] log_lik;
+  int obs = 0;
   for (n in 1:N) {
     for (s in 1:S) {
-      log_lik[n, s] = categorical_logit_lpmf(Y[n, s] | X[n, s] * Beta[n,]');
+      obs = obs + 1;
+      log_lik[obs] = categorical_logit_lpmf(Y[n, s] | X[n, s] * Beta[n,]');
     }
   }
 }

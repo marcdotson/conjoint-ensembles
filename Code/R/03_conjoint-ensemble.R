@@ -23,20 +23,22 @@ if (ind_non == 1) {
   
   # Array of experimental designs per choice task.
   X_raw <- read_csv(here::here("Data", "01_PathologyNone", "X.csv"))
-  X <- array(NA, dim = c(max(X_raw$resp), max(X_raw$task), max(X_raw$alt), ncol(X_raw) - 3))
-  for (n in 1:max(X_raw$resp)) {
-    for (t in 1:max(X_raw$task)) {
-      X[n,t,,] <- X_raw %>% 
-        filter(resp == n, task == t) %>% 
-        select(contains("l_")) %>% 
-        as.matrix()
-    }
-  }
-  
-  # Matrix of respondent-level covariates.
-  Z <- rep(1, nrow(Y)) %>% 
-    as.matrix()
 }
+
+# Restructure X_raw into X.
+X <- array(NA, dim = c(max(X_raw$resp), max(X_raw$task), max(X_raw$alt), ncol(X_raw) - 3))
+for (n in 1:max(X_raw$resp)) {
+  for (t in 1:max(X_raw$task)) {
+    X[n,t,,] <- X_raw %>% 
+      filter(resp == n, task == t) %>% 
+      select(contains("l_")) %>% 
+      as.matrix()
+  }
+}
+
+# Matrix of respondent-level covariates.
+Z <- rep(1, nrow(Y)) %>% 
+  as.matrix()
 
 # Randomization -----------------------------------------------------------
 
@@ -60,6 +62,15 @@ data <- list(
   Z = Z             # Matrix of respondent-level covariates.
 )
 
+# N <- 5; S <- 2
+# ns = 0
+# for (n in 1:N) {
+#   for (s in 1:S) {
+#     ns = ns + 1
+#     print(ns)
+#   }
+# }
+
 # Calibrate the model.
 fit01 <- stan(
   file = here::here("Code", "Stan", "hmnl_centered.stan"),
@@ -68,12 +79,9 @@ fit01 <- stan(
   seed = 42
 )
 
-fit01 <- fit
+loo(fit01, save_psis = TRUE)
 
-loo01 <- loo(fit01, save_psis = TRUE)
-
-# Save ensemble output.
-write_rds(fit01, here::here("Output", "hmnl-centered_fit.RDS"))
+# # Save ensemble output.
+# write_rds(fit01, here::here("Output", "hmnl-centered_fit.RDS"))
 
 # Generate Consensus ------------------------------------------------------
-loo_compare(loo01, loo02, loo03)
