@@ -2,6 +2,7 @@
 # Load packages.
 library(tidyverse)
 library(rstan)
+library(loo)
 # library(bayesplot)
 # library(tidybayes)
 
@@ -79,6 +80,16 @@ fit01 <- stan(
   seed = 42
 )
 
+# Manual extraction.
+log_lik <- extract_log_lik(fit01, merge_chains = FALSE)
+str(log_lik)
+
+sum(is.na(log_lik))
+
+r_eff <- relative_eff(exp(log_lik))
+loo(log_lik, r_eff = r_eff)
+
+# Fit.
 loo(fit01, save_psis = TRUE)
 
 # # Save ensemble output.
