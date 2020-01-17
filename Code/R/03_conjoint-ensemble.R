@@ -82,12 +82,11 @@ fit01 <- stan(
 
 # Manual extraction.
 log_lik <- extract_log_lik(fit01, merge_chains = FALSE)
-str(log_lik)
-
-sum(is.na(log_lik))
-
 r_eff <- relative_eff(exp(log_lik))
 loo(log_lik, r_eff = r_eff)
+
+str(log_lik)
+min(log_lik); max(log_lik)
 
 # Fit.
 loo(fit01, save_psis = TRUE)
