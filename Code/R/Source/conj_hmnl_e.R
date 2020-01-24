@@ -1,4 +1,4 @@
-conj_hmnl = function (Data, Prior, Mcmc, Cont) {
+conj_hmnl_e = function (Data, Prior, Mcmc, Cont) {
   # This function implements a random-walk Metropolis-Hastings algorithm for a hierarchical
   # MNL with a multivariate normal distribution of heterogeneity and a conjuctive screen
   # based on product relevance as determined by attribute perceptions.
@@ -34,6 +34,7 @@ conj_hmnl = function (Data, Prior, Mcmc, Cont) {
   # Mcmc = list(R,keep,bstep,ostep,sim_ind,out_ind,het_ind,cont_ind).
   R = Mcmc$R                                              # Number of iterations in the Markov chain.
   keep = Mcmc$keep                                        # Thinning parameter.
+  print = Mcmc$print                                      # Print frequency.
   bstep = Mcmc$bstep                                      # RW step (scaling factor) for the beta draws.
   if (Mcmc$het_ind==1) ostep = Mcmc$ostep                 # RW step (scaling factor) for the Omega draws.
   sim_ind = Mcmc$sim_ind                                  # Indicates a simulation experiment.
@@ -63,7 +64,7 @@ conj_hmnl = function (Data, Prior, Mcmc, Cont) {
   if (het_ind==1) Omegadraw = matrix(double(floor(R/keep)*(nscov+1)*nlvls),ncol=(nscov+1)*nlvls)
   
   # Diagnostic draws and initial clock time.
-  llikedraw = double(floor(R/keep))                        # Log likelihood.
+  llikedraw = array(0,dim=c(floor(R/keep), nresp))                        # Log likelihood.
   baccept = array(0,dim=c(R/keep))                         # Beta acceptance rate.
   if (het_ind==1) oaccept = array(0,dim=c(R/keep))         # Omega acceptance rate.
   bstepdraw = array(0,dim=c(R/keep))                       # RW step adjusted during burn-in.
@@ -76,10 +77,10 @@ conj_hmnl = function (Data, Prior, Mcmc, Cont) {
   
   # Initialize values.
   if (cont_ind == 0) {
-    if (sim_ind==0) {
+    #if (sim_ind==0) {
       oldbetas = matrix(double(nresp*nvars),ncol=nvars)
       oldtaus = matrix(double(nresp*nlvls),ncol=nlvls)
-    }
+    #}
     if (sim_ind==1) {
       oldbetas = matrix(Beta,ncol=nvars)
       oldtaus = matrix(Tau,ncol=nlvls)
@@ -119,7 +120,7 @@ conj_hmnl = function (Data, Prior, Mcmc, Cont) {
   
   # Run the MCMC ------------------------------------------------------------
   # The Markov chain will run for R iterations.
-  sourceCpp("Estimation/2 Conjunctive Screen HMNL/conj_hmnl.cpp")
+  sourceCpp("Code/R/Source/conj_hmnl.cpp")
   for (rep in 1:R) {
     # Initial log likelihood values for each iteration.
     logold = lognew = 0
@@ -160,8 +161,10 @@ conj_hmnl = function (Data, Prior, Mcmc, Cont) {
         oldbetas[resp,] = betac
         bnaccept = bnaccept + 1
         loglike = loglike + lognew
+        if(rep%%keep==0) llikedraw[rep/keep, resp] = lognew
       } else {
         loglike = loglike + logold
+        if(rep%%keep==0) llikedraw[rep/keep, resp] = logold
       }
       
       # Draw tau.
@@ -214,7 +217,7 @@ conj_hmnl = function (Data, Prior, Mcmc, Cont) {
     }
     
     # Print progress.
-    if (rep%%100 == 0) {
+    if (rep%%(keep*5) == 0) {
       ctime = proc.time()[3]
       timetoend = ((ctime - itime)/rep)*(R - rep)
       bacceptr = bnaccept/nresp
@@ -230,22 +233,6 @@ conj_hmnl = function (Data, Prior, Mcmc, Cont) {
       }
     }
     
-    # Print chart less often.
-    if (rep%%1000 == 0) {
-      par(mfrow=c(3,1))
-      if (sim_ind==0) {
-        plot(llikedraw,type="l")
-        matplot(Gammadraw,type="l",col=1:(nvars*npcov))
-        if (het_ind==0) matplot(thetadraw,type="l",col=1:nlvls)
-        if (het_ind==1) matplot(Omegadraw,type="l",col=1:((nscov+1)*nlvls))
-      }
-      if (sim_ind==1) {
-        plot(llikedraw,type="l")
-        matplot(Gammadraw,type="l",col=1:length(Gamma)); abline(h=Gamma,col=1:length(Gamma))
-        if (het_ind==0) { matplot(thetadraw,type="l",col=1:length(theta)); abline(h=theta,col=1:length(theta)) }
-        if (het_ind==1) { matplot(Omegadraw,type="l",col=1:length(Omega)); abline(h=Omega,col=1:length(Omega)) }
-      }
-    }
     
     # Save the posterior draws.
     mkeep = rep/keep
@@ -257,11 +244,27 @@ conj_hmnl = function (Data, Prior, Mcmc, Cont) {
       Vbetadraw[mkeep,] = as.vector(oldVbeta)
       if (het_ind==0) thetadraw[mkeep,] = as.vector(oldtheta)
       if (het_ind==1) Omegadraw[mkeep,] = as.vector(oldOmega)
-      llikedraw[mkeep] = loglike
       baccept[mkeep] = bnaccept/nresp
       if (het_ind==1) oaccept[mkeep] = onaccept/nlvls
       bstepdraw[mkeep] = bstep
       if (het_ind==1) ostepdraw[mkeep] = ostep
+    }
+    
+    # Print chart less often.
+    if (rep%%print == 0) {
+      par(mfrow=c(3,1))
+      if (sim_ind==0) {
+      plot(rowSums(llikedraw),type="l")
+      matplot(Gammadraw,type="l",col=1:(nvars*npcov))
+      if (het_ind==0) matplot(thetadraw,type="l",col=1:nlvls)
+      if (het_ind==1) matplot(Omegadraw,type="l",col=1:((nscov+1)*nlvls))
+      }
+      if (sim_ind==1) {
+        plot(rowSums(llikedraw),type="l")
+        matplot(Gammadraw,type="l",col=1:length(Gamma)); abline(h=Gamma,col=1:length(Gamma))
+        if (het_ind==0) { matplot(thetadraw,type="l",col=1:length(theta))}#; abline(h=theta,col=1:length(theta)) }
+        if (het_ind==1) { matplot(Omegadraw,type="l",col=1:length(Omega)); abline(h=Omega,col=1:length(Omega)) }
+      }
     }
     
     # Save out interim continuation files.
