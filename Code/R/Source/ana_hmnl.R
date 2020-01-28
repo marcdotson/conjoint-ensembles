@@ -2,8 +2,6 @@
 #
 #   Independence Metropolis algorithm for a HMNL model 
 #                           with attribute non-attendance
-#   Roger Bailey
-#   February 2018
 #
 #********************************************************
 ana_hmnl=function(Data, Prior, Mcmc, TrueV){
@@ -18,28 +16,27 @@ ana_hmnl=function(Data, Prior, Mcmc, TrueV){
   R = Mcmc$R  # Number of iterations in the Markov chain
   keep = Mcmc$keep  # Thinning parameter
   print = Mcmc$print  # Skip interval for printing output
-  step = Mcmc$bstep  # Step size
+  step = Mcmc$step  # Step size
+  sim_ind=Mcmc$sim_ind
+  out_ind=Mcmc$out_ind
   
   # Get argument values
   ntask=length(data[[1]]$y)/nalt  # Number of task in each scenario
   nresp=length(data)  # Total number of respondents
-  lvlvec=Data$lvlvec # Number of levels for each attribute
+  lvlvec=Data$lvlvec-1 # Number of levels for each attribute (after removing null level)
   natt=length(lvlvec)  # Total number of attributes
   levloc=NULL 
   for(att in 1:natt){
     if(att==1){
-    levloc[[att]]=list(loc=c(1:lvlvec[att]))
+    levloc[[att]]=list(loc=c(1:(lvlvec[att])))
     }else{ levloc[[att]]=list(loc=(cumsum(lvlvec)[att-1]+1):(cumsum(lvlvec)[att]))}
   }
   nbeta=ncol(data[[1]]$X)
-  nz=ncol(data[[1]]$Z)
-  Z=data[[1]]$Z
+  nz=ncol(Data$Z)
+  Z=Data$Z
   
   # Get true values if they exist
-  if(is.null(TrueV)){
-    sim=F
-  }else{sim=T}
-  if(sim==T){
+  if(sim_ind==1){
     tDelta=TrueV$tDelta
     ttheta=TrueV$ttheta
     tbetamat=t(TrueV$tbetamat)
@@ -57,7 +54,7 @@ ana_hmnl=function(Data, Prior, Mcmc, TrueV){
   oldbetamat=matrix(double(nbeta*nresp),nr=nresp)  #initial betas (partworths)
   oldbetastarmat=matrix(double(nbeta*nresp),nr=nresp)
   oldCmat= matrix(double(nbeta*nresp)+1,nr=nresp)  #initial taus (attendance values)
-  oldtheta=c(1,rep(.5,natt-1))  #initial prob for attendance, constant always attended
+  oldtheta=c(rep(.5,natt))  #initial prob for attendance
   oldDelta=matrix(double(nz*nbeta),nr=nz)  #initial value for Upper level coefficients
   oldbetabarmat=Z%*%oldDelta  #initial betabar (mean)
   oldVbeta=.5+diag(nbeta)*.5  #initial Vbeta
@@ -95,7 +92,7 @@ ana_hmnl=function(Data, Prior, Mcmc, TrueV){
   Vbetadraws=array(double(nbeta*nbeta*R/keep),dim=c(R/keep,nbeta,nbeta))
   Cdraws=array(double(nbeta*nz*R/keep),dim=c(R/keep,nresp,nbeta))
   thetadraws=matrix(double(natt*R/keep),nc=natt)
-  llikes=matrix(double(nresp*R/keep),nr=R/keep)
+  llikedraw=matrix(double(nresp*R/keep),nr=R/keep)
 
   #timer
   itime = proc.time()[3]
@@ -110,8 +107,8 @@ ana_hmnl=function(Data, Prior, Mcmc, TrueV){
       oldC=oldCmat[resp,]
       for(j in 1:natt){
         #draw each tau and beta together
-        newtj=rbinom(1,1,oldtheta[j]) #draw tau for this attributte/respondent
-        newtj=newtj-(newtj-1)*c #use c to change from 0
+        newtj=rbinom(1,1,oldtheta[j]) #draw tau for this attribute/respondent
+        newtj=newtj-(newtj-1)*.001 #cannot be zero
         i=levloc[[j]]$loc  #identify locations of betas for this attribute
         newC=oldC;newC[i]=newtj  #create new C
         moms=McondMom(oldbeta,diag(newC)%*%oldbetabar,
@@ -120,10 +117,10 @@ ana_hmnl=function(Data, Prior, Mcmc, TrueV){
         newbeta[i]=t(chol(moms$cvar))%*%rnorm(lvlvec[j])+moms$cmean  #draw from cond mult norm
 
         #get likelihood and prior values
-        oldllikeb=loglike(matrix(Data[[resp]]$X%*%oldbeta,nr=nalt)
-                          ,as.matrix(Data[[resp]]$y))
-        newllikeb=loglike(matrix(Data[[resp]]$X%*%newbeta,nr=nalt)
-                          ,as.matrix(Data[[resp]]$y))
+        oldllikeb=loglike(matrix(data[[resp]]$X%*%oldbeta,nr=nalt)
+                          ,as.matrix(data[[resp]]$y))
+        newllikeb=loglike(matrix(data[[resp]]$X%*%newbeta,nr=nalt)
+                          ,as.matrix(data[[resp]]$y))
         diffvecb=newllikeb-oldllikeb
         alphab=min(exp(diffvecb), 1)
       
@@ -152,7 +149,7 @@ ana_hmnl=function(Data, Prior, Mcmc, TrueV){
     oldVbetai=chol2inv(chol(oldVbeta))
     
     #Draw new values for theta
-    for(j in 2:(natt)){
+    for(j in 1:(natt)){
       oldtheta[j]=rbeta(1,alpha[1]+sum(attcount[,j]),alpha[1]+sum(1-attcount[,j]))
     }
     
@@ -164,23 +161,27 @@ ana_hmnl=function(Data, Prior, Mcmc, TrueV){
       Vbetadraws[r/keep,,]=oldVbeta
       Cdraws[r/keep,,]=oldCmat
       thetadraws[r/keep,]=oldtheta
-      llikes[r/keep,]=llike
+      llikedraw[r/keep,]=llike
     }
     
     #print progress
-    #print tte and chart current draw progress
-    if(r%%(keep*print)==0){
-      par(mfrow=c(3,1))
+    # Print progress.
+    if (r%%(keep*5) == 0){
       ctime = proc.time()[3]
-      tuntilend = ((ctime - itime)/r) * (R + 1 - r)
-      cat(" ", r, " (", round(tuntilend/60, 1), ")", 
-          fill = TRUE)
-      plot(rowSums(llikes),type="l",ylab="Log Likelihood")
+      timetoend = ((ctime - itime)/r)*(R - r)
+      cat(" ",r," ( hrs/min to end",round((timetoend/60)/60,2),"/",round(timetoend/60,2),"| step",
+            round(step,5),"| ll",round(sum(llike),2),")",fill = TRUE)
+    }
+
+    
+    #print chart
+    if(r%%print==0){
+      par(mfrow=c(3,1))
+      plot(rowSums(llikedraw),type="l",ylab="Log Likelihood")
       matplot(matrix(Deltadraws,nr=R/keep),type="l",ylab="Deltabar Draws")
-      if(sim==T){abline(h=tDelta)}
+      if(sim_ind==1){abline(h=tDelta)}
       matplot(thetadraws,type="l",ylab="theta Draws")
-      if(sim==T){abline(h=ttheta)}
-      #fsh()
+      if(sim_ind==1){abline(h=ttheta)}
     }
   } 
   return(list(betadraws=betadraws,betastardraws=betastardraws,Deltadraws=Deltadraws,  
