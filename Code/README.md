@@ -9,7 +9,8 @@ Code
     for use in the ensemble.
   - `03_conjoint-ensemble.R`: Induce randomization, run the ensemble,
     and produce a consensus.
-  - `04_pathology-models.R`: Run models specific to each pathology.
+  - `04_competing-models.R`: Run the standard model or models specific
+    to each pathology.
   - `05_model-comparison.R`: Compare fit across models.
 
 ## Python
