@@ -286,7 +286,7 @@ conj_hmnl_e = function (Data, Prior, Mcmc, Cont) {
                     out_oldOmega = matrix(Omegadraw[R/keep,],byrow=TRUE,ncol=((nscov+1)*nlvls)),
                     out_bstep = bstep,out_ostep = ostep)
       }
-      save(Cont,file="Interim_Cont.RData")
+      save(Cont,file=here::here("Output", "Screening_Interim_Cont.RData"))
     }
     
     # Save out continuation files.
