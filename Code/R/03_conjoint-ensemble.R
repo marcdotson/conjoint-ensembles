@@ -44,54 +44,91 @@ Z <- rep(1, nrow(Y)) %>%
 # Randomization -----------------------------------------------------------
 
 # Run Ensemble ------------------------------------------------------------
-# Specify the data for calibration in a list.
+# Calibrate the model with the centered parameterization.
 data <- list(
-  N = nrow(Y),      # Number of respondents.
-  S = ncol(Y),      # Number of choice tasks per respondent.
-  P = dim(X)[3],    # Number of product alternatives per choice task.
-  L = dim(X)[4],    # Number of (estimable) attribute levels.
-  C = ncol(Z),      # Number of respondent-level covariates.
+  N = nrow(Y),        # Number of respondents.
+  S = ncol(Y),        # Number of choice tasks per respondent.
+  P = dim(X)[3],      # Number of product alternatives per choice task.
+  L = dim(X)[4],      # Number of (estimable) attribute levels.
+  C = ncol(Z),        # Number of respondent-level covariates.
   
-  Theta_mean = 0,   # Mean of coefficients for the heterogeneity model.
-  Theta_scale = 10, # Scale of coefficients for the heterogeneity model.
-  tau_mean = 0,     # Mean of scale parameters for the heterogeneity model.
-  tau_scale = 2.5,  # Scale of scale parameters for the heterogeneity model.
-  Omega_shape = 2,  # Shape of correlation matrix for the heterogeneity model.
+  Theta_mean = 0,     # Mean of coefficients for the heterogeneity model.
+  Theta_scale = 10,   # Scale of coefficients for the heterogeneity model.
+  tau_mean = 0,       # Mean of scale parameters for the heterogeneity model.
+  tau_scale = 2.5,    # Scale of scale parameters for the heterogeneity model.
+  Omega_shape = 2,    # Shape of correlation matrix for the heterogeneity model.
   
-  Y = Y,            # Matrix of observed choices.
-  X = X,            # Array of experimental designs per choice task.
-  Z = Z             # Matrix of respondent-level covariates.
+  Y = Y,              # Matrix of observed choices.
+  X = X,              # Array of experimental designs per choice task.
+  Z = Z               # Matrix of respondent-level covariates.
 )
 
-# N <- 5; S <- 2
-# ns = 0
-# for (n in 1:N) {
-#   for (s in 1:S) {
-#     ns = ns + 1
-#     print(ns)
-#   }
-# }
-
-# Calibrate the model.
-fit01 <- stan(
+hmnl_centered <- stan(
   file = here::here("Code", "Stan", "hmnl_centered.stan"),
   data = data,
   control = list(adapt_delta = 0.99),
   seed = 42
 )
 
-# Manual extraction.
-log_lik <- extract_log_lik(fit01, merge_chains = FALSE)
-r_eff <- relative_eff(exp(log_lik))
-loo(log_lik, r_eff = r_eff)
+# Save model output.
+write_rds(
+  hmnl_centered,
+  path = here::here("Output", "hmnl_centered.rds")
+)
 
-str(log_lik)
-min(log_lik); max(log_lik)
+# Calibrate the model with the non-centered parameterization.
+data <- list(
+  N = nrow(Y),        # Number of respondents.
+  S = ncol(Y),        # Number of choice tasks per respondent.
+  P = dim(X)[3],      # Number of product alternatives per choice task.
+  L = dim(X)[4],      # Number of (estimable) attribute levels.
+  C = ncol(Z),        # Number of respondent-level covariates.
+  
+  Theta_mean = 0,     # Mean of coefficients for the heterogeneity model.
+  Theta_scale = 1,    # Scale of coefficients for the heterogeneity model.
+  alpha_mean = 0,     # Mean of scale for the heterogeneity model.
+  alpha_scale = 10,   # Scale of scale for the heterogeneity model.
+  lkj_corr_shape = 5, # Shape of correlation matrix for the heterogeneity model.
+  
+  Y = Y,              # Matrix of observed choices.
+  X = X,              # Array of experimental designs per choice task.
+  Z = Z               # Matrix of respondent-level covariates.
+)
 
-# Fit.
-loo(fit01, save_psis = TRUE)
+hmnl_noncentered <- stan(
+  file = here::here("Code", "Stan", "hmnl_noncentered.stan"),
+  data = data,
+  control = list(adapt_delta = 0.99),
+  seed = 42
+)
 
-# # Save ensemble output.
-# write_rds(fit01, here::here("Output", "hmnl-centered_fit.RDS"))
+# Save model output.
+write_rds(
+  hmnl_noncentered,
+  path = here::here("Output", "hmnl_noncentered.rds")
+)
 
 # Generate Consensus ------------------------------------------------------
+# Load model output.
+hmnl_centered <- read_rds(here::here("Output", "hmnl_centered.stan"))
+hmnl_noncentered <- read_rds(here::here("Output", "hmnl_noncentered.stan"))
+
+# Centered parameterization.
+log_lik_centered <- extract_log_lik(hmnl_centered, merge_chains = FALSE)
+r_eff <- relative_eff(exp(log_lik_centered))
+loo(log_lik_centered, r_eff = r_eff)
+loo(hmnl_centered, save_psis = TRUE)
+
+loo_centered <- loo(hmnl_centered, save_psis = TRUE)
+
+# Non-centered parameterization.
+log_lik_noncentered <- extract_log_lik(hmnl_noncentered, merge_chains = FALSE)
+r_eff <- relative_eff(exp(log_lik_noncentered))
+loo(log_lik_noncentered, r_eff = r_eff)
+loo(hmnl_noncentered, save_psis = TRUE)
+
+loo_noncentered <- loo(hmnl_noncentered, save_psis = TRUE)
+
+# Compare model fit.
+loo_compare(loo_centered, loo_noncentered)
+
