@@ -28,4 +28,4 @@ Training](https://github.com/marcdotson/ra-training).
   - `Data`: Simulated data sets used by conjoint models
   - `Figures`: images and plots from demos, tutorials, and paper
   - `Paper`: includes the paper submitted for publication
-  - `Presentation`: slides, demos, and tutorials
+  - `Presentation`: slides, demos, and tutorialsADDED LINE
