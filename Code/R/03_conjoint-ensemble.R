@@ -3,8 +3,8 @@
 library(tidyverse)
 library(rstan)
 library(loo)
-# library(bayesplot)
-# library(tidybayes)
+library(bayesplot)
+library(tidybayes)
 
 # Stan options.
 options(mc.cores = parallel::detectCores())
@@ -42,6 +42,9 @@ Z <- rep(1, nrow(Y)) %>%
   as.matrix()
 
 # Randomization -----------------------------------------------------------
+
+# APPLYING CONSTRAINTS DIRECTLY TO PARAMETERS IN STAN?
+# NEEDS TO ALLOW FOR DEALING WITH TWO OR MORE PATHOLOGIES JOINTLY.
 
 # Run Ensemble ------------------------------------------------------------
 # Calibrate the model with the centered parameterization.
@@ -109,9 +112,13 @@ write_rds(
 )
 
 # Generate Consensus ------------------------------------------------------
+
+# CENTERED: 3244.24 seconds (Total)
+# NON-CENTERED: 1301.17 seconds (Total)
+
 # Load model output.
-hmnl_centered <- read_rds(here::here("Output", "hmnl_centered.stan"))
-hmnl_noncentered <- read_rds(here::here("Output", "hmnl_noncentered.stan"))
+hmnl_centered <- read_rds(here::here("Output", "hmnl_centered.rds"))
+hmnl_noncentered <- read_rds(here::here("Output", "hmnl_noncentered.rds"))
 
 # Centered parameterization.
 log_lik_centered <- extract_log_lik(hmnl_centered, merge_chains = FALSE)
