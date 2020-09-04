@@ -19,10 +19,9 @@ practice.
 
 ## Project Organization
 
-  - `Code`: Includes utilities and model scripts written in R, python,
-    and Stan.
+  - `Code`: Includes utilities and model scripts written in R and Stan.
   - `Data`: Simulated and actual (not pushed) data sets used by conjoint
     models.
   - `Figures`: Images and plots.
-  - `Paper`: The complete paper manuscript.
   - `Presentation`: Slides, demos, and tutorials.
+  - `Writing`: Case studies and the paper manuscript.
