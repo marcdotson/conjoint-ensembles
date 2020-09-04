@@ -21,7 +21,7 @@ Data/R*
 # Folders
 Output/*
 Readings/*
-Temporary/*
+Private/*
 
 # Miscellaneous
 .DS_Store
