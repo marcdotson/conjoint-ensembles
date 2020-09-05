@@ -3,9 +3,11 @@ Code
 
 ## R
 
-  - `01_simulate-data.R`: Simulate data with and without pathologies.
-  - `02_clean-data.R`: Clean and restructure empirical application data.
-  - `03_conjoint-ensemble.R`: Induce randomization and run the ensemble.
+  - `01_simulate-data.R`: Simulate data with and without pathologies and
+    induce randomization.
+  - `02_clean-data.R`: Clean empirical application data and induce
+    randomization.
+  - `03_conjoint-ensemble.R`: Run the ensemble.
   - `04_meta-learner.R`: Produce a consensus using the ensemble output.
   - `05_competing-models.R`: Run the standard model or models specific
     to each pathology.
