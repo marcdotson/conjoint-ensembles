@@ -36,10 +36,10 @@ transformed parameters {
   }
   
   // Imposing clever randomization.
-  // Either loop through all elements to find which are set to 1 (?) or determine
+  // Either loop through all elements to find which are set to 0 (?) or determine
   // this beforehand and input as part of the data block, then reference those 
-  // specific elements and set them to 1 (?) with something like:
-  // Beta[r, i] = 1;
+  // specific elements and set them to 0 (?) with something like:
+  // Beta[, i] = 0;
 }
 
 // Hierarchical multinomial logit model.
