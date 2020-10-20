@@ -6,9 +6,9 @@
 ## This needs to be written as a function
 
 ## Read Design Data
-desmat = read.csv(here::here("Code/R","coded.design.csv"),header=TRUE)
+desmat = read.csv(here::here("Data","coded.design.csv"),header=TRUE)
 ## Read Choice Data
-choice.dat = read.csv(here::here("Code/R","zerorez.final.csv"),header=TRUE)
+choice.dat = read.csv(here::here("Data","zerorez.final.csv"),header=TRUE)
 choice.dat = choice.dat[,-1]
 
 ## Sample Characteristics
@@ -80,4 +80,6 @@ clean_mnl <- function(Y=NULL, X=NULL, pct.test = .20, n.member = 100){
 ## Run clean_mnl code
 
 XX = clean_mnl(Y = Y, X = X, pct.test = .1, n.member = 200)
+
+save(XX, file = here::here("Data", "design.RData"))
 

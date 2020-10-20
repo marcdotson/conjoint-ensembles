@@ -34,6 +34,25 @@ transformed parameters {
   for (r in 1:R) {
     Beta[r,] = Z[r,] * Gamma + Delta[r,] * quad_form_diag(Omega, tau);
   }
+  
+  // Imposing clever randomization.
+  // Either loop through all elements to find which are set to 0 (?) or determine
+  // this beforehand and input as part of the data block, then reference those 
+  // specific elements and set them to 0 (?) with something like:
+  // Beta[, i] = 0;
+  // 
+  // Something like
+  // real nondiag_xi[N, S, S];
+  // nondiag_xi = xi;
+  // for (s in 1:S)
+  //   for (n in 1:N)
+  //     nondiag_xi[n, S, S] = 0.0;
+  // 
+  // Or:
+  // matrix[4, 6] x1[2, 1, 7];
+  // matrix[4, 6] x2[3, 1, 7];
+  // matrix[4, 6] x3[5, 1, 7];
+  // x3 = append_array(x1, x2);
 }
 
 // Hierarchical multinomial logit model.

@@ -1,19 +1,29 @@
 Code
 ================
 
+## R Scripts
+
+The project work is broken down into the following steps with
+corresponding scripts.
+
   - `01_simulate-data.R`: Simulate data with and without pathologies and
     induce randomization.
   - `02_clean-data.R`: Clean empirical application data and induce
     randomization.
-  - `03_conjoint-ensemble.R`: Run the ensemble.
+  - `03_conjoint-ensemble.R`: Run the ensemble using the clever
+    randomization.
   - `04_meta-learner.R`: Produce a consensus using the ensemble output.
   - `05_competing-models.R`: Run the standard model or models specific
     to each pathology.
-  - `06_model-comparison.R`: Compare fit across models and ensemble.
+  - `06_model-comparison.R`: Compare fit across models and ensembles.
 
-In `Source`:
+## Functions
 
-  - `generate_data.stan`: Generate data according to the hierarchical
-    multinomial logit.
-  - `hmnl_noncentered.stan`: Hierarchical multinomial logit with a
-    non-centered parameterization.
+The following functions are stored in `Source`.
+
+  - `ana_hmnl.R`: Estimate an HMNL with attribute non-attendance.
+  - `conj_hmnl.R`: Estimate an HMNL with conjunctive screening rules.
+  - `conj_hmnl.cpp`: Helper functions in C++ for `conj_hmnl.R`.
+  - `generate_data.stan`: Generate data according to a HMNL.
+  - `hmnl.R`: Estimate an HMNL.
+  - `hmnl_ensemble.stan`: Estimate an HMNL as part of an ensemble.

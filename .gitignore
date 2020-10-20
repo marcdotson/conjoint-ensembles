@@ -4,14 +4,6 @@
 .RData
 .Ruserdata
 
-# Python Stuff
-*.rds
-*.pkl
-*.ipynb_checkpoints
-*__pycache__/
-__pycache__/
-*pytest*
-
 # Code Stuff
 Code/Stan/*.rds
 

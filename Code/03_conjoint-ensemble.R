@@ -43,7 +43,14 @@ rstan_options(auto_write = TRUE)
 # Z <- rep(1, nrow(Y)) %>% 
 #   as.matrix()
 
+load(here::here("Data", "design.RData"))
+Y <- XX$Y.train
+# dimnames(Y) <- NULL
+X <- XX$X.train
+Z <- matrix(rep(1, nrow(Y)), ncol = 1)
+
 # Ensemble Calibration ----------------------------------------------------
+K <- 1
 ensemble_fit <- vector(mode = "list", length = K)
 for (k in 1:K) {
   data <- list(
@@ -66,7 +73,7 @@ for (k in 1:K) {
   
   # Calibrate the model using variational inference.
   ensemble_fit[[k]] <- vb(
-    stan_model(here::here("Code", "Stan", "hmnl_noncentered.stan")),
+    stan_model(here::here("Code", "Source", "hmnl_noncentered.stan")),
     data = data,
     seed = 42
   )
