@@ -19,6 +19,7 @@ The project work is broken down into the following steps with corresponding scri
 The following functions are stored in `Source`.
 
 - `ana_hmnl.R`: Estimate an HMNL with attribute non-attendance.
+- `clever_randomization.R`: Induce clever randomization and split into train and test data.
 - `conj_hmnl.R`: Estimate an HMNL with conjunctive screening rules.
 - `conj_hmnl.cpp`: Helper functions in C++ for `conj_hmnl.R`.
 - `generate_data.stan`: Generate data according to a HMNL.
