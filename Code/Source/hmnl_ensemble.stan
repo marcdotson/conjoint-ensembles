@@ -5,8 +5,8 @@ data {
   int<lower = 2> A;                  // Number of choice alternatives.
   int<lower = 1> I;                  // Number of observation-level covariates.
   int<lower = 1> J;                  // Number of population-level covariates.
-  int<lower = 1> K;                  // Number of members of the ensemble.
-  int<lower = 1> k;                  // Ensemble member number.
+  int<lower = 1> K;                  // Number of models in the ensemble.
+  int<lower = 1> k;                  // Current model number in the ensemble.
 
   real Gamma_mean;                   // Mean of population-level means.
   real<lower=0> Gamma_scale;         // Scale of population-level means.
@@ -17,7 +17,8 @@ data {
   int<lower = 1, upper = A> Y[R, S]; // Matrix of observations.
   matrix[A, I] X[R, S];              // Array of observation-level covariates.
   matrix[R, J] Z;                    // Matrix of population-level covariates.
-  matrix[K, I] mat_ana;              // Clever randomization matrix.
+  matrix[K, I] ind_ana;              // Matrix of ensemble indicators for ANA.
+  // matrix[K, I] ind_scr;              // Matrix of ensemble indicators for screening.
 }
 
 // Parameters and hyperparameters.
@@ -38,32 +39,18 @@ transformed parameters {
     Beta[r,] = Z[r,] * Gamma + Delta[r,] * quad_form_diag(Omega, tau);
   }
   
-  // Imposing clever randomization.
+  // Impose fixed values using ensemble indicator matrices.
+  // CONFIRM  IMPOSITION FOR BETA (NON-CENTERED) AND NOT DELTA (CENTERED).
   for (r in 1:R) {
     for (i in 1:I) {
-      if (mat_ana[k, i] == 1) {
+      if (ind_ana[k, i] == 1) {
         Beta[r, i] = 0;
       }
+      // if (ind_scr[k, i] == 1) {
+      //   Beta[r, i] = -1000;
+      // }
     }
   }
-  
-  // Either loop through all elements to find which are set to 0 (?) or determine
-  // this beforehand and input as part of the data block, then reference those 
-  // specific elements and set them to 0 (?) with something like:
-  // Beta[, i] = 0;
-  // 
-  // Something like
-  // real nondiag_xi[N, S, S];
-  // nondiag_xi = xi;
-  // for (s in 1:S)
-  //   for (n in 1:N)
-  //     nondiag_xi[n, S, S] = 0.0;
-  // 
-  // Or:
-  // matrix[4, 6] x1[2, 1, 7];
-  // matrix[4, 6] x2[3, 1, 7];
-  // matrix[4, 6] x3[5, 1, 7];
-  // x3 = append_array(x1, x2);
 }
 
 // Hierarchical multinomial logit model.
