@@ -5,6 +5,8 @@ data {
   int<lower = 2> A;                  // Number of choice alternatives.
   int<lower = 1> I;                  // Number of observation-level covariates.
   int<lower = 1> J;                  // Number of population-level covariates.
+  int<lower = 1> K;                  // Number of members of the ensemble.
+  int<lower = 1> k;                  // Ensemble member number.
 
   real Gamma_mean;                   // Mean of population-level means.
   real<lower=0> Gamma_scale;         // Scale of population-level means.
@@ -15,6 +17,7 @@ data {
   int<lower = 1, upper = A> Y[R, S]; // Matrix of observations.
   matrix[A, I] X[R, S];              // Array of observation-level covariates.
   matrix[R, J] Z;                    // Matrix of population-level covariates.
+  matrix[K, I] mat_ana;              // Clever randomization matrix.
 }
 
 // Parameters and hyperparameters.
@@ -36,6 +39,14 @@ transformed parameters {
   }
   
   // Imposing clever randomization.
+  for (r in 1:R) {
+    for (i in 1:I) {
+      if (mat_ana[k, i] == 1) {
+        Beta[r, i] = 0;
+      }
+    }
+  }
+  
   // Either loop through all elements to find which are set to 0 (?) or determine
   // this beforehand and input as part of the data block, then reference those 
   // specific elements and set them to 0 (?) with something like:
