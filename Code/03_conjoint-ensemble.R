@@ -11,7 +11,6 @@ options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
 
 # Load data.
-
 ind_non <- 1 # Indicates no pathologies.
 ind_scr <- 0 # Indicates screening.
 ind_ana <- 0 # Indicates attribute non-attendance.
@@ -43,16 +42,16 @@ for (n in 1:max(X_raw$resp)) {
 Z <- rep(1, nrow(Y)) %>%
   as.matrix()
 
-# load(here::here("Data", "R05_Zerorez", "design.RData"))
+# Jeff's data (not working) but still using the indicator matrices.
+load(here::here("Data", "R05_Zerorez", "design.RData"))
 # Y <- data$train_Y
 # X <- data$train_X
 # Z <- matrix(rep(1, nrow(Y)), ncol = 1)
 # mat_ana <- data$mat_ana
-
-mat_ana <- mat_ana[,1:dim(X)[4]]
+ind_ana <- data$mat_ana[1:2, 1:dim(X)[4]]
 
 # Ensemble Calibration ----------------------------------------------------
-K <- nrow(mat_ana)
+K <- nrow(ind_ana)
 ensemble_fit <- vector(mode = "list", length = K)
 for (k in 1:K) {
   data <- list(
@@ -73,57 +72,56 @@ for (k in 1:K) {
     Y = Y,            # Matrix of observations.
     X = X,            # Array of observation-level covariates.
     Z = Z,            # Matrix of population-level covariates.
-    mat_ana = mat_ana # Clever randomization matrix.
+    ind_ana = ind_ana # Matrix of ensemble indicators for ANA.
   )
   
-  fit = stan(
+  ensemble_fit[[k]] <- stan(
     here::here("Code", "Source", "hmnl_ensemble.stan"),
     data = data,
     seed = 42
   )
   
-  # Calibrate the model using variational inference.
-  ensemble_fit[[k]] <- vb(
-    stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
-    data = data,
-    seed = 42
-  )
+  # # Calibrate the model using variational inference.
+  # ensemble_fit[[k]] <- vb(
+  #   stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
+  #   data = data,
+  #   seed = 42
+  # )
 }
+
+# Check that fixing values is working.
+k <- 2
+beta_ids <- ensemble_fit[[k]] %>%
+  gather_draws(Beta[r, i]) %>% 
+  filter(r <= 5) %>% 
+  unite(.variable, .variable, r, i) %>%
+  distinct(.variable) %>%
+  mutate(id = row_number()) %>%
+  select(.variable, id)
+
+ensemble_fit[[k]] %>%
+  gather_draws(Beta[r, i]) %>%
+  unite(.variable, .variable, r, i) %>%
+  right_join(beta_ids) %>%
+  ggplot(aes(x = .value, y = .variable)) +
+  stat_halfeye(.width = .95) +
+  facet_wrap(
+    ~ .variable,
+    ncol = 12,
+    scales = "free"
+  )
+
+ggsave(
+  "marginals_check.png",
+  path = here::here("Figures"),
+  width = 20, height = 10, units = "in"
+)
+
+which(ind_ana[k,]==1)
 
 # Save ensemble output.
 write_rds(
   ensemble_fit,
-  here::here("Output", "ensemble_fit_01.rds")
+  here::here("Output", "fit_pathology-none.rds")
 )
-
-
-
-# Check observation model trace plots.
-beta_string <- str_c("Beta[", 1:data$R, ",", 1, "]")
-for (i in 2:data$I) {
-  beta_temp <- str_c("Beta[", 1:data$R, ",", i, "]")
-  beta_string <- c(beta_string, beta_temp)
-}
-beta_string_filter <- beta_string[1:(data$I * 10)]
-
-# Beta.
-fit %>%
-  # ...filter so we just have a subset of respondents to confirm fixed values
-  # (see tidybayes)
-  mcmc_trace(
-    pars = beta_string_filter,
-    n_warmup = 500,
-    facet_args = list(
-      ncol = 12,
-      labeller = label_parsed
-    )
-  )
-
-ggsave(
-  "mcmc_trace-beta.png",
-  path = here::here("Figures"),
-  width = 20, height = 30, units = "in"
-)
-
-which(mat_ana[1,]==1)
 
