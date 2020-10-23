@@ -6,9 +6,12 @@
 # This needs to be written as a function
 
 # Read Design Data
-desmat <- read.csv(here::here("Data", "R05_Zerorez", "coded.design.csv"),header=TRUE)
+#desmat <- read.csv(here::here("Data", "R05_Zerorez", "coded.design.csv"),header=TRUE)
+desmat <- read.csv(here::here("Data", "R06_Ground-Beef", "coded.design.gb.csv"),header=TRUE)
+desmat <- desmat[,-1]
 # Read Choice Data
-choice.dat = read.csv(here::here("Data", "R05_Zerorez", "zerorez.final.csv"),header=TRUE)
+#choice.dat = read.csv(here::here("Data", "R05_Zerorez", "zerorez.final.csv"),header=TRUE)
+choice.dat = read.csv(here::here("Data", "R06_Ground-Beef", "jcb.results1.csv"),header=TRUE)
 choice.dat = choice.dat[,-1]
 
 # Sample Characteristics
@@ -37,5 +40,5 @@ for(i in 1:nobs){
 source(here::here("Code", "Source", "clever_randomization.R"))
 data = clever_randomization(Y = Y, X = X, pct_test = .1, nmember = 10)
 
-save(data, file = here::here("Data", "R05_Zerorez", "design.RData"))
+save(data, file = here::here("Data", "R06_Ground-Beef", "design.RData"))
 
