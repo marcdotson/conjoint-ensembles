@@ -19,9 +19,16 @@ practice.
 
 ## Project Organization
 
-  - `Code`: Includes utilities and model scripts written in R and Stan.
-  - `Data`: Simulated and actual (not pushed) data sets used by conjoint
-    models.
-  - `Figures`: Images and plots.
-  - `Presentation`: Slides, demos, and tutorials.
-  - `Writing`: Case studies and the paper manuscript.
+  - `/Code` Scripts with prefixes (e.g., `01_import-data.R`,
+    `02_clean-data.R`) and functions in `/Source`.
+  - `/Data` Simulated and real data, the latter not pushed.
+  - `/Figures` PNG images and plots.
+  - `/Output` Output from model runs, not pushed.
+  - `/Presentation` Presentation slides, without its knitted PDF pushed.
+  - `/Private` A catch-all folder for miscellaneous files, not pushed.
+  - `/Readings` Papers to keep track of reading locally, not pushed.
+  - `/Writing` Case studies and the paper, without its knitted PDF
+    pushed.
+
+For general details on collaborating using GitHub see [Research
+Assistant Training](https://github.com/marcdotson/ra-training).
