@@ -12,6 +12,7 @@ Private/*
 # Files
 Code/Source/*.rds
 Data/R*
+*.pdf
 
 # Miscellaneous
 .DS_Store
