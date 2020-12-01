@@ -48,14 +48,56 @@ load(here::here("Data", "R06_Ground-Beef", "design.RData"))
 Y <- data$train_Y
 X <- data$train_X
 Z <- matrix(rep(1, nrow(Y)), ncol = 1)
-ind_ana <- data$mat_ana
-# ind_ana <- data$mat_ana[1:2, 1:dim(X)[4]]
+
+# Work with just two members of the ensemble to start.
+ind_ana <- data$mat_ana[1:2, 1:dim(X)[4]]
+data$mat_ana <- ind_ana
+ind_screen <- data$mat_screen[1:2, 1:dim(X)[4]]
+data$mat_screen <- ind_screen
+
+# Initialize Ensemble with Posterior Means --------------------------------
+stan_data <- list(
+  R = dim(X)[1],    # Number of respondents.
+  S = dim(X)[2],    # Number of choice tasks.
+  A = dim(X)[3],    # Number of choice alternatives.
+  I = dim(X)[4],    # Number of observation-level covariates.
+  J = ncol(Z),      # Number of population-level covariates.
+  
+  Gamma_mean = 0,   # Mean of population-level means.
+  Gamma_scale = 5,  # Scale of population-level means.
+  Omega_shape = 2,  # Shape of population-level scale.
+  tau_mean = 0,     # Mean of population-level scale.
+  tau_scale = 5,    # Scale of population-level scale.
+  
+  Y = Y,            # Matrix of observations.
+  X = X,            # Array of observation-level covariates.
+  Z = Z             # Matrix of population-level covariates.
+)
+
+initial_fit <- stan(
+  here::here("Code", "Source", "hmnl.stan"),
+  data = stan_data,
+  seed = 42
+)
+
+# Save initial fit output.
+write_rds(
+  initial_fit,
+  here::here("Output", "initial_fit_pathology-none.rds")
+)
+
+initial_values <- extract(initial_fit, pars = c("Gamma", "Omega", "tau", "Delta", "Beta"))
+
+# Set initial values by providing a list equal in length to the number of chains.
+# The elements of this list should themselves be named lists, where each of
+# these named lists has the name of a parameter and is used to specify the
+# initial values for that parameter for the corresponding chain.
 
 # Ensemble Calibration ----------------------------------------------------
 K <- nrow(ind_ana)
 ensemble_fit <- vector(mode = "list", length = K)
 for (k in 1:K) {
-  data <- list(
+  stan_data <- list(
     R = dim(X)[1],    # Number of respondents.
     S = dim(X)[2],    # Number of choice tasks.
     A = dim(X)[3],    # Number of choice alternatives.
@@ -76,22 +118,24 @@ for (k in 1:K) {
     ind_ana = ind_ana # Matrix of ensemble indicators for ANA.
   )
   
-  ensemble_fit[[k]] <- stan(
-    here::here("Code", "Source", "hmnl_ensemble.stan"),
-    data = data,
+  ensemble_fit[[k]] <- vb(
+    stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
+    data = stan_data,
+    init = initial_values,
     seed = 42
   )
-  
-  # # Calibrate the model using variational inference.
-  # ensemble_fit[[k]] <- vb(
-  #   stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
-  #   data = data,
-  #   seed = 42
-  # )
 }
 
-# Check that fixing values is working.
-k <- 1
+# Chain 1: Unrecoverable error evaluating the log probability at the initial
+# value. Chain 1: mismatch in number dimensions declared and found in context;
+# processing stage=parameter initialization; variable name=Gamma; dims
+# declared=(1,21); dims found=(4000,1,21) Error in sampler$call_sampler(c(args,
+# dotlist)) : mismatch in number dimensions declared and found in context;
+# processing stage=parameter initialization; variable name=Gamma; dims
+# declared=(1,21); dims found=(4000,1,21)
+
+# Check that fixing values is working (for full posterior).
+k <- 2
 beta_ids <- ensemble_fit[[k]] %>%
   gather_draws(Beta[r, i]) %>% 
   filter(r <= 5) %>% 
@@ -120,9 +164,11 @@ ggsave(
 
 which(ind_ana[k,]==1)
 
-# Save ensemble output.
+# Save data and ensemble output.
+data$ensemble_fit <- ensemble_fit
 write_rds(
-  ensemble_fit,
+  data,
   here::here("Output", "fit_pathology-none.rds")
+  # here::here("Output", "fit_vb_pathology-none.rds")
 )
 
