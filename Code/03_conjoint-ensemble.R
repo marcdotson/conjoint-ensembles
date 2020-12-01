@@ -134,7 +134,7 @@ for (k in 1:K) {
 # declared=(1,21); dims found=(4000,1,21)
 
 # Check that fixing values is working (for full posterior).
-k <- 1
+k <- 2
 beta_ids <- ensemble_fit[[k]] %>%
   gather_draws(Beta[r, i]) %>% 
   filter(r <= 5) %>% 
@@ -167,6 +167,7 @@ which(ind_ana[k,]==1)
 data$ensemble_fit <- ensemble_fit
 write_rds(
   data,
-  here::here("Output", "fit_vb_pathology-none.rds")
+  here::here("Output", "fit_pathology-none.rds")
+  # here::here("Output", "fit_vb_pathology-none.rds")
 )
 
