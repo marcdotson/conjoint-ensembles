@@ -10,45 +10,46 @@ library(loo)
 options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
 
-# Load data.
-ind_non <- 1 # Indicates no pathologies.
-ind_scr <- 0 # Indicates screening.
-ind_ana <- 0 # Indicates attribute non-attendance.
-ind_sna <- 0 # Indicates screening and attribute non-attendance.
-
-# Load and format data.
-if (ind_non == 1) {
-  # Matrix of observed choices.
-  Y <- read_csv(here::here("Data", "01_PathologyNone", "Y.csv")) %>%
-    select(-resp) %>%
-    as.matrix()
-
-  # Array of experimental designs per choice task.
-  X_raw <- read_csv(here::here("Data", "01_PathologyNone", "X.csv"))
-}
-
-# Restructure X_raw into X.
-X <- array(NA, dim = c(max(X_raw$resp), max(X_raw$task), max(X_raw$alt), ncol(X_raw) - 3))
-for (n in 1:max(X_raw$resp)) {
-  for (t in 1:max(X_raw$task)) {
-    X[n,t,,] <- X_raw %>%
-      filter(resp == n, task == t) %>%
-      select(contains("l_")) %>%
-      as.matrix()
-  }
-}
-
-# Matrix of respondent-level covariates.
-Z <- rep(1, nrow(Y)) %>%
-  as.matrix()
+# # Load data.
+# ind_non <- 1 # Indicates no pathologies.
+# ind_scr <- 0 # Indicates screening.
+# ind_ana <- 0 # Indicates attribute non-attendance.
+# ind_sna <- 0 # Indicates screening and attribute non-attendance.
+# 
+# # Load and format data.
+# if (ind_non == 1) {
+#   # Matrix of observed choices.
+#   Y <- read_csv(here::here("Data", "01_PathologyNone", "Y.csv")) %>%
+#     select(-resp) %>%
+#     as.matrix()
+# 
+#   # Array of experimental designs per choice task.
+#   X_raw <- read_csv(here::here("Data", "01_PathologyNone", "X.csv"))
+# }
+# 
+# # Restructure X_raw into X.
+# X <- array(NA, dim = c(max(X_raw$resp), max(X_raw$task), max(X_raw$alt), ncol(X_raw) - 3))
+# for (n in 1:max(X_raw$resp)) {
+#   for (t in 1:max(X_raw$task)) {
+#     X[n,t,,] <- X_raw %>%
+#       filter(resp == n, task == t) %>%
+#       select(contains("l_")) %>%
+#       as.matrix()
+#   }
+# }
+# 
+# # Matrix of respondent-level covariates.
+# Z <- rep(1, nrow(Y)) %>%
+#   as.matrix()
 
 # Jeff's data (not working) but still using the indicator matrices.
-load(here::here("Data", "R05_Zerorez", "design.RData"))
-# Y <- data$train_Y
-# X <- data$train_X
-# Z <- matrix(rep(1, nrow(Y)), ncol = 1)
-# mat_ana <- data$mat_ana
-ind_ana <- data$mat_ana[1:2, 1:dim(X)[4]]
+# load(here::here("Data", "R05_Zerorez", "design.RData"))
+load(here::here("Data", "R06_Ground-Beef", "design.RData"))
+Y <- data$train_Y
+X <- data$train_X
+Z <- matrix(rep(1, nrow(Y)), ncol = 1)
+ind_ana <- data$mat_ana
+# ind_ana <- data$mat_ana[1:2, 1:dim(X)[4]]
 
 # Ensemble Calibration ----------------------------------------------------
 K <- nrow(ind_ana)
@@ -90,7 +91,7 @@ for (k in 1:K) {
 }
 
 # Check that fixing values is working.
-k <- 2
+k <- 1
 beta_ids <- ensemble_fit[[k]] %>%
   gather_draws(Beta[r, i]) %>% 
   filter(r <= 5) %>% 
@@ -107,14 +108,14 @@ ensemble_fit[[k]] %>%
   stat_halfeye(.width = .95) +
   facet_wrap(
     ~ .variable,
-    ncol = 12,
+    ncol = dim(data$X)[4],
     scales = "free"
   )
 
 ggsave(
   "marginals_check.png",
   path = here::here("Figures"),
-  width = 20, height = 10, units = "in"
+  width = 30, height = 10, units = "in"
 )
 
 which(ind_ana[k,]==1)
