@@ -70,7 +70,7 @@ stan_data <- list(
   
   Y = Y,            # Matrix of observations.
   X = X,            # Array of observation-level covariates.
-  Z = Z,            # Matrix of population-level covariates.
+  Z = Z             # Matrix of population-level covariates.
 )
 
 initial_fit <- stan(
@@ -79,7 +79,15 @@ initial_fit <- stan(
   seed = 42
 )
 
-# Set inital values by providing a list equal in length to the number of chains.
+# Save initial fit output.
+write_rds(
+  initial_fit,
+  here::here("Output", "initial_fit_pathology-none.rds")
+)
+
+initial_values <- extract(initial_fit, pars = c("Gamma", "Omega", "tau", "Delta", "Beta"))
+
+# Set initial values by providing a list equal in length to the number of chains.
 # The elements of this list should themselves be named lists, where each of
 # these named lists has the name of a parameter and is used to specify the
 # initial values for that parameter for the corresponding chain.
@@ -109,16 +117,10 @@ for (k in 1:K) {
     ind_ana = ind_ana # Matrix of ensemble indicators for ANA.
   )
   
-  # ensemble_fit[[k]] <- stan(
-  #   here::here("Code", "Source", "hmnl_ensemble.stan"),
-  #   data = stan_data,
-  #   seed = 42
-  # )
-  
   ensemble_fit[[k]] <- vb(
     stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
     data = stan_data,
-    init = 0,
+    init = initial_values,
     seed = 42
   )
 }
