@@ -125,6 +125,14 @@ for (k in 1:K) {
   )
 }
 
+# Chain 1: Unrecoverable error evaluating the log probability at the initial
+# value. Chain 1: mismatch in number dimensions declared and found in context;
+# processing stage=parameter initialization; variable name=Gamma; dims
+# declared=(1,21); dims found=(4000,1,21) Error in sampler$call_sampler(c(args,
+# dotlist)) : mismatch in number dimensions declared and found in context;
+# processing stage=parameter initialization; variable name=Gamma; dims
+# declared=(1,21); dims found=(4000,1,21)
+
 # Check that fixing values is working (for full posterior).
 k <- 1
 beta_ids <- ensemble_fit[[k]] %>%
