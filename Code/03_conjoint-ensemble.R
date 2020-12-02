@@ -86,12 +86,37 @@ write_rds(
   here::here("Output", "initial_fit_pathology-none.rds")
 )
 
-initial_values <- extract(initial_fit, pars = c("Gamma", "Omega", "tau", "Delta", "Beta"))
+# Load initial fit output.
+initial_fit <- read_rds(here::here("Output", "initial_fit_pathology-none.rds"))
 
-# Set initial values by providing a list equal in length to the number of chains.
-# The elements of this list should themselves be named lists, where each of
-# these named lists has the name of a parameter and is used to specify the
-# initial values for that parameter for the corresponding chain.
+# Construct initial values.
+initial_draws <- extract(initial_fit, pars = c("Gamma", "Omega", "tau", "Delta", "Beta"))
+initial_values <- vector(mode = "list", length = 1)
+
+initial_values[[1]]$Gamma <- initial_draws$Gamma %>% 
+  array_branch(margin = c(2, 3)) %>% 
+  map(mean) %>% 
+  matrix(nrow = dim(initial_draws$Gamma)[2], ncol = dim(initial_draws$Gamma)[3])
+
+initial_values[[1]]$Omega <- initial_draws$Omega %>% 
+  array_branch(margin = c(2, 3)) %>% 
+  map(mean) %>% 
+  matrix(nrow = dim(initial_draws$Omega)[2], ncol = dim(initial_draws$Omega)[3])
+
+initial_values[[1]]$tau <- initial_draws$tau %>% 
+  array_branch(margin = 2) %>% 
+  map(mean) %>% 
+  matrix(nrow = dim(initial_draws$Gamma)[2])
+
+initial_values[[1]]$Delta <- initial_draws$Delta %>% 
+  array_branch(margin = c(2, 3)) %>% 
+  map(mean) %>% 
+  matrix(nrow = dim(initial_draws$Delta)[2], ncol = dim(initial_draws$Delta)[3])
+
+initial_values[[1]]$Beta <- initial_draws$Beta %>% 
+  array_branch(margin = c(2, 3)) %>% 
+  map(mean) %>% 
+  matrix(nrow = dim(initial_draws$Beta)[2], ncol = dim(initial_draws$Beta)[3])
 
 # Ensemble Calibration ----------------------------------------------------
 K <- nrow(ind_ana)
@@ -118,57 +143,64 @@ for (k in 1:K) {
     ind_ana = ind_ana # Matrix of ensemble indicators for ANA.
   )
   
+  # Set initial values by providing a list equal in length to the number of chains.
+  # The elements of this list should themselves be named lists, where each of
+  # these named lists has the name of a parameter and is used to specify the
+  # initial values for that parameter for the corresponding chain.
+  
   ensemble_fit[[k]] <- vb(
     stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
     data = stan_data,
     init = initial_values,
     seed = 42
   )
+  
+  # ensemble_fit[[k]] <- stan(
+  #   here::here("Code", "Source", "hmnl_ensemble.stan"),
+  #   data = stan_data,
+  #   init = initial_values,
+  #   seed = 42
+  # )
 }
 
-# Chain 1: Unrecoverable error evaluating the log probability at the initial
-# value. Chain 1: mismatch in number dimensions declared and found in context;
-# processing stage=parameter initialization; variable name=Gamma; dims
-# declared=(1,21); dims found=(4000,1,21) Error in sampler$call_sampler(c(args,
-# dotlist)) : mismatch in number dimensions declared and found in context;
-# processing stage=parameter initialization; variable name=Gamma; dims
-# declared=(1,21); dims found=(4000,1,21)
-
-# Check that fixing values is working (for full posterior).
-k <- 2
-beta_ids <- ensemble_fit[[k]] %>%
-  gather_draws(Beta[r, i]) %>% 
-  filter(r <= 5) %>% 
-  unite(.variable, .variable, r, i) %>%
-  distinct(.variable) %>%
-  mutate(id = row_number()) %>%
-  select(.variable, id)
-
-ensemble_fit[[k]] %>%
-  gather_draws(Beta[r, i]) %>%
-  unite(.variable, .variable, r, i) %>%
-  right_join(beta_ids) %>%
-  ggplot(aes(x = .value, y = .variable)) +
-  stat_halfeye(.width = .95) +
-  facet_wrap(
-    ~ .variable,
-    ncol = dim(data$X)[4],
-    scales = "free"
-  )
-
-ggsave(
-  "marginals_check.png",
-  path = here::here("Figures"),
-  width = 30, height = 10, units = "in"
-)
-
-which(ind_ana[k,]==1)
+# # Check that fixing values is working (for full posterior).
+# k <- 2
+# beta_ids <- ensemble_fit[[k]] %>%
+#   gather_draws(Beta[r, i]) %>% 
+#   filter(r <= 5) %>% 
+#   unite(.variable, .variable, r, i) %>%
+#   distinct(.variable) %>%
+#   mutate(id = row_number()) %>%
+#   select(.variable, id)
+# 
+# ensemble_fit[[k]] %>%
+#   gather_draws(Beta[r, i]) %>%
+#   unite(.variable, .variable, r, i) %>%
+#   right_join(beta_ids) %>%
+#   ggplot(aes(x = .value, y = .variable)) +
+#   stat_halfeye(.width = .95) +
+#   facet_wrap(
+#     ~ .variable,
+#     ncol = dim(data$X)[4],
+#     scales = "free"
+#   )
+# 
+# ggsave(
+#   "marginals_check.png",
+#   path = here::here("Figures"),
+#   width = 30, height = 10, units = "in"
+# )
+# 
+# which(ind_ana[k,]==1)
 
 # Save data and ensemble output.
 data$ensemble_fit <- ensemble_fit
 write_rds(
   data,
-  here::here("Output", "fit_pathology-none.rds")
-  # here::here("Output", "fit_vb_pathology-none.rds")
+  # here::here("Output", "fit_pathology-none.rds")
+  here::here("Output", "fit_vb_pathology-none.rds")
 )
+
+# Load data and ensemble output.
+data <- read_rds(here::here("Output", "fit_vb_pathology-none.rds"))
 
