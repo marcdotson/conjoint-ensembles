@@ -1,21 +1,21 @@
-## Function to simulate data with or without pathologies
-## nhh = nubmer of households; nalt = number of alternatives per choice; ntask = number of tasks
-## natt = number attributes; nlevel = number of levels per attribute (consider making variable)
-## ana = attribute non-attendance flag; screen = screening flag
-require(AlgDesign)
-
-# nhh = 100
-# nalt = 3
-# ntask = 12 
-# natt = 5 
-# nversion = 10
-# ana = FALSE 
-# screen = FALSE
-# nlevel = 3 
-
 sim_data <- function(nhh = 100, nalt = 3, ntask = 12, natt = 5, nlevel = 3, 
                      nversion = 10, ana = FALSE, screen = FALSE){
+
+  ## Function to simulate data with or without pathologies
+  ## nhh = nubmer of households; nalt = number of alternatives per choice; ntask = number of tasks
+  ## natt = number attributes; nlevel = number of levels per attribute (consider making variable)
+  ## ana = attribute non-attendance flag; screen = screening flag
+  require(AlgDesign)
   
+  # nhh = 100
+  # nalt = 3
+  # ntask = 12 
+  # natt = 5 
+  # nversion = 10
+  # ana = FALSE 
+  # screen = FALSE
+  # nlevel = 3 
+    
   dat <- gen.factorial(rep(nlevel,times=natt),ntask,center=FALSE)
 
   ## create a design by sampling from the full factorial design
