@@ -1,6 +1,3 @@
-# Load readr.
-library(readr)
-
 # Source the simulate_data() and clever_randomization() functions.
 source(here::here("Code", "Source", "simulate_data.R"))
 source(here::here("Code", "Source", "clever_randomization.R"))
@@ -13,8 +10,8 @@ data <- simulate_data(
   natt = 5,      # Number of attributes.
   nlevel = 3,    # Number of estimable attribute levels for each attribute.
   nversion = 10, # Number of versions of the experimental design.
-  ana = TRUE,   # Attribute non-attendance flag.
-  screen = TRUE # Screening pathology flag.
+  ana = TRUE,    # Attribute non-attendance flag.
+  screen = TRUE  # Screening pathology flag.
 )
 
 data <- clever_randomization(
@@ -24,5 +21,5 @@ data <- clever_randomization(
   nmember = 100   # Number of members in the ensemble.
 )
 
-write_rds(data, here::here("Data", "sim_ana-screen.rds"))
+readr::write_rds(data, here::here("Data", "sim_ana-screen.rds"))
 

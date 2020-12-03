@@ -11,13 +11,13 @@ options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
 
 # Load Data ---------------------------------------------------------------
-ind_non <- 0        # Indicates no pathologies.
+ind_none <- 0        # Indicates no pathologies.
 ind_ana <- 1        # Indicates attribute non-attendance.
 ind_screen <- 0     # Indicates screening.
 ind_ana_screen <- 0 # Indicates attribute non-attendance and screening.
 ind_real <- 0       # Indicates ____ data.
 
-if (ind_non == 1) file_name <- "no-pathologies"
+if (ind_non == 1) file_name <- "none"
 if (ind_ana == 1) file_name <- "ana"
 if (ind_screen == 1) file_name <- "screen"
 if (ind_ana_screen == 1) file_name <- "ana-screen"
@@ -58,11 +58,11 @@ initial_fit <- stan(
 # Save initial fit output.
 write_rds(
   initial_fit,
-  here::here("Output", str_c("initial_fit_", file_name, ".rds"))
+  here::here("Output", str_c("initial-fit_", file_name, ".rds"))
 )
 
 # Load initial fit output.
-initial_fit <- read_rds(here::here("Output", str_c("initial_fit_", file_name, ".rds")))
+initial_fit <- read_rds(here::here("Output", str_c("initial-fit_", file_name, ".rds")))
 
 # Construct initial values.
 initial_draws <- extract(initial_fit, pars = c("Gamma", "Omega", "tau", "Delta", "Beta"))
