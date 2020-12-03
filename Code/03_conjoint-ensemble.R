@@ -144,11 +144,11 @@ for (k in 1:K) {
 data$ensemble_fit <- ensemble_fit
 write_rds(
   data,
-  here::here("Output", str_c("fit_vb_", file_name, ".rds"))
+  here::here("Output", str_c("fit-vb_", file_name, ".rds"))
 )
 
 # Load data and ensemble output.
-data <- read_rds(here::here("Output", str_c("fit_vb_", file_name, ".rds")))
+data <- read_rds(here::here("Output", str_c("fit-vb_", file_name, ".rds")))
 
 # # Check that fixing values is working (for full posterior).
 # k <- 2
