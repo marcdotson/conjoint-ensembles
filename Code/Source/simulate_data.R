@@ -40,13 +40,13 @@ simulate_data <- function(
   
   # Generate betas and impose pathologies if flagged.
   nbeta <- natt * nlevel - natt
+  ana.vec <- rep(1, times = nbeta)
+  screen.vec <- rep(0, times = nbeta)
   if(ana == TRUE) {
-    ana.vec <- rep(1, times = nbeta)
     ana.draw <- sample(1:nbeta, 3, replace = FALSE)
     ana.vec[ana.draw] <- 0
   }
   if(screen == TRUE) {
-    screen.vec <- rep(0, times = nbeta)
     screen.draw <- sample(1:nbeta, 1, replace = FALSE)
     screen.vec[screen.draw] <- -100
   }
