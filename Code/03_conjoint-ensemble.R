@@ -11,13 +11,13 @@ options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
 
 # Load Data ---------------------------------------------------------------
-ind_none <- 0        # Indicates no pathologies.
-ind_ana <- 1        # Indicates attribute non-attendance.
+ind_none <- 1       # Indicates no pathologies.
+ind_ana <- 0        # Indicates attribute non-attendance.
 ind_screen <- 0     # Indicates screening.
 ind_ana_screen <- 0 # Indicates attribute non-attendance and screening.
 ind_real <- 0       # Indicates ____ data.
 
-if (ind_non == 1) file_name <- "none"
+if (ind_none == 1) file_name <- "none"
 if (ind_ana == 1) file_name <- "ana"
 if (ind_screen == 1) file_name <- "screen"
 if (ind_ana_screen == 1) file_name <- "ana-screen"
@@ -149,6 +149,15 @@ write_rds(
 
 # Load data and ensemble output.
 data <- read_rds(here::here("Output", str_c("fit-vb_", file_name, ".rds")))
+
+# Post-hoc extraction and reassembly of ensemble output.
+for (k in 1:nrow(mat_ana)) {
+  data$ensemble_fit[[k]] <- extract(data$ensemble_fit[[k]], pars = c("log_lik", "Beta"))
+}
+write_rds(
+  data,
+  here::here("Output", str_c("reduced_fit-vb_", file_name, ".rds"))
+)
 
 # # Check that fixing values is working (for full posterior).
 # k <- 2
