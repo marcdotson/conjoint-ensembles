@@ -2,58 +2,33 @@
 # Load packages.
 library(tidyverse)
 library(rstan)
-library(bayesplot)
-library(tidybayes)
-library(loo)
+# library(bayesplot)
+# library(tidybayes)
+# library(loo)
 
 # Set Stan options.
 options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
 
-# # Load data.
-# ind_non <- 1 # Indicates no pathologies.
-# ind_scr <- 0 # Indicates screening.
-# ind_ana <- 0 # Indicates attribute non-attendance.
-# ind_sna <- 0 # Indicates screening and attribute non-attendance.
-# 
-# # Load and format data.
-# if (ind_non == 1) {
-#   # Matrix of observed choices.
-#   Y <- read_csv(here::here("Data", "01_PathologyNone", "Y.csv")) %>%
-#     select(-resp) %>%
-#     as.matrix()
-# 
-#   # Array of experimental designs per choice task.
-#   X_raw <- read_csv(here::here("Data", "01_PathologyNone", "X.csv"))
-# }
-# 
-# # Restructure X_raw into X.
-# X <- array(NA, dim = c(max(X_raw$resp), max(X_raw$task), max(X_raw$alt), ncol(X_raw) - 3))
-# for (n in 1:max(X_raw$resp)) {
-#   for (t in 1:max(X_raw$task)) {
-#     X[n,t,,] <- X_raw %>%
-#       filter(resp == n, task == t) %>%
-#       select(contains("l_")) %>%
-#       as.matrix()
-#   }
-# }
-# 
-# # Matrix of respondent-level covariates.
-# Z <- rep(1, nrow(Y)) %>%
-#   as.matrix()
+# Load Data ---------------------------------------------------------------
+ind_non <- 0        # Indicates no pathologies.
+ind_ana <- 1        # Indicates attribute non-attendance.
+ind_screen <- 0     # Indicates screening.
+ind_ana_screen <- 0 # Indicates attribute non-attendance and screening.
+ind_real <- 0       # Indicates ____ data.
 
-# Jeff's data (not working) but still using the indicator matrices.
-# load(here::here("Data", "R05_Zerorez", "design.RData"))
-load(here::here("Data", "R06_Ground-Beef", "design.RData"))
+if (ind_non == 1) file_name <- "no-pathologies"
+if (ind_ana == 1) file_name <- "ana"
+if (ind_screen == 1) file_name <- "screen"
+if (ind_ana_screen == 1) file_name <- "ana-screen"
+if (ind_real == 1) file_name <- "design"
+
+data <- read_rds(here::here("Data", str_c("sim_", file_name, ".rds")))
 Y <- data$train_Y
 X <- data$train_X
 Z <- matrix(rep(1, nrow(Y)), ncol = 1)
-
-# Work with just two members of the ensemble to start.
-ind_ana <- data$mat_ana[1:2, 1:dim(X)[4]]
-data$mat_ana <- ind_ana
-ind_screen <- data$mat_screen[1:2, 1:dim(X)[4]]
-data$mat_screen <- ind_screen
+mat_ana <- data$mat_ana
+mat_screen <- data$mat_screen
 
 # Initialize Ensemble with Posterior Means --------------------------------
 stan_data <- list(
@@ -83,11 +58,11 @@ initial_fit <- stan(
 # Save initial fit output.
 write_rds(
   initial_fit,
-  here::here("Output", "initial_fit_pathology-none.rds")
+  here::here("Output", str_c("initial_fit_", file_name, ".rds"))
 )
 
 # Load initial fit output.
-initial_fit <- read_rds(here::here("Output", "initial_fit_pathology-none.rds"))
+initial_fit <- read_rds(here::here("Output", str_c("initial_fit_", file_name, ".rds")))
 
 # Construct initial values.
 initial_draws <- extract(initial_fit, pars = c("Gamma", "Omega", "tau", "Delta", "Beta"))
@@ -119,28 +94,29 @@ initial_values[[1]]$Beta <- initial_draws$Beta %>%
   matrix(nrow = dim(initial_draws$Beta)[2], ncol = dim(initial_draws$Beta)[3])
 
 # Ensemble Calibration ----------------------------------------------------
-K <- nrow(ind_ana)
+K <- nrow(mat_ana)
 ensemble_fit <- vector(mode = "list", length = K)
 for (k in 1:K) {
   stan_data <- list(
-    R = dim(X)[1],    # Number of respondents.
-    S = dim(X)[2],    # Number of choice tasks.
-    A = dim(X)[3],    # Number of choice alternatives.
-    I = dim(X)[4],    # Number of observation-level covariates.
-    J = ncol(Z),      # Number of population-level covariates.
-    K = K,            # Number of members of the ensemble.
-    k = k,            # Ensemble member number.
+    R = dim(X)[1],          # Number of respondents.
+    S = dim(X)[2],          # Number of choice tasks.
+    A = dim(X)[3],          # Number of choice alternatives.
+    I = dim(X)[4],          # Number of observation-level covariates.
+    J = ncol(Z),            # Number of population-level covariates.
+    K = K,                  # Number of members of the ensemble.
+    k = k,                  # Ensemble member number.
     
-    Gamma_mean = 0,   # Mean of population-level means.
-    Gamma_scale = 5,  # Scale of population-level means.
-    Omega_shape = 2,  # Shape of population-level scale.
-    tau_mean = 0,     # Mean of population-level scale.
-    tau_scale = 5,    # Scale of population-level scale.
+    Gamma_mean = 0,         # Mean of population-level means.
+    Gamma_scale = 5,        # Scale of population-level means.
+    Omega_shape = 2,        # Shape of population-level scale.
+    tau_mean = 0,           # Mean of population-level scale.
+    tau_scale = 5,          # Scale of population-level scale.
     
-    Y = Y,            # Matrix of observations.
-    X = X,            # Array of observation-level covariates.
-    Z = Z,            # Matrix of population-level covariates.
-    ind_ana = ind_ana # Matrix of ensemble indicators for ANA.
+    Y = Y,                  # Matrix of observations.
+    X = X,                  # Array of observation-level covariates.
+    Z = Z,                  # Matrix of population-level covariates.
+    mat_ana = mat_ana       # Matrix of ensemble indicators for ANA.
+    # mat_screen = mat_screen # Matrix of ensemble indicators for screening.
   )
   
   # Set initial values by providing a list equal in length to the number of chains.
@@ -151,7 +127,8 @@ for (k in 1:K) {
   ensemble_fit[[k]] <- vb(
     stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
     data = stan_data,
-    init = initial_values,
+    init = 0,
+    # init = initial_values,
     seed = 42
   )
   
@@ -162,6 +139,16 @@ for (k in 1:K) {
   #   seed = 42
   # )
 }
+
+# Save data and ensemble output.
+data$ensemble_fit <- ensemble_fit
+write_rds(
+  data,
+  here::here("Output", str_c("fit_vb_", file_name, ".rds"))
+)
+
+# Load data and ensemble output.
+data <- read_rds(here::here("Output", str_c("fit_vb_", file_name, ".rds")))
 
 # # Check that fixing values is working (for full posterior).
 # k <- 2
@@ -192,15 +179,4 @@ for (k in 1:K) {
 # )
 # 
 # which(ind_ana[k,]==1)
-
-# Save data and ensemble output.
-data$ensemble_fit <- ensemble_fit
-write_rds(
-  data,
-  # here::here("Output", "fit_pathology-none.rds")
-  here::here("Output", "fit_vb_pathology-none.rds")
-)
-
-# Load data and ensemble output.
-data <- read_rds(here::here("Output", "fit_vb_pathology-none.rds"))
 
