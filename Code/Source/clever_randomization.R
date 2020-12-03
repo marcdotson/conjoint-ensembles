@@ -1,4 +1,9 @@
-clever_randomization <- function(Y = NULL, X = NULL, pct_test = .20, nmember = 100){
+clever_randomization <- function(
+  Y = NULL,       # Choice data to cleverly randomize.
+  X = NULL,       # Design matrices to cleverly randomize.
+  pct_test = .20, # Percent of data to be saved for testing.
+  nmember = 100   # Number of members in the ensemble.
+) {
   # This function splits and returns training and testing data and 
   # two matrices that indicates if an attribute level is used for 
   # screening or is not attended to.
