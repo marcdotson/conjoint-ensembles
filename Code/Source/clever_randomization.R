@@ -4,7 +4,7 @@ clever_randomization <- function(Y = NULL, X = NULL, pct_test = .20, nmember = 1
   # screening or is not attended to.
   
   # Needs to be modified to all for control over the type of pathology investigated 
-  # and the number of attribute levels used for both screening and ana
+  # and the number of attribute levels used for both screening and ana.
   
   # Compute sample characteristics.
   nobs = dim(X)[1] # Number of observational units.
