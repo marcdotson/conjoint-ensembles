@@ -58,11 +58,11 @@ initial_fit <- stan(
 # Save initial fit output.
 write_rds(
   initial_fit,
-  here::here("Output", str_c("initial-fit_", file_name, ".rds"))
+  here::here("Output", str_c("hmnl-fit_", file_name, ".rds"))
 )
 
 # Load initial fit output.
-initial_fit <- read_rds(here::here("Output", str_c("initial-fit_", file_name, ".rds")))
+initial_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_name, ".rds")))
 
 # Construct initial values.
 initial_draws <- extract(initial_fit, pars = c("Gamma", "Omega", "tau", "Delta", "Beta"))
@@ -144,11 +144,11 @@ for (k in 1:K) {
 data$ensemble_fit <- ensemble_fit
 write_rds(
   data,
-  here::here("Output", str_c("fit-vb_", file_name, ".rds"))
+  here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds"))
 )
 
 # Load data and ensemble output.
-data <- read_rds(here::here("Output", str_c("fit-vb_", file_name, ".rds")))
+data <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
 
 # Post-hoc extraction and reassembly of ensemble output.
 for (k in 1:nrow(mat_ana)) {
@@ -156,7 +156,7 @@ for (k in 1:nrow(mat_ana)) {
 }
 write_rds(
   data,
-  here::here("Output", str_c("reduced_fit-vb_", file_name, ".rds"))
+  here::here("Output", str_c("reduced_ensemble-fit_vb_", file_name, ".rds"))
 )
 
 # # Check that fixing values is working (for full posterior).

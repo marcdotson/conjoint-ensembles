@@ -6,11 +6,23 @@ library(bayesplot)
 library(tidybayes)
 library(loo)
 
+ind_none <- 0       # Indicates no pathologies.
+ind_ana <- 1        # Indicates attribute non-attendance.
+ind_screen <- 0     # Indicates screening.
+ind_ana_screen <- 0 # Indicates attribute non-attendance and screening.
+ind_real <- 0       # Indicates ____ data.
+
+if (ind_none == 1) file_name <- "none"
+if (ind_ana == 1) file_name <- "ana"
+if (ind_screen == 1) file_name <- "screen"
+if (ind_ana_screen == 1) file_name <- "ana-screen"
+if (ind_real == 1) file_name <- "design"
+
 #read in data
-ana_out <- readRDS(here::here("Output", "reduced_fit-vb_ana.rds"))
+out <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
 
 #extract list for ensembles
-ensemble_fit <- ana_out$ensemble_fit
+ensemble_fit <- out$ensemble_fit
 
 #variables
 n_ens <- length(ensemble_fit) #number of ensembles
