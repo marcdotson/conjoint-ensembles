@@ -7,7 +7,7 @@ library(tidybayes)
 library(loo)
 
 #read in data
-ana_out <- readRDS("~/Desktop/reduced_fit-vb_ana.rds")
+ana_out <- readRDS(here::here("Output", "reduced_fit-vb_ana.rds"))
 
 #extract list for ensembles
 ensemble_fit <- ana_out$ensemble_fit
