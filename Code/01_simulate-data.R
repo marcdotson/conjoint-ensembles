@@ -2,6 +2,9 @@
 source(here::here("Code", "Source", "simulate_data.R"))
 source(here::here("Code", "Source", "clever_randomization.R"))
 
+# Set the simulation seed.
+set.seed(42)
+
 # Simulate data, impose clever randomization, and save.
 data <- simulate_data(
   nhh = 300,     # Number of respondents (households).
@@ -10,8 +13,8 @@ data <- simulate_data(
   natt = 5,      # Number of attributes.
   nlevel = 3,    # Number of estimable attribute levels for each attribute.
   nversion = 10, # Number of versions of the experimental design.
-  ana = TRUE,    # Attribute non-attendance flag.
-  screen = TRUE  # Screening pathology flag.
+  ana = FALSE,    # Attribute non-attendance flag.
+  screen = FALSE  # Screening pathology flag.
 )
 
 data <- clever_randomization(
@@ -21,5 +24,5 @@ data <- clever_randomization(
   nmember = 100   # Number of members in the ensemble.
 )
 
-readr::write_rds(data, here::here("Data", "sim_ana-screen.rds"))
+readr::write_rds(data, here::here("Data", "sim_none.rds"))
 
