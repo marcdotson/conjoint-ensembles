@@ -49,49 +49,44 @@ stan_data <- list(
   Z = Z             # Matrix of population-level covariates.
 )
 
-initial_fit <- stan(
+hmnl_fit <- stan(
   here::here("Code", "Source", "hmnl.stan"),
   data = stan_data,
   seed = 42
 )
 
-# Save initial fit output.
+# Save hmnl-fit output.
 write_rds(
-  initial_fit,
+  hmnl_fit,
   here::here("Output", str_c("hmnl-fit_", file_name, ".rds"))
 )
 
-# Load initial fit output.
-initial_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_name, ".rds")))
+# Load hmnl-fit output.
+hmnl_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_name, ".rds")))
 
 # Construct initial values.
-initial_draws <- extract(initial_fit, pars = c("Gamma", "Omega", "tau", "Delta", "Beta"))
+# parameters <- c("Gamma", "Omega", "tau", "Delta", "Beta")
+parameters <- c("Gamma", "Omega", "tau", "Delta")
+hmnl_draws <- extract(hmnl_fit, pars = parameters)
 initial_values <- vector(mode = "list", length = 1)
-
-initial_values[[1]]$Gamma <- initial_draws$Gamma %>% 
-  array_branch(margin = c(2, 3)) %>% 
-  map(mean) %>% 
-  matrix(nrow = dim(initial_draws$Gamma)[2], ncol = dim(initial_draws$Gamma)[3])
-
-initial_values[[1]]$Omega <- initial_draws$Omega %>% 
-  array_branch(margin = c(2, 3)) %>% 
-  map(mean) %>% 
-  matrix(nrow = dim(initial_draws$Omega)[2], ncol = dim(initial_draws$Omega)[3])
-
-initial_values[[1]]$tau <- initial_draws$tau %>% 
-  array_branch(margin = 2) %>% 
-  map(mean) %>% 
-  matrix(nrow = dim(initial_draws$Gamma)[2])
-
-initial_values[[1]]$Delta <- initial_draws$Delta %>% 
-  array_branch(margin = c(2, 3)) %>% 
-  map(mean) %>% 
-  matrix(nrow = dim(initial_draws$Delta)[2], ncol = dim(initial_draws$Delta)[3])
-
-initial_values[[1]]$Beta <- initial_draws$Beta %>% 
-  array_branch(margin = c(2, 3)) %>% 
-  map(mean) %>% 
-  matrix(nrow = dim(initial_draws$Beta)[2], ncol = dim(initial_draws$Beta)[3])
+for (i in 1:length(parameters)) {
+  parameter <- parameters[i]
+  if (parameter != "tau") {
+    initial_values[[1]][[parameter]] <- hmnl_draws[parameter][[1]] %>% 
+      array_branch(margin = c(2, 3)) %>% 
+      map(mean) %>% 
+      unlist() %>% 
+      matrix(nrow = dim(hmnl_draws[parameter][[1]])[2], ncol = dim(hmnl_draws[parameter][[1]])[3])
+  }
+  if (parameter == "tau") {
+    initial_values[[1]][[parameter]] <- hmnl_draws[parameter][[1]] %>% 
+      array_branch(margin = 2) %>% 
+      map(mean) %>% 
+      unlist() %>% 
+      as.vector()
+  }
+}
+for (j in 2:4) initial_values[[j]] <- initial_values[[1]]
 
 # Ensemble Calibration ----------------------------------------------------
 K <- nrow(mat_ana)
@@ -124,27 +119,28 @@ for (k in 1:K) {
   # these named lists has the name of a parameter and is used to specify the
   # initial values for that parameter for the corresponding chain.
   
-  ensemble_fit[[k]] <- vb(
-    stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
-    data = stan_data,
-    init = 0,
-    # init = initial_values,
-    seed = 42
-  )
-  
-  # ensemble_fit[[k]] <- stan(
-  #   here::here("Code", "Source", "hmnl_ensemble.stan"),
+  # ensemble_fit[[k]] <- vb(
+  #   stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
   #   data = stan_data,
+  #   # init = 0,
   #   init = initial_values,
   #   seed = 42
   # )
+  
+  ensemble_fit[[k]] <- stan(
+    here::here("Code", "Source", "hmnl_ensemble.stan"),
+    data = stan_data,
+    init = initial_values,
+    seed = 42
+  )
 }
 
 # Save data and ensemble output.
 data$ensemble_fit <- ensemble_fit
 write_rds(
   data,
-  here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds"))
+  # here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds"))
+  here::here("Output", str_c("ensemble-fit_", file_name, ".rds"))
 )
 
 # Load data and ensemble output.
