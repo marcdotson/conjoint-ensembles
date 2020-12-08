@@ -11,8 +11,8 @@ options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
 
 # Load Data ---------------------------------------------------------------
-ind_none <- 1       # Indicates no pathologies.
-ind_ana <- 0        # Indicates attribute non-attendance.
+ind_none <- 0       # Indicates no pathologies.
+ind_ana <- 1        # Indicates attribute non-attendance.
 ind_screen <- 0     # Indicates screening.
 ind_ana_screen <- 0 # Indicates attribute non-attendance and screening.
 ind_real <- 0       # Indicates ____ data.
@@ -142,6 +142,8 @@ write_rds(
   # here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds"))
   here::here("Output", str_c("ensemble-fit_", file_name, ".rds"))
 )
+
+# Error: vector memory exhausted (limit reached?)
 
 # Load data and ensemble output.
 data <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
