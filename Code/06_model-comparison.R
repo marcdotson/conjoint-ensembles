@@ -1,9 +1,14 @@
 # Load packages.
 library(tidyverse)
-library(rstan)
-library(bayesplot)
-library(tidybayes)
+# library(rstan)
+# library(bayesplot)
+# library(tidybayes)
 library(loo)
+
+# Source fit functions.
+source(here::here("Code", "Source", "predictive_fit_ensemble.R"))
+source(here::here("Code", "Source", "hit_rate.R"))
+source(here::here("Code", "Source", "hit_prob.R"))
 
 ind_none <- 0       # Indicates no pathologies.
 ind_ana <- 1        # Indicates attribute non-attendance.
