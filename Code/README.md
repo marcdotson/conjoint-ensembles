@@ -6,30 +6,38 @@ Code
 The project work is broken down into the following steps with
 corresponding scripts.
 
-  - `01_simulate-data.R` Simulate data with and without pathologies and
+-   `01_simulate-data.R` Simulate data with and without pathologies and
     induce randomization.
-  - `02_clean-data.R` Clean empirical application data and induce
+-   `02_clean-data.R` Clean empirical application data and induce
     randomization.
-  - `03_conjoint-ensemble.R` Run the ensemble using the clever
+-   `03_conjoint-ensemble.R` Run the ensemble using the clever
     randomization.
-  - `04_meta-learner.R` Produce a consensus using the ensemble output.
-  - `05_competing-models.R` Run the standard model or models specific to
+-   `04_meta-learner.R` Produce weights using the ensemble output.
+-   `05_competing-models.R` Run the standard model or models specific to
     each pathology.
-  - `06_model-comparison.R` Compare fit across models and ensembles.
+-   `06_model-comparison.R` Compute and compare fit across models and
+    ensembles.
 
 ## Functions
 
 The following functions are stored in `Source`.
 
-  - `ana_hmnl.R` Estimate an HMNL with attribute non-attendance.
-  - `clever_randomization.R` Induce clever randomization and split into
+-   `ana_hbmnl.R` One of two functions to estimate an HMNL with
+    attribute non-attendance.
+-   `ana_hmnl.R` One of two functions to estimate an HMNL with attribute
+    non-attendance.
+-   `clever_randomization.R` Induce clever randomization and split into
     train and test data.
-  - `conj_hmnl.R` Estimate an HMNL with conjunctive screening rules.
-  - `conj_hmnl.cpp` Helper functions in C++ for `conj_hmnl.R`.
-  - `ensemble_weights.R` Generate ensemble weights with a `stanfit`
+-   `conj_hmnl.R` Estimate an HMNL with conjunctive screening rules.
+-   `conj_hmnl.cpp` Helper functions in C++ for `conj_hmnl.R`.
+-   `ensemble_weights.R` Generate ensemble weights with a `stanfit`
     object as input.
-  - `generate_data.stan` Generate data according to a HMNL.
-  - `hmnl.R` Estimate an HMNL.
-  - `hmnl.stan` Estimate an HMNL.
-  - `hmnl_ensemble.stan` Estimate an HMNL as part of an ensemble.
-  - `simulate_data.R` Simulate choice data with and without pathologies.
+-   `generate_data.stan` Generate data according to a HMNL.
+-   `hit_prob.R` Compute hit probabilities.
+-   `hit_rate.R` Compute hit rates.
+-   `hmnl_ensemble.stan` Estimate an HMNL as part of an ensemble.
+-   `hmnl.R` Estimate an HMNL.
+-   `hmnl.stan` Estimate an HMNL.
+-   `predictive_fit_ensemble.R` Compute predictive fit for an ensemble
+    of models.
+-   `simulate_data.R` Simulate choice data with and without pathologies.
