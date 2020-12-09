@@ -1,3 +1,13 @@
+
+# Load packages.
+library(tidyverse)
+library(rstan)
+library(bayesplot)
+library(tidybayes)
+library(loo)
+
+# Functions for model fit/comparison
+
 predictive_fit_ensemble = function(ensemble_weights, ensemble_fit, test_x, test_y){
   # Compute the hit rate, hit prob, and loo metrics for the ensemble model.
   #   ensemble_weights - estimated weights for each of the models
@@ -173,10 +183,3 @@ hit_prob = function(betadraw,Y,X) {
   }
   return(round(sum(resp_prob)/nresp,3))
 }
-
-
-
-
-
-
-
