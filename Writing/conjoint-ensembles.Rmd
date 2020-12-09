@@ -41,6 +41,16 @@ We argue there are three reasons to argue for an ensemble-based approach to conj
 
 The remainder of the paper will be organized as follows. In Section 2, we walk through ensemble approaches to prediction. In Section 3, we specify our ensemble approach to conjoint analysis. In Section 4, we provide results from simulation studies. We provide evidence from empirical applications in Section 5. Finally, in Section 6, we conclude.
 
+# Data Pathologies/Accommodating Data Pathologies
+
+## Attribute Non-Attendance
+
+Respondents may ignore an attribute because it either does not affect their utility or they want to simplify the choice task (Alemu et al. 2012). This pathology is called attribute non-attendance (ANA). Yegoryan et al. (2018) found that the majority of respondents used only three to four attributes out of the six available. Because of ANA, a model that assumes the use of all attributes may be biased. One of the best approaches found to mitigate the effect of ANA is a latent class model (Hess & Hensher 2013, Hole 2013).
+
+## Screening Rules
+
+Research in market-based product design has often used compensatory preference models (that assume an additive part-worth rule), however literature has shown that consumers often use noncompensatory heuristics (Shin & Ferguson 2016). It cannot be assumed that respondents only come to a decision by considering all of the attributes, adding up all the positives and negatives, and choosing the best net sum.  Respondents come with priorities and use heuristics: they might have a minimum requirement that must be met or they may require the inclusion of other features to make up for missing features. Within conjoint, alternatives that pass a respondent's mental 'screen' are evaluated; alternatives that do not pass the screen are not evaluated. Models have been constructed to account for the bias that comes from both noncompensatory and compensatory screening rules (Gilbride & Allenby 2004).
+
 # Ensemble Approaches to Prediction
 
 We may want to merge with the introduction (this is where we'll need a number of references).
@@ -112,3 +122,19 @@ knitr::include_graphics("../Figures/Figure_1.png")
 # Empirical Application
 
 # Conclusion
+
+# Possible References?
+
+Alemu, M. H., Morkbak, M. R., Olsen, S. B., & Jensen, C. L. (2013). Attending to the reasons for attribute non-attendance in choice experiments. Environmental and Resource Economics, 54 (3), 333–359.
+
+Yegoryan, N., Guhl, D., & Klapper, D. (2018). Inferring Attribute Non-Attendance Using Eye Tracking in Choice-Based Conjoint Analysis. 
+
+Hess, S., & Hensher, D. A. (2013). Making use of respondent reported processing information
+to understand attribute importance: A latent variable scaling approach. Transportation, 40 (2), 397–412.
+
+Hole, A. R. (2011). A discrete choice model with endogenous attribute attendance. Economic
+Letters, 110 (3), 203–205.
+
+Gilbride, T., Allenby, G. (2004). A Choice Model with Conjunctive, Disjunctive, and Compensatory Screening Rules. Marketing Science, Volume 23 No. 3.
+
+Shin, J., Ferguson, S. (2016). Exploring Product Solution Differences Due to Choice Model Selection in the Presence of Noncompensatory Decisions With Conjunctive Screening Rules. Journal of Mechanical Design.
