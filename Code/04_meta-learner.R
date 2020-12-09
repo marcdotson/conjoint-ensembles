@@ -47,6 +47,9 @@ set.seed(22)
 weights <- loo::loo_model_weights(x = LooPSIS_list, method = "stacking", 
                                  optim_method = "BFGS", optim_control = list(reltol=1e-10),
                                  r_eff_list = r_eff_list, cores = cores)
+#prepare test data
+test_Y <- ana_out$test_Y
+test_X <- ana_out$test_X
 
 #weight log_lik for each model to get log_lik for ensemble
 LLarray_ens = array(0,dims)
@@ -69,4 +72,3 @@ test_X <- ana_out$test_X
 #get functions for predictive fit
 source(here::here("Code", "06_model-comparison.R"))
 ana_fit <- predictive_fit_ensemble(ensemble_weights=weights, ensemble_fit=ensemble_fit, test_X, test_Y)
-
