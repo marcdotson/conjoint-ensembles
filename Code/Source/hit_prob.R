@@ -4,7 +4,7 @@ hit_prob = function(betadraw,Y,X) {
   #   Y - choices (hold-out tasks or sample)
   #   X - design matrices (hold-out tasks or sample)
   
-  ndraw = length(betadraw[1,1,])         # Number of draws.
+  ndraw = length(betadraw[,1,1])         # Number of draws.
   nresp = length(Y)                      # Number of respondents.
   nscns = length(Y[[1]])                 # Number of hold-out choice tasks.
   nalts = length(X[[1]][,1])/nscns       # Number of alternatives in each hold-out choice task.

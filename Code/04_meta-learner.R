@@ -19,7 +19,8 @@ if (ind_ana_screen == 1) file_name <- "ana-screen"
 if (ind_real == 1) file_name <- "design"
 
 #read in data
-out <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
+# out <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
+out <- read_rds(here::here("Output", str_c("reduced_ensemble-fit_vb_", file_name, ".rds")))
 
 #extract list for ensembles
 ensemble_fit <- out$ensemble_fit
@@ -29,46 +30,28 @@ n_ens <- length(ensemble_fit) #number of ensembles
 cores <- 4 # number of cores
 dims <- dim(ensemble_fit[[1]]$log_lik) #dimensions of log_lik values
 
-
 #create array of likelihoods with effective sample sizes
 LooPSIS_list <- NULL  #list of PSIS loo objects
 for(k in 1:n_ens){
   #extract log_lik array from each stanfit object
   LLarray <- ensemble_fit[[k]]$log_lik
   #get relative effective sample size for array
-  r_eff <- loo::relative_eff(x = exp(LLarray), cores = cores)
+  r_eff <- relative_eff(x = exp(LLarray), cores = cores)
   #apply PSIS via loo to array and save
-  LooPSIS_list[[k]] = loo::loo.array(LLarray, r_eff = r_eff,
+  LooPSIS_list[[k]] = loo.array(LLarray, r_eff = r_eff,
                                   cores = cores, save_psis = FALSE)
 }
 
 #calculate weights
 set.seed(22)
-weights <- loo::loo_model_weights(x = LooPSIS_list, method = "stacking", 
+weights <- loo_model_weights(x = LooPSIS_list, method = "stacking", 
                                  optim_method = "BFGS", optim_control = list(reltol=1e-10),
                                  r_eff_list = r_eff_list, cores = cores)
-#prepare test data
-test_Y <- ana_out$test_Y
-test_X <- ana_out$test_X
 
-#weight log_lik for each model to get log_lik for ensemble
-LLarray_ens = array(0,dims)
-for(k in 1:n_ens){
-  #extract log_lik array from each stanfit object
-  LLarray_ens <- LLarray_ens + weights[k]*ensemble_fit[[k]]$log_lik
-}  
+# # Append weights to the fit object.
+# out$weights <- weights
+# write_rds(
+#   out,
+#   here::here("Output", str_c("weighted_ensemble-fit_vb_", file_name, ".rds"))
+# )
 
-# #get effective sample size
-# r_eff_ens <- loo::relative_eff(x = exp(LLarray_ens), cores = cores)
-# 
-# #apply PSIS via loo to ensemble likelihoods
-# LooPSIS_ens = loo::loo.array(LLarray, r_eff = r_eff,
-#                                 cores = cores, save_psis = FALSE)
-
-#prepare test data
-test_Y <- ana_out$test_Y
-test_X <- ana_out$test_X
-
-#get functions for predictive fit
-source(here::here("Code", "06_model-comparison.R"))
-ana_fit <- predictive_fit_ensemble(ensemble_weights=weights, ensemble_fit=ensemble_fit, test_X, test_Y)

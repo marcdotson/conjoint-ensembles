@@ -1,4 +1,4 @@
-predictive_fit_ensemble = function(ensemble_weights, ensemble_fit, test_x, test_y){
+predictive_fit_ensemble = function(ensemble_weights, ensemble_fit, test_X, test_Y){
   # Compute the hit rate, hit prob, and loo metrics for the ensemble model.
   #   ensemble_weights - estimated weights for each of the models
   #   ensemble_fit - ensemble output with log_lik and betadraws for each model
@@ -25,8 +25,6 @@ predictive_fit_ensemble = function(ensemble_weights, ensemble_fit, test_x, test_
   #apply PSIS via loo to ensemble likelihoods (loo fit metrics)
   loo_fit_ens <- loo::loo.array(LLarray, r_eff = r_eff,
                                 cores = cores, save_psis = FALSE)
-  
-  
   
   #stack resps and scns to avoid loops (this needs changed if using hold out tasks)
   test_X_stacked <- NULL

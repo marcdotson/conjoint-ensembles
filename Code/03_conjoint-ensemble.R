@@ -146,7 +146,8 @@ write_rds(
 # Error: vector memory exhausted (limit reached?)
 
 # Load data and ensemble output.
-data <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
+# data <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
+data <- read_rds(here::here("Output", str_c("ensemble-fit_", file_name, ".rds")))
 
 # Post-hoc extraction and reassembly of ensemble output.
 for (k in 1:nrow(mat_ana)) {
