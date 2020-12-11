@@ -17,15 +17,17 @@ simultaneously accommodate multiple data pathologies in a single model.
 We provide tips and tricks on how to implement this approach in
 practice.
 
-For general details on GitHub usage, project organization, and project
-workflow, see [Research Assistant
-Training](https://github.com/marcdotson/ra-training).
-
 ## Project Organization
 
-  - `Code`: includes utilities and model scripts written in python, R,
-    and Stan
-  - `Data`: Simulated data sets used by conjoint models
-  - `Figures`: images and plots from demos, tutorials, and paper
-  - `Paper`: includes the paper submitted for publication
-  - `Presentation`: slides, demos, and tutorials
+  - `/Code` Scripts with prefixes (e.g., `01_import-data.R`,
+    `02_clean-data.R`) and functions in `/Source`.
+  - `/Data` Simulated and real data, the latter not pushed.
+  - `/Figures` PNG images and plots.
+  - `/Output` Output from model runs, not pushed.
+  - `/Presentation` Presentation slides, without its knitted PDF pushed.
+  - `/Private` A catch-all folder for miscellaneous files, not pushed.
+  - `/Writing` Case studies and the paper, without its knitted PDF
+    pushed.
+
+For general details on collaborating using GitHub see [Research
+Assistant Training](https://github.com/marcdotson/ra-training).

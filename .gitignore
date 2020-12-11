@@ -1,24 +1,18 @@
-# Python Stuff
-*.rds
-*.pkl
-*.ipynb_checkpoints
-*__pycache__/
-__pycache__/
-*pytest*
-
-# Data Stuff
-Data/R*
-
-# Folders
-Output/*
-Readings/*
-Temporary/*
-
 # R Stuff
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
 
+# Folders
+Output/*
+Private/*
+
+# Files
+Code/Source/*.rds
+Data/emp_*
+*.pdf
+
 # Miscellaneous
 .DS_Store
+.Rapp.history
