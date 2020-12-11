@@ -9,8 +9,8 @@ rstan_options(auto_write = TRUE)
 
 # Load Data ---------------------------------------------------------------
 ind_none <- 0       # Indicates no pathologies.
-ind_ana <- 0        # Indicates attribute non-attendance.
-ind_screen <- 1     # Indicates screening.
+ind_ana <- 1        # Indicates attribute non-attendance.
+ind_screen <- 0     # Indicates screening.
 ind_ana_screen <- 0 # Indicates attribute non-attendance and screening.
 
 if (ind_none == 1) file_name <- "none"
