@@ -120,7 +120,7 @@ conj_hmnl_e = function (Data, Prior, Mcmc, Cont) {
   
   # Run the MCMC ------------------------------------------------------------
   # The Markov chain will run for R iterations.
-  sourceCpp("Code/R/Source/conj_hmnl.cpp")
+  sourceCpp("Source/conj_hmnl.cpp")
   for (rep in 1:R) {
     # Initial log likelihood values for each iteration.
     logold = lognew = 0
