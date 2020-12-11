@@ -11,8 +11,8 @@ The project work is broken down into the following steps with corresponding scri
 - `02_clean-data.R` Clean empirical application data and induce randomization.
 - `03_conjoint-ensemble.R` Run the ensemble using the clever randomization.
 - `04_meta-learner.R` Produce weights using the ensemble output.
-- `05_competing-models.R` Run the standard model or models specific to each pathology.
-- `06_model-comparison.R` Compute and compare fit across models and ensembles.
+- `05_competing-models.R` Run the models specific to each pathology.
+- `06_model-comparison.R` Compute and compare fit across models.
 
 ## Functions
 

@@ -10,7 +10,7 @@ Private/*
 
 # Files
 Code/Source/*.rds
-Data/R*
+Data/emp_*
 *.pdf
 
 # Miscellaneous
