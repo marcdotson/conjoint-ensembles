@@ -45,16 +45,7 @@ model_comparison <- tibble(
   "Hit Prob" = NA
 )
 
-# Compute ensemble predictive fit.
-# - Weight log_lik for each ensemble member to get log_lik for ensemble -- in function?
-LLarray_ens <- array(0, dim(ensemble_draws[[1]]$log_lik))
-cores <- parallel::detectCores()
-for (k in 1:length(ensemble_fit)) {
-  # Extract log_lik array from each set of draws.
-  LLarray_ens <- LLarray_ens + ensemble_weights[k] * ensemble_draws[[k]]$log_lik
-}  
-
-# - predictive_fit_ensemble() is using objects from the global environment?
+# Compute fit metrics for ensemble
 ensemble_pred_fit <- predictive_fit_ensemble(
   ensemble_weights = ensemble_weights, 
   ensemble_fit = ensemble_draws, 
