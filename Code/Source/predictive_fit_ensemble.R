@@ -1,4 +1,4 @@
-predictive_fit_ensemble = function(ensemble_weights, ensemble_fit, test_x, test_y){
+predictive_fit_ensemble = function(ensemble_weights, ensemble_fit, test_X, test_Y){
   # Compute the hit rate, hit prob, and loo metrics for the ensemble model.
   #   ensemble_weights - estimated weights for each of the models
   #   ensemble_fit - ensemble output with log_lik and betadraws for each model
@@ -13,7 +13,7 @@ predictive_fit_ensemble = function(ensemble_weights, ensemble_fit, test_x, test_
   nlvls <- length(test_X[1,1,1, ])      # Number of att levels
   
   #weight log_lik for each model to get log_lik for ensemble
-  LLarray_ens = array(0,dims)
+  LLarray_ens = array(0,dim(ensemble_draws[[1]]$log_lik))
   for(k in 1:nens){
     #extract log_lik array from each stanfit object
     LLarray_ens <- LLarray_ens + ensemble_weights[k]*ensemble_fit[[k]]$log_lik
