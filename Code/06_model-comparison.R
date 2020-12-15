@@ -34,44 +34,38 @@ for (k in 1:length(ensemble_fit)) {
 }
 
 # Compute HMNL predictive fit.
+# - Need to update hit_rate() and hit_prob() for predictive fit.
 # - Should we have a separate function to generate hold-out sample betas?
-# - Do we care about in-sample hit rate and hit prob?
 
-# Create a model comparision data frame.
+# Create a model comparison data frame.
 model_comparison <- tibble(
   Model = "HMNL",
   LOO = loo(hmnl_fit)$elpd_loo,
-  "Hit Rate" = NA,
-  "Hit Prob" = NA
+  "Hit Rate" = NA, # No function currently available to compute HMNL predictive hit rate.
+  "Hit Prob" = NA  # No function currently available to compute HMNL predictive hit prob.
 )
 
-# Compute ensemble predictive fit.
-# - Weight log_lik for each ensemble member to get log_lik for ensemble -- in function?
-LLarray_ens <- array(0, dim(ensemble_draws[[1]]$log_lik))
-cores <- parallel::detectCores()
-for (k in 1:length(ensemble_fit)) {
-  # Extract log_lik array from each set of draws.
-  LLarray_ens <- LLarray_ens + ensemble_weights[k] * ensemble_draws[[k]]$log_lik
-}  
-
-# - predictive_fit_ensemble() is using objects from the global environment?
+# Compute fit metrics for ensemble
 ensemble_pred_fit <- predictive_fit_ensemble(
   ensemble_weights = ensemble_weights, 
   ensemble_fit = ensemble_draws, 
-  test_x = data$test_X, 
-  test_y = data$test_Y
+  test_X = data$test_X, 
+  test_Y = data$test_Y
 )
 
-# # Append results to the model comparison data frame.
-# model_comparison <- model_comparison %>% 
-#   bind_rows(
-#     tibble(
-#       Model = "Ensemble",
-#       LOO = loo_fit_ens$elpd_loo,
-#       "Hit Rate" = hit_rate_vec %*% ensemble_weights,
-#       "Hit Prob" = hit_prob_vec %*% ensemble_weights
-#     )
-#   )
+# Append results to the model comparison data frame.
+model_comparison <- model_comparison %>%
+  bind_rows(
+    tibble(
+      Model = "Ensemble",
+      LOO = ensemble_pred_fit$loo_fit$elpd_loo,
+      "Hit Rate" = ensemble_pred_fit$hit_rate,
+      "Hit Prob" = ensemble_pred_fit$hit_prob
+    )
+  )
+
+# Print results.
+model_comparison
 
 # # Save the model comparison data frame.
 # write_rds(model_comparison, here::here("Figures", "model_fit.rds"))
