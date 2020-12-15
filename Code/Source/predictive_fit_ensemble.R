@@ -16,17 +16,16 @@ predictive_fit_ensemble = function(ensemble_weights, ensemble_fit, test_x, test_
   LLarray_ens = array(0,dims)
   for(k in 1:nens){
     #extract log_lik array from each stanfit object
-    LLarray_ens <- LLarray_ens + weights[k]*ensemble_fit[[k]]$log_lik
+    LLarray_ens <- LLarray_ens + ensemble_weights[k]*ensemble_fit[[k]]$log_lik
   }  
   
   #get effective sample size
+  cores <- parallel::detectCores()
   r_eff_ens <- loo::relative_eff(x = exp(LLarray_ens), cores = cores)
   
   #apply PSIS via loo to ensemble likelihoods (loo fit metrics)
-  loo_fit_ens <- loo::loo.array(LLarray, r_eff = r_eff,
+  loo_fit_ens <- loo::loo.array(LLarray_ens, r_eff = r_eff_ens,
                                 cores = cores, save_psis = FALSE)
-  
-  
   
   #stack resps and scns to avoid loops (this needs changed if using hold out tasks)
   test_X_stacked <- NULL
@@ -39,14 +38,11 @@ predictive_fit_ensemble = function(ensemble_weights, ensemble_fit, test_x, test_
   #stack scn choices to avoid loops
   test_Y_stacked <- matrix(t(test_Y),nc=1)
   
-  
   #loop over ensemble models to calculate individual hit rates
   hit_rate_vec=double(ndraw)
   hit_prob_vec=double(ndraw)
   #loop over draws
   for(draw in 1:ndraw){
-    
-    
     #pull the posterior mean betas from each model into a matrix for this draw
     betabar_mat <- matrix(double(nlvls*nens), nc=nlvls)
     for(n in 1:nens){
