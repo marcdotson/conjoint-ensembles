@@ -19,7 +19,7 @@ if (ind_screen == 1) file_name <- "screen"
 if (ind_ana_screen == 1) file_name <- "ana-screen"
 
 # data <- read_rds(here::here("Data", str_c("sim_", file_name, ".rds")))
-data <- read_rds(here::here("Data", str_c("sim_", file_name, "_01.rds")))
+data <- read_rds(here::here("Data", str_c("sim_", file_name, "_1000.rds")))
 Y <- data$train_Y
 X <- data$train_X
 Z <- matrix(rep(1, nrow(Y)), ncol = 1)
@@ -52,11 +52,12 @@ hmnl_fit <- stan(
 )
 
 # Save HMNL fit.
-write_rds(hmnl_fit, here::here("Output", str_c("hmnl-fit_", file_name, ".rds")))
+# write_rds(hmnl_fit, here::here("Output", str_c("hmnl-fit_", file_name, ".rds")))
+write_rds(hmnl_fit, here::here("Output", str_c("hmnl-fit_", file_name, "_1000.rds")))
 
 # Load HMNL fit.
 # hmnl_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_name, ".rds")))
-hmnl_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_name, "_01.rds")))
+hmnl_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_name, "_1000.rds")))
 
 # Use posteriors to construct priors.
 hmnl_draws <- extract(hmnl_fit, pars = c("Gamma", "Omega", "tau"))
@@ -122,6 +123,7 @@ for (k in 1:K) {
     stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
     data = stan_data,
     init = 0,
+    tol_rel_obj = 0.001, # Decrease the convergence tolerance < 0.01.
     seed = 42
   )
   
@@ -135,7 +137,7 @@ for (k in 1:K) {
 
 # Save ensemble fit.
 # write_rds(ensemble_fit, here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
-write_rds(ensemble_fit, here::here("Output", str_c("ensemble-fit_vb_", file_name, "_01.rds")))
+write_rds(ensemble_fit, here::here("Output", str_c("ensemble-fit_vb_", file_name, "_1000.rds")))
 
 # Load ensemble fit.
 ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))

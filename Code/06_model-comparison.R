@@ -20,9 +20,12 @@ if (ind_ana == 1) file_name <- "ana"
 if (ind_screen == 1) file_name <- "screen"
 if (ind_ana_screen == 1) file_name <- "ana-screen"
 
-data <- read_rds(here::here("Data", str_c("sim_", file_name, ".rds")))
-hmnl_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_name, ".rds")))
-ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
+# data <- read_rds(here::here("Data", str_c("sim_", file_name, ".rds")))
+data <- read_rds(here::here("Data", str_c("sim_", file_name, "_100.rds")))
+# hmnl_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_name, ".rds")))
+hmnl_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_name, "_100.rds")))
+# ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
+ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, "_100.rds")))
 ensemble_weights <- read_rds(here::here("Output", str_c("ensemble-weights_", file_name, ".rds")))
 
 # Compute Model Fit -------------------------------------------------------
@@ -44,6 +47,9 @@ model_comparison <- tibble(
   "Hit Rate" = NA, # No function currently available to compute HMNL predictive hit rate.
   "Hit Prob" = NA  # No function currently available to compute HMNL predictive hit prob.
 )
+
+# Print results.
+model_comparison
 
 # Compute fit metrics for ensemble
 ensemble_pred_fit <- predictive_fit_ensemble(
