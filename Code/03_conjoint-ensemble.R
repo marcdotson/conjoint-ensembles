@@ -123,7 +123,7 @@ for (k in 1:K) {
     stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
     data = stan_data,
     init = 0,
-    tol_rel_obj = 0.001, # Decrease the convergence tolerance < 0.01.
+    tol_rel_obj = 0.0001, # Decrease the convergence tolerance < 0.01.
     seed = 42
   )
   
