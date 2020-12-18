@@ -119,13 +119,23 @@ for (k in 1:K) {
     # mat_screen = mat_screen    # Matrix of ensemble indicators for screening.
   )
   
-  ensemble_fit[[k]] <- vb(
+  # ensemble_fit[[k]] <- vb(
+  #   stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
+  #   data = stan_data,
+  #   init = 0,
+  #   tol_rel_obj = 0.001, # Decrease the convergence tolerance < 0.01.
+  #   seed = 42
+  # )
+  
+  fit <- vb(
     stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
     data = stan_data,
     init = 0,
     tol_rel_obj = 0.001, # Decrease the convergence tolerance < 0.01.
     seed = 42
   )
+  
+  ensemble_fit[[k]] <- extract(hmnl_fit, pars = c("Gamma", "Omega", "tau", "log_lik"))
   
   # ensemble_fit[[k]] <- stan(
   #   here::here("Code", "Source", "hmnl_ensemble.stan"),
@@ -140,5 +150,6 @@ for (k in 1:K) {
 write_rds(ensemble_fit, here::here("Output", str_c("ensemble-fit_vb_", file_name, "_1000.rds")))
 
 # Load ensemble fit.
-ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
+# ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
+ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, "_200.rds")))
 
