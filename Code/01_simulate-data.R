@@ -11,6 +11,7 @@ ind_none <- 0       # Indicates no pathologies.
 ind_ana <- 1        # Indicates attribute non-attendance.
 ind_screen <- 0     # Indicates screening.
 ind_ana_screen <- 0 # Indicates attribute non-attendance and screening.
+nmember <- 200      # Indicate the number of ensemble members.
 
 if (ind_none == 1) file_name <- "none"
 if (ind_ana == 1) file_name <- "ana"
@@ -36,9 +37,10 @@ data <- clever_randomization(
   Y = data$Y,     # Choice data to cleverly randomize.
   X = data$X,     # Design matrices to cleverly randomize.
   pct_test = .20, # Percent of data to be saved for testing.
-  nmember = 1000  # Number of members in the ensemble.
+  # nmember = 1000  # Number of members in the ensemble.
+  nmember = nmember # Number of members in the ensemble.
 )
 
 # Save simulated data.
-write_rds(data, here::here("Data", str_c("sim_", file_name, ".rds")))
+write_rds(data, here::here("Data", str_c("sim_", file_name, "_", nmember, ".rds")))
 

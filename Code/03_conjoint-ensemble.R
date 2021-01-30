@@ -12,6 +12,7 @@ ind_none <- 0       # Indicates no pathologies.
 ind_ana <- 1        # Indicates attribute non-attendance.
 ind_screen <- 0     # Indicates screening.
 ind_ana_screen <- 0 # Indicates attribute non-attendance and screening.
+nmember <- 200      # Indicate the number of ensemble members.
 
 if (ind_none == 1) file_name <- "none"
 if (ind_ana == 1) file_name <- "ana"
@@ -19,7 +20,7 @@ if (ind_screen == 1) file_name <- "screen"
 if (ind_ana_screen == 1) file_name <- "ana-screen"
 
 # data <- read_rds(here::here("Data", str_c("sim_", file_name, ".rds")))
-data <- read_rds(here::here("Data", str_c("sim_", file_name, "_1000.rds")))
+data <- read_rds(here::here("Data", str_c("sim_", file_name, "_", nmember, ".rds")))
 Y <- data$train_Y
 X <- data$train_X
 Z <- matrix(rep(1, nrow(Y)), ncol = 1)
@@ -53,11 +54,11 @@ hmnl_fit <- stan(
 
 # Save HMNL fit.
 # write_rds(hmnl_fit, here::here("Output", str_c("hmnl-fit_", file_name, ".rds")))
-write_rds(hmnl_fit, here::here("Output", str_c("hmnl-fit_", file_name, "_1000.rds")))
+write_rds(hmnl_fit, here::here("Output", str_c("hmnl-fit_", file_name, "_", nmember, ".rds")))
 
 # Load HMNL fit.
 # hmnl_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_name, ".rds")))
-hmnl_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_name, "_1000.rds")))
+hmnl_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_name, "_", nmember, ".rds")))
 
 # Use posteriors to construct priors.
 hmnl_draws <- extract(hmnl_fit, pars = c("Gamma", "Omega", "tau"))
@@ -66,23 +67,25 @@ Gamma_scale <- sqrt(var(hmnl_draws$Gamma))
 Omega_shape <- mean(hmnl_draws$Omega)
 tau_mean <- mean(hmnl_draws$tau)
 tau_scale <- sqrt(var(as.vector(hmnl_draws$tau)))
+
+# # Use posteriors to construct initial values.
 # parameters <- c("Gamma", "Omega", "tau", "Delta")
 # hmnl_draws <- extract(hmnl_fit, pars = parameters)
 # initial_values <- vector(mode = "list", length = 1)
 # for (i in 1:length(parameters)) {
 #   parameter <- parameters[i]
 #   if (parameter != "tau") {
-#     initial_values[[1]][[parameter]] <- hmnl_draws[parameter][[1]] %>% 
-#       array_branch(margin = c(2, 3)) %>% 
-#       map(mean) %>% 
-#       unlist() %>% 
+#     initial_values[[1]][[parameter]] <- hmnl_draws[parameter][[1]] %>%
+#       array_branch(margin = c(2, 3)) %>%
+#       map(mean) %>%
+#       unlist() %>%
 #       matrix(nrow = dim(hmnl_draws[parameter][[1]])[2], ncol = dim(hmnl_draws[parameter][[1]])[3])
 #   }
 #   if (parameter == "tau") {
-#     initial_values[[1]][[parameter]] <- hmnl_draws[parameter][[1]] %>% 
-#       array_branch(margin = 2) %>% 
-#       map(mean) %>% 
-#       unlist() %>% 
+#     initial_values[[1]][[parameter]] <- hmnl_draws[parameter][[1]] %>%
+#       array_branch(margin = 2) %>%
+#       map(mean) %>%
+#       unlist() %>%
 #       as.vector()
 #   }
 # }
@@ -147,9 +150,9 @@ for (k in 1:K) {
 
 # Save ensemble fit.
 # write_rds(ensemble_fit, here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
-write_rds(ensemble_fit, here::here("Output", str_c("ensemble-fit_vb_", file_name, "_1000.rds")))
+write_rds(ensemble_fit, here::here("Output", str_c("ensemble-fit_vb_", file_name, "_", nmember, ".rds")))
 
 # Load ensemble fit.
 # ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
-ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, "_200.rds")))
+ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, "_", nmember, ".rds")))
 

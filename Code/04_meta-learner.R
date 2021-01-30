@@ -6,17 +6,20 @@ library(loo)
 
 # Load Data and Ensemble Fit ----------------------------------------------
 ind_none <- 0       # Indicates no pathologies.
-ind_ana <- 0        # Indicates attribute non-attendance.
-ind_screen <- 1     # Indicates screening.
+ind_ana <- 1        # Indicates attribute non-attendance.
+ind_screen <- 0     # Indicates screening.
 ind_ana_screen <- 0 # Indicates attribute non-attendance and screening.
+nmember <-  1000    # Indicate the number of ensemble members.
 
 if (ind_none == 1) file_name <- "none"
 if (ind_ana == 1) file_name <- "ana"
 if (ind_screen == 1) file_name <- "screen"
 if (ind_ana_screen == 1) file_name <- "ana-screen"
 
-data <- read_rds(here::here("Data", str_c("sim_", file_name, ".rds")))
-ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
+# data <- read_rds(here::here("Data", str_c("sim_", file_name, ".rds")))
+# ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
+data <- read_rds(here::here("Data", str_c("sim_", file_name, "_", nmember, ".rds")))
+ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, "_", nmember, ".rds")))
 
 # Run the Meta-Learner ----------------------------------------------------
 # Extract needed draws.
