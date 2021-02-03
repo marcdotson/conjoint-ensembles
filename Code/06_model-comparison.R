@@ -14,7 +14,7 @@ ind_none <- 0       # Indicates no pathologies.
 ind_ana <- 1        # Indicates attribute non-attendance.
 ind_screen <- 0     # Indicates screening.
 ind_ana_screen <- 0 # Indicates attribute non-attendance and screening.
-nmember <- 1000     # Indicate the number of ensemble members.
+nmember <- 200      # Indicate the number of ensemble members.
 
 if (ind_none == 1) file_name <- "none"
 if (ind_ana == 1) file_name <- "ana"
@@ -75,6 +75,7 @@ model_comparison <- model_comparison %>%
 # Print results.
 model_comparison
 
-# # Save the model comparison data frame.
+# Save the model comparison data frame.
 # write_rds(model_comparison, here::here("Figures", "model_fit.rds"))
+write_rds(model_comparison, here::here("Figures", str_c("model_fit_", file_name, "_", nmember, ".rds")))
 
