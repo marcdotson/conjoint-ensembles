@@ -5,7 +5,9 @@ predictive_fit_ensemble = function(ensemble_weights, ensemble_fit, test_X, test_
   #   test_Y - choices (hold-out sample)
   #   test_X - design matrices (hold-out sample)
   #   Z - matrix of covariates
+  
 
+  
   nens <- length(ensemble_fit)
   ndraw <- length(ensemble_fit[[1]]$Beta[,1,1])         # Number of draws
   nresp <- length(test_Y[,1])           # Number of respondents
@@ -48,11 +50,13 @@ predictive_fit_ensemble = function(ensemble_weights, ensemble_fit, test_X, test_
   
   #loop over models
   for(model in 1:nens){
-    #get betas for 2 different hit rate calculations:
+    #get betas for 3 different hit rate calculations:
       #1) using mean of posterior betas as predicted part-worths
       Umat_postbetas = matrix(0, nr = nresp*nscns*nalts, nc=ndraw)
       #2) using mean of the distribution of heterogeneity as predicted part worths
       Umat_Zgamma = matrix(0, nr = nresp*nscns*nalts, nc=ndraw)
+      #3) using random draws from the ditribution of heterogeneity as predicted part worths
+      Umat_rand_het = matrix(0, nr = nresp*nscns*nalts, nc=ndraw)
     
     #loop over respondents
     for(resp in 1:nresp){
@@ -76,6 +80,19 @@ predictive_fit_ensemble = function(ensemble_weights, ensemble_fit, test_X, test_
       Zgamma_mat <- matrix(Z[resp,]%*%gammadraw, nr=ndraw)
       #set Zgamma_mat column = 0 if ensemble ignores the level
       Zgamma_mat[,index==0] <- 0
+        
+      #use upper level to create random draws for each respondent
+      Omegadraw <- ensemble_fit[[model]]$Omega[,,]
+      tausdraw <- ensemble_fit[[model]]$tau[,]
+      rand_het_mat <- matrix(0, nr= ndraw, nc=nlvls)
+      for(draw in 1:ndraw){
+        rand_het_mat[draw,] <- mvtnorm::rmvnorm(1, mean = Zgamma_mat[draw,],
+                                          sigma = diag(tausdraw[draw,]) %*% 
+                                           Omegadraw[draw,,] %*% diag(tausdraw[draw,]))
+      }
+      
+      #set Zgamma_mat column = 0 if ensemble ignores the level
+      rand_het_mat[,index==0] <- 0
       
       #get utility for each alternative using the three different types
       Umat_postbetas[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),] <- 
@@ -84,6 +101,10 @@ predictive_fit_ensemble = function(ensemble_weights, ensemble_fit, test_X, test_
       Umat_Zgamma[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),] <- 
         exp(test_X_stacked[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),]%*%
         t(Zgamma_mat))
+      
+      Umat_rand_het[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),] <- 
+        exp(test_X_stacked[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),]%*%
+        t(rand_het_mat))
     }
       
     #find probabilities for each task, resp and draw for Postbetas
@@ -99,6 +120,14 @@ predictive_fit_ensemble = function(ensemble_weights, ensemble_fit, test_X, test_
     #combine with other model probs weight by ensemble weights 
     probs_ens_Zgamma <- probs_ens_Zgamma + 
       (Umat_Zgamma/sums) *ensemble_weights[model]
+    
+    #find probabilities for each task, resp and draw for rand_het
+    Umat_rand_het<- matrix(Umat_rand_het, nr = nalts) 
+    sums <- t(matrix(rep(colSums(Umat_rand_het),nalts), nc=nalts))
+    #combine with other model probs weight by ensemble weights 
+    probs_ens_rand_het <- probs_ens_rand_het + 
+      (Umat_rand_het/sums) *ensemble_weights[model]
+    message('Processing model ', model)
   }
   
   #find location of highest prob postbetas
@@ -106,6 +135,9 @@ predictive_fit_ensemble = function(ensemble_weights, ensemble_fit, test_X, test_
   
   #find location of highest prob Zgamma
   locs_Zgamma <- apply(probs_ens_Zgamma,2,which.max)
+      
+  #find location of highest prob rand_het
+  locs_rand_het <- apply(probs_ens_rand_het,2,which.max)   
       
   #calculate hits postbetas
   hits_postbetas <- double(nresp*nscns*ndraw)
@@ -121,11 +153,15 @@ predictive_fit_ensemble = function(ensemble_weights, ensemble_fit, test_X, test_
   #calculate hit probs Zgamma
   hit_probs_Zgamma <- colSums(probs_ens_Zgamma*diag(nalts)[,rep(test_Y_stacked,ndraw)])
   
-  hitrates=c(mean(hits_postbetas),mean(hits_Zgamma))
-  hitprobs=c(mean(hit_probs_postbetas), mean(hit_probs_Zgamma))
+  #calculate hits rand_het
+  hits_rand_het <- double(nresp*nscns*ndraw)
+  hits_rand_het[locs_rand_het==rep(test_Y_stacked,ndraw)] <- 1
+  
+  #calculate hit probs rand_het
+  hit_probs_rand_het <- colSums(probs_ens_rand_het*diag(nalts)[,rep(test_Y_stacked,ndraw)])
+  
+  hitrates=c(mean(hits_postbetas),mean(hits_Zgamma), mean(hits_rand_het))
+  hitprobs=c(mean(hit_probs_postbetas), mean(hit_probs_Zgamma), mean(hit_probs_rand_het))
 
   return(list(hit_prob=hitprobs, hit_rate=hitrates, loo_fit=loo_fit_ens))
 }
-
-
-
