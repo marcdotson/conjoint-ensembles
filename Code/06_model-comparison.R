@@ -36,29 +36,19 @@ for (k in 1:length(ensemble_fit)) {
 }
 
 # Compute HMNL predictive fit.
-<<<<<<< HEAD
 hmnl_pred_fit <- predictive_fit_hmnl(
   hmnl_fit = hmnl_draws, 
   test_X = data$test_X, 
   test_Y = data$test_Y,
   Z=NULL
 )
-=======
-# - Need to update hit_rate() and hit_prob() for predictive fit.
-# - Should we have a separate function to generate hold-out sample betas?
->>>>>>> e360f7c9931ecc39cc0d14ea388bdea47f5ad2e9
 
-# Create a model comparison data frame.
+# Create a model comparision data frame.
 model_comparison <- tibble(
   Model = "HMNL",
   LOO = loo(hmnl_fit)$elpd_loo,
-<<<<<<< HEAD
   "Hit Rate" = hmnl_pred_fit$hit_rate[2],
   "Hit Prob" = hmnl_pred_fit$hit_prob[2],
-=======
-  "Hit Rate" = NA, # No function currently available to compute HMNL predictive hit rate.
-  "Hit Prob" = NA  # No function currently available to compute HMNL predictive hit prob.
->>>>>>> e360f7c9931ecc39cc0d14ea388bdea47f5ad2e9
 )
 
 # Compute fit metrics for ensemble
@@ -66,21 +56,20 @@ ensemble_pred_fit <- predictive_fit_ensemble(
   ensemble_weights = ensemble_weights, 
   ensemble_fit = ensemble_draws, 
   test_X = data$test_X, 
-<<<<<<< HEAD
   test_Y = data$test_Y,
   Z=NULL
 )
 
 # Append results to the model comparison data frame.
 model_comparison <- model_comparison %>% 
-   bind_rows(
-     tibble(
-       Model = "Ensemble",
-       LOO = ensemble_pred_fit$loo_fit$elpd_loo,
-       "Hit Rate" = ensemble_pred_fit$hit_rate[2],
-       "Hit Prob" = ensemble_pred_fit$hit_prob[2]
+  bind_rows(
+    tibble(
+      Model = "Ensemble",
+      LOO = ensemble_pred_fit$loo_fit$elpd_loo,
+      "Hit Rate" = ensemble_pred_fit$hit_rate[2],
+      "Hit Prob" = ensemble_pred_fit$hit_prob[2]
     )
-   )
+  )
 
 #Still Need to add competing models here with predictive fit.
 
@@ -128,25 +117,4 @@ model_comparison <- model_comparison %>%
 
 # Save model comparison data frame.
 write_rds(model_comparison, here::here("Figures", "model_fit.rds"))
-=======
-  test_Y = data$test_Y
-)
-
-# Append results to the model comparison data frame.
-model_comparison <- model_comparison %>%
-  bind_rows(
-    tibble(
-      Model = "Ensemble",
-      LOO = ensemble_pred_fit$loo_fit$elpd_loo,
-      "Hit Rate" = ensemble_pred_fit$hit_rate,
-      "Hit Prob" = ensemble_pred_fit$hit_prob
-    )
-  )
-
-# Print results.
-model_comparison
-
-# # Save the model comparison data frame.
-# write_rds(model_comparison, here::here("Figures", "model_fit.rds"))
->>>>>>> e360f7c9931ecc39cc0d14ea388bdea47f5ad2e9
 
