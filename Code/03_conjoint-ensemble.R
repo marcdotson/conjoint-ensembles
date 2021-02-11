@@ -12,7 +12,7 @@ ind_none <- 0       # Indicates no pathologies.
 ind_ana <- 1        # Indicates attribute non-attendance.
 ind_screen <- 0     # Indicates screening.
 ind_ana_screen <- 0 # Indicates attribute non-attendance and screening.
-nmember <- 200      # Indicate the number of ensemble members.
+nmember <- 400      # Indicate the number of ensemble members.
 
 if (ind_none == 1) file_name <- "none"
 if (ind_ana == 1) file_name <- "ana"
@@ -122,24 +122,27 @@ for (k in 1:K) {
     # mat_screen = mat_screen    # Matrix of ensemble indicators for screening.
   )
   
-  # ensemble_fit[[k]] <- vb(
-  #   stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
-  #   data = stan_data,
-  #   init = 0,
-  #   tol_rel_obj = 0.001, # Decrease the convergence tolerance < 0.01.
-  #   seed = 42
-  # )
-  
-  fit <- vb(
+  # Estimate with VB and save all the posterior draws.
+  ensemble_fit[[k]] <- vb(
     stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
     data = stan_data,
     init = 0,
     tol_rel_obj = 0.0001, # Decrease the convergence tolerance < 0.01.
     seed = 42
   )
+
+  # # Estimate with VB and extract just the upper-level parameter draws.
+  # fit <- vb(
+  #   stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
+  #   data = stan_data,
+  #   init = 0,
+  #   tol_rel_obj = 0.0001, # Decrease the convergence tolerance < 0.01.
+  #   seed = 42
+  # )
+  # 
+  # ensemble_fit[[k]] <- extract(hmnl_fit, pars = c("Gamma", "Omega", "tau", "log_lik"))
   
-  ensemble_fit[[k]] <- extract(hmnl_fit, pars = c("Gamma", "Omega", "tau", "log_lik"))
-  
+  # # Estimate with stan and save all the posterior draws.
   # ensemble_fit[[k]] <- stan(
   #   here::here("Code", "Source", "hmnl_ensemble.stan"),
   #   data = stan_data,
