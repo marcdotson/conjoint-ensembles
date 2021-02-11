@@ -28,17 +28,17 @@ if (ind_ana_screen == 1) file_name <- "ana-screen"
 # ensemble_weights <- read_rds(here::here("Output", str_c("ensemble-weights_", file_name, ".rds")))
 data <- read_rds(here::here("Data", str_c("sim_", file_name, "_", nmember, ".rds")))
 hmnl_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_name, "_", nmember, ".rds")))
-ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, "_", nmember, ".rds")))
+# ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, "_", nmember, ".rds")))
+ensemble_draws <- read_rds(here::here("Output", str_c("ensemble-draws_vb_", file_name, "_", nmember, ".rds")))
 ensemble_weights <- read_rds(here::here("Output", str_c("ensemble-weights_", file_name, "_", nmember, ".rds")))
-
 
 # Compute Model Fit -------------------------------------------------------
 # Extract needed draws.
 hmnl_draws <- extract(hmnl_fit, pars = c("Beta", "Gamma", "Omega", "tau"))
-ensemble_draws <- vector(mode = "list", length = length(ensemble_fit))
-for (k in 1:length(ensemble_fit)) {
-  ensemble_draws[[k]] <- extract(ensemble_fit[[k]], pars = c("Beta", "Gamma", "Omega", "tau", "log_lik"))
-}
+# ensemble_draws <- vector(mode = "list", length = length(ensemble_fit))
+# for (k in 1:length(ensemble_fit)) {
+#   ensemble_draws[[k]] <- extract(ensemble_fit[[k]], pars = c("Beta", "Gamma", "Omega", "tau", "log_lik"))
+# }
 
 # Compute HMNL predictive fit.
 hmnl_pred_fit <- predictive_fit_hmnl(
@@ -53,7 +53,7 @@ model_comparison <- tibble(
   Model = "HMNL",
   LOO = loo(hmnl_fit)$elpd_loo,
   "Hit Rate" = hmnl_pred_fit$hit_rate[2],
-  "Hit Prob" = hmnl_pred_fit$hit_prob[2],
+  "Hit Prob" = hmnl_pred_fit$hit_prob[2]
 )
 
 # Print results.
@@ -74,10 +74,15 @@ model_comparison <- model_comparison %>%
     tibble(
       Model = "Ensemble",
       LOO = ensemble_pred_fit$loo_fit$elpd_loo,
-      "Hit Rate" = ensemble_pred_fit$hit_rate[2],
-      "Hit Prob" = ensemble_pred_fit$hit_prob[2]
+      # "Hit Rate" = ensemble_pred_fit$hit_rate[2],
+      # "Hit Prob" = ensemble_pred_fit$hit_prob[2]
+      "Hit Rate" = ensemble_pred_fit$hit_rate,
+      "Hit Prob" = ensemble_pred_fit$hit_prob
     )
   )
+
+# Print results.
+model_comparison
 
 #Still Need to add competing models here with predictive fit.
 
@@ -88,7 +93,6 @@ model_comparison <- model_comparison %>%
 #  test_Y = data$test_Y,
 #  Z=NULL
 #)
-
 
 # Append results to the model comparison data frame.
 model_comparison <- model_comparison %>% 
@@ -122,5 +126,6 @@ model_comparison <- model_comparison %>%
   )
 
 # Save model comparison data frame.
-# write_rds(model_comparison, here::here("Figures", str_c("model_fit_", file_name, "_", nmember, ".rds")))
-write_rds(model_comparison, here::here("Figures", "model_fit.rds"))
+write_rds(model_comparison, here::here("Figures", str_c("model_fit_", file_name, "_", nmember, ".rds")))
+# write_rds(model_comparison, here::here("Figures", "model_fit.rds"))
+

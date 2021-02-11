@@ -92,7 +92,8 @@ tau_scale <- sqrt(var(as.vector(hmnl_draws$tau)))
 
 # Run HMNL Ensemble -------------------------------------------------------
 K <- nrow(mat_ana)
-ensemble_fit <- vector(mode = "list", length = K)
+# ensemble_fit <- vector(mode = "list", length = K)
+ensemble_draws <- vector(mode = "list", length = K)
 for (k in 1:K) {
   stan_data <- list(
     R = dim(X)[1],             # Number of respondents.
@@ -122,25 +123,27 @@ for (k in 1:K) {
     # mat_screen = mat_screen    # Matrix of ensemble indicators for screening.
   )
   
-  # Estimate with VB and save all the posterior draws.
-  ensemble_fit[[k]] <- vb(
-    stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
-    data = stan_data,
-    init = 0,
-    tol_rel_obj = 0.0001, # Decrease the convergence tolerance < 0.01.
-    seed = 42
-  )
-
-  # # Estimate with VB and extract just the upper-level parameter draws.
-  # fit <- vb(
+  # # Estimate with VB and save all the posterior draws.
+  # ensemble_fit[[k]] <- vb(
   #   stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
   #   data = stan_data,
   #   init = 0,
   #   tol_rel_obj = 0.0001, # Decrease the convergence tolerance < 0.01.
   #   seed = 42
   # )
-  # 
-  # ensemble_fit[[k]] <- extract(hmnl_fit, pars = c("Gamma", "Omega", "tau", "log_lik"))
+
+  # Estimate with VB and extract just the needed draws.
+  fit <- vb(
+    stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
+    data = stan_data,
+    init = 0,
+    # tol_rel_obj = 0.0001, # Decrease the convergence tolerance < 0.01.
+    output_samples = 100,
+    seed = 42
+  )
+
+  # ensemble_fit[[k]] <- extract(fit, pars = c("Gamma", "Omega", "tau", "log_lik"))
+  ensemble_draws[[k]] <- extract(fit, pars = c("Gamma", "log_lik"))
   
   # # Estimate with stan and save all the posterior draws.
   # ensemble_fit[[k]] <- stan(
@@ -153,9 +156,14 @@ for (k in 1:K) {
 
 # Save ensemble fit.
 # write_rds(ensemble_fit, here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
-write_rds(ensemble_fit, here::here("Output", str_c("ensemble-fit_vb_", file_name, "_", nmember, ".rds")))
+write_rds(ensemble_draws, here::here("Output", str_c("ensemble-draws_vb_", file_name, "_", nmember, ".rds")))
+
+# Compare the size of ensemble_draws to ensemble_fit.
+# - What is the size reduction? 28%.
+# - How many ensemble members could we fit before hitting 10GB? ("Big data" limit for my laptop.) 800 ensemble members.
 
 # Load ensemble fit.
 # ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
-ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, "_", nmember, ".rds")))
+# ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, "_", nmember, ".rds")))
+ensemble_draws <- read_rds(here::here("Output", str_c("ensemble-draws_vb_", file_name, "_", nmember, ".rds")))
 
