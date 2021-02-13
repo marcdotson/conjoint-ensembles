@@ -6,7 +6,8 @@ simulate_data <- function(
   nlevel = 3,    # Number of estimable attribute levels for each attribute.
   nversion = 10, # Number of versions of the experimental design.
   ana = FALSE,   # Attribute non-attendance flag.
-  screen = FALSE # Screening pathology flag.
+  screen = FALSE,# Screening pathology flag.
+  hetero = FALSE # Pathologies at the individual-level 
 ) {
 
   # Function to simulate choice data with or without pathologies.
@@ -41,15 +42,30 @@ simulate_data <- function(
   # Generate betas and impose pathologies if flagged.
   nbeta <- natt * nlevel - natt
   ana.vec <- rep(1, times = nbeta)
+  ana.mat = matrix(double(nbeta*nhh),ncol=nbeta) + 1
   screen.vec <- rep(0, times = nbeta)
-  if(ana == TRUE) {
-    ana.draw <- sample(1:nbeta, 3, replace = FALSE)
-    ana.vec[ana.draw] <- 0
+  screen.mat = matrix(double(nbeta*nhh),ncol=nbeta)
+  
+  for(i in 1:nhh){
+    if(ana == TRUE) {
+      ana.draw <- sample(1:nbeta, 3, replace = FALSE)
+      ana.mat[i,ana.draw] <- 0
+    }
+    if(screen == TRUE) {
+      screen.draw <- sample(1:nbeta, 1, replace = FALSE)
+      screen.mat[i,screen.draw] <- -100
+    }
   }
-  if(screen == TRUE) {
-    screen.draw <- sample(1:nbeta, 1, replace = FALSE)
-    screen.vec[screen.draw] <- -100
+  
+  if(hetero == FALSE){
+    ana.vec = ana.mat[1,]
+    screen.vec = screen.mat[1,]
+    for(i in 1:nhh){
+      ana.mat[i,] = ana.vec
+      screen.mat[i,] = screen.vec
+    }
   }
+  
   bbar <- runif(nbeta, -1, 2)
   
   # Generate Y|X.
@@ -59,6 +75,8 @@ simulate_data <- function(
     Y <- double(ntask)
     nver <- sample(1:nversion, 1)
     tmp <- desmat[which(desmat[,1] == nver),]
+    screen.vec = screen.mat[i,]
+    ana.vec = ana.mat[i,]
     for(j in 1:ntask) {
       xtmp <- as.matrix(tmp[which(tmp[,2] == j), 4:(ncol(desmat))])
       betah <- bbar + rnorm(length(bbar), 0, 1)
