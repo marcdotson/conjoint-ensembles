@@ -48,7 +48,7 @@ hmnl_pred_fit <- predictive_fit_hmnl(
   Z=NULL
 )
 
-# Create a model comparision data frame.
+# Create a model comparison data frame.
 model_comparison <- tibble(
   Model = "HMNL",
   LOO = loo(hmnl_fit)$elpd_loo,

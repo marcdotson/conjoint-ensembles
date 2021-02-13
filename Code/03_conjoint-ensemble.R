@@ -46,6 +46,14 @@ stan_data <- list(
   Z = Z             # Matrix of population-level covariates.
 )
 
+test_fit <- vb(
+  stan_model(here::here("Code", "Source", "hmnl.stan")),
+  data = stan_data,
+  init = 0,
+  # tol_rel_obj = 0.00001, # Decrease the convergence tolerance < 0.01.
+  seed = 42
+)
+
 hmnl_fit <- stan(
   here::here("Code", "Source", "hmnl.stan"),
   data = stan_data,
@@ -91,6 +99,9 @@ tau_scale <- sqrt(var(as.vector(hmnl_draws$tau)))
 # }
 
 # Run HMNL Ensemble -------------------------------------------------------
+
+
+
 K <- nrow(mat_ana)
 # ensemble_fit <- vector(mode = "list", length = K)
 ensemble_draws <- vector(mode = "list", length = K)
