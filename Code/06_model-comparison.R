@@ -15,7 +15,11 @@ ind_none <- 0       # Indicates no pathologies.
 ind_ana <- 1        # Indicates attribute non-attendance.
 ind_screen <- 0     # Indicates screening.
 ind_ana_screen <- 0 # Indicates attribute non-attendance and screening.
+<<<<<<< HEAD
 ind_Z <- 0          # Indicates presence of covariates
+=======
+nmember <- 200      # Indicate the number of ensemble members.
+>>>>>>> 24207d9791b68657875fd1f05146fbd4325b899d
 
 if (ind_none == 1) file_name <- "none"
 if (ind_ana == 1) file_name <- "ana_400"
@@ -23,10 +27,21 @@ if (ind_screen == 1) file_name <- "screen"
 if (ind_ana_screen == 1) file_name <- "ana-screen"
 if (ind_Z == 1) Z <- data$Z else Z <- NULL
 
+<<<<<<< HEAD
 data <- read_rds(here::here("Data", str_c("sim_", file_name, ".rds")))
 hmnl_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_name, ".rds")))
 ensemble_draws <- read_rds(here::here("Output", str_c("ensemble-draws_vb_", file_name, ".rds")))
 ensemble_weights <- read_rds(here::here("Output", str_c("ensemble-weights_", file_name, ".rds")))
+=======
+# data <- read_rds(here::here("Data", str_c("sim_", file_name, ".rds")))
+# hmnl_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_name, ".rds")))
+# ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
+# ensemble_weights <- read_rds(here::here("Output", str_c("ensemble-weights_", file_name, ".rds")))
+data <- read_rds(here::here("Data", str_c("sim_", file_name, "_", nmember, ".rds")))
+hmnl_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_name, "_", nmember, ".rds")))
+ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, "_", nmember, ".rds")))
+ensemble_weights <- read_rds(here::here("Output", str_c("ensemble-weights_", file_name, "_", nmember, ".rds")))
+>>>>>>> 24207d9791b68657875fd1f05146fbd4325b899d
 
 
 # Compute Model Fit -------------------------------------------------------
@@ -50,6 +65,9 @@ model_comparison <- tibble(
   "Hit Rate Mean of Gammas" = hmnl_pred_fit$hit_rate_meangammas,
   "Hit Prob Mean of Gammas" = hmnl_pred_fit$hit_prob_meangammas
 )
+
+# Print results.
+model_comparison
 
 # Compute fit metrics for ensemble
 ensemble_pred_fit <- predictive_fit_ensemble(
@@ -98,8 +116,6 @@ model_comparison <- model_comparison %>%
     )
   )
 
-
-
 #ConjScreen
 # Compute fit metrics for Conj Screening model
 #cscreen_pred_fit <- predictive_fit_cscreen(
@@ -121,5 +137,5 @@ model_comparison <- model_comparison %>%
   )
 
 # Save model comparison data frame.
+# write_rds(model_comparison, here::here("Figures", str_c("model_fit_", file_name, "_", nmember, ".rds")))
 write_rds(model_comparison, here::here("Figures", "model_fit.rds"))
-
