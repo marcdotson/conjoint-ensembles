@@ -16,13 +16,9 @@ if (ind_ana == 1) file_name <- "ana"
 if (ind_screen == 1) file_name <- "screen"
 if (ind_ana_screen == 1) file_name <- "ana-screen"
 
-# data <- read_rds(here::here("Data", str_c("sim_", file_name, ".rds")))
-# ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
 data <- read_rds(here::here("Data", str_c("sim_", file_name, "_", nmember, ".rds")))
 # ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, "_", nmember, ".rds")))
 ensemble_draws <- read_rds(here::here("Output", str_c("ensemble-draws_vb_", file_name, "_", nmember, ".rds")))
-
-# ensemble_fit_test <- ensemble_fit[1:300]
 
 # Run the Meta-Learner ----------------------------------------------------
 # # Extract needed draws.
@@ -54,7 +50,7 @@ ensemble_weights <- loo_model_weights(
   method = "stacking", 
   optim_method = "BFGS", 
   optim_control = list(reltol = 1e-10),
-  r_eff_list = r_eff_list, # WHERE IS THIS?
+  r_eff_list = r_eff_list, # Default
   cores = cores
 )
 
