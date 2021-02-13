@@ -10,7 +10,7 @@ predictive_fit_hmnl = function(hmnl_fit, test_X, test_Y, Z){
   nscns <- length(test_X[1, ,1,1])      # Number of choice tasks
   nalts <- length(test_X[1,1, ,1])      # Number of alternatives 
   nlvls <- length(test_X[1,1,1, ])      # Number of att levels
-  if(is.null(Z)){Z <- matrix(double(nresp)+1, nc = 1)}
+  if(is.null(Z)){Z <- matrix(1, nr=nresp, nc = 1)}
   
   #stack resps and scns to avoid loops (this needs changed if using hold out tasks)
   test_X_stacked <- NULL
@@ -24,74 +24,55 @@ predictive_fit_hmnl = function(hmnl_fit, test_X, test_Y, Z){
   test_Y_stacked <- matrix(t(test_Y),nc=1)
   
   #get utilities for 2 different hit rate calculations:
-    #1) using mean of posterior betas as predicted part-worths
-  Umat_postbetas = matrix(0, nr = nresp*nscns*nalts, nc=ndraw)
-    #2) using mean of the distribution of heterogeneity as predicted part worths
-  Umat_Zgamma = matrix(0, nr = nresp*nscns*nalts, nc=ndraw)
-
+    #1) using mean of the distribution of heterogeneity as predicted part worths
+    Umat_gammadraws = matrix(0, nr = nresp*nscns*nalts, nc=ndraw)
+    #2) using mean (over draws) of the mean of the post dist
+    Umat_meangammas = matrix(0, nr = nresp*nscns*nalts)
     
   #loop over respondents
   for(resp in 1:nresp){
-    #pull betas
-    betadraw <- hmnl_fit$Beta
-    #transpose dimensions of betadraw array
-    betadraw <- aperm(betadraw, c(2,1,3))
-    #convert to matrix for faster mean over respondents
-    betadraw <- matrix(betadraw, nr= dim(betadraw)[1])
-    #take mean over respondents to get mean posterior betas for this model
-    post_betabar_mat<- matrix(colMeans(betadraw), nr=ndraw)
-      
     #use upper level to get mean of dist of heterogeneity
-    gammadraw=hmnl_fit$Gamma
+    gammadraws=hmnl_fit$Gamma
     #transpose dimensions of gammadraw array
-    gammadraw <- aperm(gammadraw, c(2,1,3))
+    gammadraws <- aperm(gammadraws, c(2,1,3))
     #multiply by Z to get mean of dist of het
-    Zgamma_mat <- matrix(Z[resp,]%*%gammadraw, nr=ndraw)
+    gammadraws_mat <- matrix(Z[resp,]%*%gammadraws, nr=ndraw)
 
-    #get utility for each alternative using the three different types
-    Umat_postbetas[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),] <- 
+    #get utility for each alternative
+    Umat_gammadraws[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),] <- 
         exp(test_X_stacked[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),]%*%
-              t(post_betabar_mat))
-    Umat_Zgamma[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),] <- 
-        exp(test_X_stacked[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),]%*%
-              t(Zgamma_mat))
+              t(gammadraws_mat))
+    Umat_meangammas[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),] <- 
+      exp(test_X_stacked[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),]%*%
+            matrix(colMeans(gammadraws_mat)))
   }
     
-  #find probabilities for each task, resp and draw for Postbetas
-  Umat_postbetas <- matrix(Umat_postbetas, nr = nalts) 
-  sums <- t(matrix(rep(colSums(Umat_postbetas),nalts), nc=nalts))
-  #save probabilities
-  probs_postbetas <- (Umat_postbetas/sums)
-    
-   #find probabilities for each task, resp and draw for Zgamma
-  Umat_Zgamma <- matrix(Umat_Zgamma, nr = nalts) 
-  sums <- t(matrix(rep(colSums(Umat_Zgamma),nalts), nc=nalts))
-  #save probabilities
-  probs_Zgamma <- (Umat_Zgamma/sums)
+  #find probabilities for each task, resp and draw for gammadraws
+  Umat_gammadraws_byscn <- matrix(Umat_gammadraws, nr = nalts) 
+  sums <- t(matrix(rep(colSums(Umat_gammadraws_byscn),nalts), nc=nalts))
+  probs_gammadraws <- (Umat_gammadraws_byscn/sums)
+  #find probabilities for each task, resp and draw for meangammas
+  Umat_meangammas_byscn <- matrix(Umat_meangammas, nr = nalts) 
+  sums <- t(matrix(rep(colSums(Umat_meangammas_byscn),nalts), nc=nalts))
+  probs_meangammas <- (Umat_meangammas_byscn/sums)
   
-  #find location of highest prob postbetas
-  locs_postbetas <- apply(probs_postbetas,2,which.max)
+  #find location of highest prob gammadraws
+  locs_gammadraws <- apply(probs_gammadraws,2,which.max)
+  #find location of highest prob meangammas
+  locs_meangammas <- apply(probs_meangammas,2,which.max)
   
-  #find location of highest prob Zgamma
-  locs_Zgamma <- apply(probs_Zgamma,2,which.max)
+  #calculate hits gammadraws
+  hits_gammadraws <- double(nresp*nscns*ndraw)
+  hits_gammadraws[locs_gammadraws==rep(test_Y_stacked, ndraw)] <- 1
+  #calculate hits meangammas
+  hits_meangammas <- double(nresp*nscns*ndraw)
+  hits_meangammas[locs_meangammas==test_Y_stacked] <- 1
   
-  #calculate hits postbetas
-  hits_postbetas <- double(nresp*nscns*ndraw)
-  hits_postbetas[locs_postbetas==rep(test_Y_stacked,ndraw)] <- 1
+  #calculate hit probs gammadraws
+  hit_probs_gammadraws<- colSums(probs_gammadraws*diag(nalts)[,rep(test_Y_stacked, ndraw)])
+  #calculate hit probs meangammas
+  hit_probs_meangammas<- colSums(probs_meangammas*diag(nalts)[,test_Y_stacked])
   
-  #calculate hit probs postbetas
-  hit_probs_postbetas <- colSums(probs_postbetas*diag(nalts)[,rep(test_Y_stacked, ndraw)])
-  
-  #calculate hits Zgamma
-  hits_Zgamma <- double(nresp*nscns*ndraw)
-  hits_Zgamma[locs_Zgamma==rep(test_Y_stacked, ndraw)] <- 1
-  
-  #calculate hit probs Zgamma
-  hit_probs_Zgamma <- colSums(probs_Zgamma*diag(nalts)[,rep(test_Y_stacked, ndraw)])
-  
-  hitrates=c(mean(hits_postbetas),mean(hits_Zgamma))
-  hitprobs=c(mean(hit_probs_postbetas), mean(hit_probs_Zgamma))
-  
-  
-  return(list(hit_prob=hitprobs, hit_rate=hitrates))
+  return(list(hit_prob_gammadraws=mean(hit_probs_gammadraws), hit_rate_gammadraws=mean(hits_gammadraws),
+              hit_prob_meangammas=mean(hit_probs_meangammas), hit_rate_meangammas=mean(hits_meangammas)))
 }

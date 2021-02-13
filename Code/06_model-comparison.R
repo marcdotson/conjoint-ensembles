@@ -15,49 +15,52 @@ ind_none <- 0       # Indicates no pathologies.
 ind_ana <- 1        # Indicates attribute non-attendance.
 ind_screen <- 0     # Indicates screening.
 ind_ana_screen <- 0 # Indicates attribute non-attendance and screening.
+ind_Z <- 0          # Indicates presence of covariates
 
 if (ind_none == 1) file_name <- "none"
-if (ind_ana == 1) file_name <- "ana"
+if (ind_ana == 1) file_name <- "ana_400"
 if (ind_screen == 1) file_name <- "screen"
 if (ind_ana_screen == 1) file_name <- "ana-screen"
+if (ind_Z == 1) Z <- data$Z else Z <- NULL
 
 data <- read_rds(here::here("Data", str_c("sim_", file_name, ".rds")))
 hmnl_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_name, ".rds")))
-ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
+ensemble_draws <- read_rds(here::here("Output", str_c("ensemble-draws_vb_", file_name, ".rds")))
 ensemble_weights <- read_rds(here::here("Output", str_c("ensemble-weights_", file_name, ".rds")))
 
 
 # Compute Model Fit -------------------------------------------------------
 # Extract needed draws.
 hmnl_draws <- extract(hmnl_fit, pars = c("Beta", "Gamma", "Omega", "tau"))
-ensemble_draws <- vector(mode = "list", length = length(ensemble_fit))
-for (k in 1:length(ensemble_fit)) {
-  ensemble_draws[[k]] <- extract(ensemble_fit[[k]], pars = c("Beta", "Gamma", "Omega", "tau", "log_lik"))
-}
 
 # Compute HMNL predictive fit.
 hmnl_pred_fit <- predictive_fit_hmnl(
-  hmnl_fit = hmnl_draws, 
+  hmnl_fit= hmnl_draws, 
   test_X = data$test_X, 
   test_Y = data$test_Y,
-  Z=NULL
+  Z = Z
 )
 
 # Create a model comparision data frame.
 model_comparison <- tibble(
   Model = "HMNL",
   LOO = loo(hmnl_fit)$elpd_loo,
-  "Hit Rate" = hmnl_pred_fit$hit_rate[2],
-  "Hit Prob" = hmnl_pred_fit$hit_prob[2],
+  "Hit Rate Gamma Draws" = hmnl_pred_fit$hit_rate_gammadraws,
+  "Hit Prob Gamma Draws" = hmnl_pred_fit$hit_prob_gammadraws,
+  "Hit Rate Mean of Gammas" = hmnl_pred_fit$hit_rate_meangammas,
+  "Hit Prob Mean of Gammas" = hmnl_pred_fit$hit_prob_meangammas
 )
 
 # Compute fit metrics for ensemble
 ensemble_pred_fit <- predictive_fit_ensemble(
+  indices = c(ind_none, ind_ana, ind_screen, ind_ana_screen, ind_Z),
   ensemble_weights = ensemble_weights, 
-  ensemble_fit = ensemble_draws, 
+  ensemble_draws = ensemble_draws, 
   test_X = data$test_X, 
   test_Y = data$test_Y,
-  Z=NULL
+  mat_ana = data$mat_ana,
+  mat_screen = data$mat_screen,
+  Z=Z
 )
 
 # Append results to the model comparison data frame.
@@ -66,8 +69,10 @@ model_comparison <- model_comparison %>%
     tibble(
       Model = "Ensemble",
       LOO = ensemble_pred_fit$loo_fit$elpd_loo,
-      "Hit Rate" = ensemble_pred_fit$hit_rate[2],
-      "Hit Prob" = ensemble_pred_fit$hit_prob[2]
+      "Hit Rate Gamma Draws" = ensemble_pred_fit$hit_rate_gammadraws,
+      "Hit Prob Gamma Draws" = ensemble_pred_fit$hit_prob_gammadraws,
+      "Hit Rate Mean of Gammas" = ensemble_pred_fit$hit_rate_meangammas,
+      "Hit Prob Mean of Gammas" = ensemble_pred_fit$hit_prob_meangammas
     )
   )
 
