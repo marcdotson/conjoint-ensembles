@@ -13,12 +13,15 @@ ind_none <- 0       # Indicates no pathologies.
 ind_ana <- 1        # Indicates attribute non-attendance.
 ind_screen <- 0     # Indicates screening.
 ind_ana_screen <- 0 # Indicates attribute non-attendance and screening.
+hetero <- 1         # Indicates the presence of heterogenous pathologies.
 nmember <- 100      # Indicate the number of ensemble members.
 
 if (ind_none == 1) file_name <- "none"
 if (ind_ana == 1) file_name <- "ana"
 if (ind_screen == 1) file_name <- "screen"
 if (ind_ana_screen == 1) file_name <- "ana-screen"
+if (hetero == 1) file_name <- paste(file_name,"-hetero", sep="")
+if (hetero == 0) file_name <- paste(file_name,"-homo", sep="")
 
 # data <- read_rds(here::here("Data", str_c("sim_", file_name, ".rds")))
 data <- read_rds(here::here("Data", str_c("sim_", file_name, "_", nmember, ".rds")))
