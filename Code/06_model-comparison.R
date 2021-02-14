@@ -16,8 +16,7 @@ ind_ana <- 0        # Indicates attribute non-attendance.
 ind_screen <- 1     # Indicates screening.
 ind_ana_screen <- 0 # Indicates attribute non-attendance and screening.
 ind_Z <- 0          # Indicates presence of covariates
-nmember <- 400      # Indicate the number of ensemble members.
-
+nmember <- 100      # Indicate the number of ensemble members.
 
 hetero <- 1         # Indicates if pathologies differ by individual 
 

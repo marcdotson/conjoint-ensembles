@@ -9,7 +9,7 @@ ind_none <- 0       # Indicates no pathologies.
 ind_ana <- 1        # Indicates attribute non-attendance.
 ind_screen <- 0     # Indicates screening.
 ind_ana_screen <- 0 # Indicates attribute non-attendance and screening.
-nmember <-  200     # Indicate the number of ensemble members.
+nmember <-  100     # Indicate the number of ensemble members.
 
 hetero <- 1         # Indicates if pathologies differ by individual 
 
@@ -22,7 +22,7 @@ if (hetero == 0) file_name <- paste(file_name,"-homo", sep="")
 
 data <- read_rds(here::here("Data", str_c("sim_", file_name, "_", nmember, ".rds")))
 # ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, "_", nmember, ".rds")))
-ensemble_draws <- read_rds(here::here("Output", str_c("ensemble-draws_vb_", file_name, "_", nmember, ".rds")))
+# ensemble_draws <- read_rds(here::here("Output", str_c("ensemble-draws_vb_", file_name, "_", nmember, ".rds")))
 
 # Run the Meta-Learner ----------------------------------------------------
 # # Extract needed draws.

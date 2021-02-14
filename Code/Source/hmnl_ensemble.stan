@@ -40,7 +40,7 @@ transformed parameters {
   }
   
   // Impose fixed values using ensemble indicator matrices.
-  // CONFIRM  IMPOSITION FOR BETA (NON-CENTERED) AND NOT DELTA (CENTERED).
+  // CONFIRM IMPOSITION FOR BETA (NON-CENTERED) AND NOT DELTA (CENTERED).
   for (r in 1:R) {
     for (i in 1:I) {
       if (mat_ana[k, i] == 1) {
@@ -71,11 +71,20 @@ model {
 
 // Generated quantities conditioned on parameter draws.
 generated quantities {
-  // Compute log likelihood for model fit.
-  matrix[R, S] log_lik;
+  // // Compute log likelihood for model fit.
+  // matrix[R, S] log_lik;
+  // for (r in 1:R) {
+  //   for (s in 1:S) {
+  //     log_lik[r, s] = categorical_logit_lpmf(Y[r, s] | X[r, s] * Beta[r,]');
+  //   }
+  // }
+  
+  matrix[R, S] log_lik; // Matrix of log likelihood values.
+  matrix[I, I] Sigma;   // Covariance matrix for the population model.
   for (r in 1:R) {
     for (s in 1:S) {
       log_lik[r, s] = categorical_logit_lpmf(Y[r, s] | X[r, s] * Beta[r,]');
     }
   }
+  Sigma = quad_form_diag(Omega, tau);
 }
