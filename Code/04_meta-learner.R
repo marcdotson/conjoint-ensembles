@@ -40,11 +40,13 @@ LooPSIS_list <- vector(mode = "list", length = length(ensemble_draws))
 cores <- parallel::detectCores()
 for (k in 1:length(ensemble_draws)) {
   # Extract log_lik array from each stanfit object.
-  LLarray <- ensemble_draws[[k]]$log_lik
+  loglik=ensemble_draws[[k]]$log_lik
+  ndraw=dim(loglik)[1]
+  LLmat <- matrix(loglik, nr=ndraw)
   # Get relative effective sample size for each array.
-  r_eff <- relative_eff(x = exp(LLarray), cores = cores)
+  r_eff <- relative_eff(x = exp(LLmat), chain_id = double(ndraw)+1, cores = cores)
   # Apply PSIS via loo to array and save.
-  LooPSIS_list[[k]] = loo.array(LLarray, r_eff = r_eff, cores = cores, save_psis = FALSE)
+  LooPSIS_list[[k]] = loo.matrix(LLmat, r_eff = r_eff, cores = cores, save_psis = FALSE)
 }
 
 # Calculate weights.
@@ -54,7 +56,6 @@ ensemble_weights <- loo_model_weights(
   method = "stacking", 
   optim_method = "BFGS", 
   optim_control = list(reltol = 1e-10),
-  r_eff_list = r_eff_list, # Default
   cores = cores
 )
 

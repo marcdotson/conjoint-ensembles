@@ -54,10 +54,8 @@ hmnl_pred_fit <- predictive_fit_hmnl(
 model_comparison <- tibble(
   Model = "HMNL",
   LOO = loo(hmnl_fit)$elpd_loo,
-  "Hit Rate Gamma Draws" = hmnl_pred_fit$hit_rate_gammadraws,
-  "Hit Prob Gamma Draws" = hmnl_pred_fit$hit_prob_gammadraws,
-  "Hit Rate Mean of Gammas" = hmnl_pred_fit$hit_rate_meangammas,
-  "Hit Prob Mean of Gammas" = hmnl_pred_fit$hit_prob_meangammas
+  "Hit Rate" = hmnl_pred_fit$hit_rate,
+  "Hit Prob" = hmnl_pred_fit$hit_prob
 )
 
 # Print results.
@@ -81,10 +79,8 @@ model_comparison <- model_comparison %>%
     tibble(
       Model = "Ensemble",
       LOO = ensemble_pred_fit$loo_fit$elpd_loo,
-      "Hit Rate Gamma Draws" = ensemble_pred_fit$hit_rate_gammadraws,
-      "Hit Prob Gamma Draws" = ensemble_pred_fit$hit_prob_gammadraws,
-      "Hit Rate Mean of Gammas" = ensemble_pred_fit$hit_rate_meangammas,
-      "Hit Prob Mean of Gammas" = ensemble_pred_fit$hit_prob_meangammas
+      "Hit Rate" = ensemble_pred_fit$hit_rate,
+      "Hit Prob" = ensemble_pred_fit$hit_prob
     )
   )
 
@@ -107,10 +103,8 @@ model_comparison <- model_comparison %>%
     tibble(
       Model = "ANA",
       LOO = NA,
-      "Hit Rate Gamma Draws" = NA,
-      "Hit Prob Gamma Draws" = NA,
-      "Hit Rate Mean of Gammas" = NA,
-      "Hit Prob Mean of Gammas" = NA
+      "Hit Rate" = NA,
+      "Hit Prob" = NA
     )
   )
 
@@ -129,10 +123,8 @@ model_comparison <- model_comparison %>%
     tibble(
       Model = "Conj Screen",
       LOO = NA,
-      "Hit Rate Gamma Draws" = NA,
-      "Hit Prob Gamma Draws" = NA,
-      "Hit Rate Mean of Gammas" = NA,
-      "Hit Prob Mean of Gammas" = NA
+      "Hit Rate" = NA,
+      "Hit Prob" = NA
     )
   )
 
