@@ -20,8 +20,8 @@ if (ind_none == 1) file_name <- "none"
 if (ind_ana == 1) file_name <- "ana"
 if (ind_screen == 1) file_name <- "screen"
 if (ind_ana_screen == 1) file_name <- "ana-screen"
-if (hetero == 1) file_name <- paste(file_name,"-hetero", sep="")
-if (hetero == 0) file_name <- paste(file_name,"-homo", sep="")
+# if (hetero == 1) file_name <- paste(file_name,"-hetero", sep="")
+# if (hetero == 0) file_name <- paste(file_name,"-homo", sep="")
 
 # data <- read_rds(here::here("Data", str_c("sim_", file_name, ".rds")))
 data <- read_rds(here::here("Data", str_c("sim_", file_name, "_", nmember, ".rds")))
@@ -126,10 +126,10 @@ ensemble_means <- mclapply(stan_data_list, fit_extract_average, mc.cores = detec
 
 # Save ensemble means.
 # write_rds(ensemble_fit, here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
-write_rds(ensemble_means, here::here("Output", str_c("ensemble-means_vb_", file_name, "_", nmember, ".rds")))
+write_rds(ensemble_means, here::here("Output", str_c("ensemble-means_", file_name, "_", nmember, ".rds")))
 
 # Load ensemble means.
 # ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, ".rds")))
 # ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, "_", nmember, ".rds")))
-ensemble_means <- read_rds(here::here("Output", str_c("ensemble-means_vb_", file_name, "_", nmember, ".rds")))
+ensemble_means <- read_rds(here::here("Output", str_c("ensemble-means_", file_name, "_", nmember, ".rds")))
 
