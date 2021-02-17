@@ -5,71 +5,53 @@ library(rstan)
 library(loo)
 
 # Source functions.
-source(here::here("Code", "Source", "predictive_fit_ensemble.R"))
 source(here::here("Code", "Source", "predictive_fit_hmnl.R"))
-# source(here::here("Code", "Source", "predictive_fit_ana.R"))
-# source(here::here("Code", "Source", "predictive_fit_cscreen.R"))
+source(here::here("Code", "Source", "predictive_fit_ensemble.R"))
 
-# Load Data, Fit, and Weights ---------------------------------------------
-# ind_none <- 0       # Indicates no pathologies.
-# ind_ana <- 1        # Indicates attribute non-attendance.
-# ind_screen <- 0     # Indicates screening.
-# ind_ana_screen <- 0 # Indicates attribute non-attendance and screening.
-# hetero <- 1         # Indicates if pathologies differ by individual 
-# nmember <- 100      # Indicate the number of ensemble members.
-# 
-# if (ind_none == 1) file_name <- "none"
-# if (ind_ana == 1) file_name <- "ana"
-# if (ind_screen == 1) file_name <- "screen"
-# if (ind_ana_screen == 1) file_name <- "ana-screen"
-# if (hetero == 1) file_name <- paste(file_name,"-hetero", sep="")
-# if (hetero == 0) file_name <- paste(file_name,"-homo", sep="")
+# Set the simulation seed.
+set.seed(42)
 
-data <- read_rds(here::here("Data", str_c("sim_", file_name, "_", nmember, ".rds")))
-hmnl_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_name, "_", nmember, ".rds")))
-# ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_vb_", file_name, "_", nmember, ".rds")))
-ensemble_draws <- read_rds(here::here("Output", str_c("ensemble-draws_vb_", file_name, "_", nmember, ".rds")))
-ensemble_weights <- read_rds(here::here("Output", str_c("ensemble-weights_", file_name, "_", nmember, ".rds")))
+# Load data, ensemble, and competing model fit.
+data <- read_rds(here::here("Data", str_c("sim_", file_id, ".rds")))
+data$test_Z <- matrix(rep(1, nrow(data$test_Y)), ncol = 1)
+hmnl_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_id, ".rds")))
+ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_", file_id, "_", nmember, ".rds")))
+# if (ind_ana == 1) read_rds(here::here("Output", str_c("ana-fit_", file_id, ".rds")))
+# if (ind_screen == 1) read_rds(here::here("Output", str_c("screen-fit_", file_id, ".rds")))
 
 # Compute Model Fit -------------------------------------------------------
 # Extract needed draws.
 hmnl_draws <- extract(hmnl_fit, pars = c("Beta", "Gamma", "Omega", "tau"))
-# ensemble_draws <- vector(mode = "list", length = length(ensemble_fit))
-# for (k in 1:length(ensemble_fit)) {
-#   ensemble_draws[[k]] <- extract(ensemble_fit[[k]], pars = c("Beta", "Gamma", "Omega", "tau", "log_lik"))
-# }
 
 # Compute HMNL predictive fit.
 hmnl_pred_fit <- predictive_fit_hmnl(
-  hmnl_fit= hmnl_draws, 
+  hmnl_draws = hmnl_draws, 
   test_X = data$test_X, 
   test_Y = data$test_Y,
-  Z = Z
+  test_Z = data$test_Z
 )
 
 # Create a model comparison data frame.
 model_comparison <- tibble(
   Model = "HMNL",
   LOO = loo(hmnl_fit)$elpd_loo,
-  "Hit Rate Gamma Draws" = hmnl_pred_fit$hit_rate_gammadraws,
-  "Hit Prob Gamma Draws" = hmnl_pred_fit$hit_prob_gammadraws,
-  "Hit Rate Mean of Gammas" = hmnl_pred_fit$hit_rate_meangammas,
-  "Hit Prob Mean of Gammas" = hmnl_pred_fit$hit_prob_meangammas
+  "Hit Rate" = hmnl_pred_fit$hit_rate,
+  "Hit Prob" = hmnl_pred_fit$hit_prob
 )
 
 # Print results.
 model_comparison
 
-# Compute fit metrics for ensemble
+# Compute fit metrics for ensemble.
 ensemble_pred_fit <- predictive_fit_ensemble(
   indices = c(ind_none, ind_ana, ind_screen, ind_ana_screen, ind_Z),
-  ensemble_weights = ensemble_weights, 
-  ensemble_draws = ensemble_draws, 
+  ensemble_weights = ensemble_fit$ensemble_weights, 
+  ensemble_draws = ensemble_fit$ensemble_draws, 
   test_X = data$test_X, 
   test_Y = data$test_Y,
-  mat_ana = data$mat_ana,
-  mat_screen = data$mat_screen,
-  Z=Z
+  test_Z = data$test_Z,
+  mat_ana = ensemble_fit$mat_ana,
+  mat_screen = ensemble_fit$mat_screen
 )
 
 # Append results to the model comparison data frame.
@@ -78,10 +60,8 @@ model_comparison <- model_comparison %>%
     tibble(
       Model = "Ensemble",
       LOO = ensemble_pred_fit$loo_fit$elpd_loo,
-      "Hit Rate Gamma Draws" = ensemble_pred_fit$hit_rate_gammadraws,
-      "Hit Prob Gamma Draws" = ensemble_pred_fit$hit_prob_gammadraws,
-      "Hit Rate Mean of Gammas" = ensemble_pred_fit$hit_rate_meangammas,
-      "Hit Prob Mean of Gammas" = ensemble_pred_fit$hit_prob_meangammas
+      "Hit Rate" = ensemble_pred_fit$hit_rate,
+      "Hit Prob" = ensemble_pred_fit$hit_prob
     )
   )
 
@@ -104,10 +84,8 @@ model_comparison <- model_comparison %>%
     tibble(
       Model = "ANA",
       LOO = NA,
-      "Hit Rate Gamma Draws" = NA,
-      "Hit Prob Gamma Draws" = NA,
-      "Hit Rate Mean of Gammas" = NA,
-      "Hit Prob Mean of Gammas" = NA
+      "Hit Rate" = NA,
+      "Hit Prob" = NA
     )
   )
 
@@ -126,14 +104,11 @@ model_comparison <- model_comparison %>%
     tibble(
       Model = "Conj Screen",
       LOO = NA,
-      "Hit Rate Gamma Draws" = NA,
-      "Hit Prob Gamma Draws" = NA,
-      "Hit Rate Mean of Gammas" = NA,
-      "Hit Prob Mean of Gammas" = NA
+      "Hit Rate" = NA,
+      "Hit Prob" = NA
     )
   )
 
 # Save model comparison data frame.
-write_rds(model_comparison, here::here("Figures", str_c("model_fit_", file_name, "_", nmember, ".rds")))
-# write_rds(model_comparison, here::here("Figures", "model_fit.rds"))
+write_rds(model_comparison, here::here("Figures", str_c("model-fit_", file_id, "_", nmember, ".rds")))
 
