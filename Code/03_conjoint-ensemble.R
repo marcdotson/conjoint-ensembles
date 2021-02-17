@@ -18,7 +18,7 @@ if (ind_ana == 1) mat_ana <- data$mat_ana[sample(nrow(data$mat_ana), nmember),]
 if (ind_screen == 1) mat_screen = data$mat_screen[sample(nrow(data$mat_screen), nmember),]
 
 # Run HMNL to Initialize Ensemble -----------------------------------------
-if (file.exists(here::here("Output", str_c("hmnl-fit_", file_id, ".rds")))) {
+if (!file.exists(here::here("Output", str_c("hmnl-fit_", file_id, ".rds")))) {
   stan_data <- list(
     R = dim(data$train_X)[1], # Number of respondents.
     S = dim(data$train_X)[2], # Number of choice tasks.
