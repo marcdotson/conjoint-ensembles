@@ -8,7 +8,6 @@ if (ind_sim == 1) {
   ind_none <- 0       # Indicates no pathologies.
   ind_ana <- 1        # Indicates attribute non-attendance.
   ind_screen <- 0     # Indicates screening.
-  ind_ana_screen <- 0 # Indicates attribute non-attendance and screening.
   
   # Decide on pathology heterogeneity and the size of the ensemble.
   ind_hetero <- 1     # Indicates if pathologies differ by individual.
@@ -18,7 +17,7 @@ if (ind_sim == 1) {
   if (ind_none == 1) file_id <- "none"
   if (ind_ana == 1) file_id <- "ana"
   if (ind_screen == 1) file_id <- "screen"
-  if (ind_ana_screen == 1) file_id <- "ana-screen"
+  if (ind_ana == 1 & ind_screen) file_id <- "ana-screen"
   if (ind_hetero == 1) file_id <- paste(file_id, "-hetero", sep = "")
   if (ind_hetero == 0) file_id <- paste(file_id, "-homo", sep = "")
 }
@@ -26,6 +25,9 @@ if (ind_emp == 1) {
   # Indicate which empirical data to use.
   ind_beef <- 1       # Indicates Ground Beef.
   ind_zero <- 0       # Indicates Zerorez.
+  
+  # Decide on the size of the ensemble.
+  nmember <- 400      # Indicates the number of ensemble members.
   
   # Construct the file_id conditioned on flags.
   if (ind_beef == 1) file_id <- "ground-beef"
@@ -48,3 +50,4 @@ source(here::here("Code", "05_competing-models.R"))
 # Compute and compare fit across models.
 source(here::here("Code", "06_model-comparison.R"))
 model_comparison
+

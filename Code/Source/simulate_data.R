@@ -1,13 +1,13 @@
 simulate_data <- function(
-  nhh = 100,     # Number of respondents (households).
-  ntask = 12,    # Number of choice tasks.
-  nalt = 3,      # Number of choice alternatives.
-  natt = 5,      # Number of attributes.
-  nlevel = 3,    # Number of estimable attribute levels for each attribute.
-  nversion = 10, # Number of versions of the experimental design.
-  ana = FALSE,   # Attribute non-attendance flag.
-  screen = FALSE,# Screening pathology flag.
-  hetero = FALSE # Pathologies at the individual-level 
+  nhh = 100,      # Number of respondents (households).
+  ntask = 12,     # Number of choice tasks.
+  nalt = 3,       # Number of choice alternatives.
+  natt = 5,       # Number of attributes.
+  nlevel = 3,     # Number of estimable attribute levels for each attribute.
+  nversion = 10,  # Number of versions of the experimental design.
+  ana = FALSE,    # Attribute non-attendance flag.
+  screen = FALSE, # Screening pathology flag.
+  hetero = FALSE  # Pathologies at the individual-level.
 ) {
 
   # Function to simulate choice data with or without pathologies.
