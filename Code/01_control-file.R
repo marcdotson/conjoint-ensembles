@@ -11,7 +11,7 @@ if (ind_sim == 1) {
   
   # Decide on pathology heterogeneity and the size of the ensemble.
   ind_hetero <- 0     # Indicates if pathologies differ by individual.
-  nmember <- 400      # Indicates the number of ensemble members.
+  nmember <- 1000     # Indicates the number of ensemble members.
   
   # Construct the file_id conditioned on flags.
   if (ind_none == 1) file_id <- "none"
