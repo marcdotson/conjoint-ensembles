@@ -37,13 +37,17 @@ predictive_fit_hmnl = function(hmnl_draws, test_X, test_Y, test_Z){
     betas <- matrix(test_Z[resp,]%*%meangammas, nc=1)
 
     #get utility for each alternative
-    Umat_meangammas[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),] <- 
+    # Umat_meangammas[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),] <- 
+    #   exp(test_X_stacked[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),]%*%
+    #         matrix(betas))
+    Umat[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),] <- 
       exp(test_X_stacked[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),]%*%
             matrix(betas))
   }
     
   #find probabilities for each task, resp
-  Umat_byscn <- matrix(Umat_meangammas, nr = nalts) 
+  # Umat_byscn <- matrix(Umat_meangammas, nr = nalts) 
+  Umat_byscn <- matrix(Umat, nr = nalts) 
   sums <- t(matrix(rep(colSums(Umat_byscn),nalts), nc=nalts))
   probs <- (Umat_byscn/sums)
   

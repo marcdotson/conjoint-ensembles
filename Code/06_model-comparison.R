@@ -12,7 +12,8 @@ source(here::here("Code", "Source", "predictive_fit_ensemble.R"))
 set.seed(42)
 
 # Load data, ensemble, and competing model fit.
-data <- read_rds(here::here("Data", str_c("sim_", file_id, "_", nmember, ".rds")))
+data <- read_rds(here::here("Data", str_c("sim_", file_id, ".rds")))
+data$test_Z <- matrix(rep(1, nrow(data$test_Y)), ncol = 1)
 hmnl_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_id, ".rds")))
 ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_", file_id, "_", nmember, ".rds")))
 # if (ind_ana == 1) read_rds(here::here("Output", str_c("ana-fit_", file_id, ".rds")))
@@ -24,10 +25,10 @@ hmnl_draws <- extract(hmnl_fit, pars = c("Beta", "Gamma", "Omega", "tau"))
 
 # Compute HMNL predictive fit.
 hmnl_pred_fit <- predictive_fit_hmnl(
-  hmnl_fit= hmnl_draws, 
+  hmnl_draws = hmnl_draws, 
   test_X = data$test_X, 
   test_Y = data$test_Y,
-  Z = Z
+  test_Z = data$test_Z
 )
 
 # Create a model comparison data frame.
@@ -48,9 +49,9 @@ ensemble_pred_fit <- predictive_fit_ensemble(
   ensemble_draws = ensemble_fit$ensemble_draws, 
   test_X = data$test_X, 
   test_Y = data$test_Y,
+  test_Z = data$test_Z,
   mat_ana = ensemble_fit$mat_ana,
-  mat_screen = ensemble_fit$mat_screen,
-  Z=Z
+  mat_screen = ensemble_fit$mat_screen
 )
 
 # Append results to the model comparison data frame.
