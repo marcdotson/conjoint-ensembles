@@ -10,7 +10,7 @@ if (ind_sim == 1) {
   ind_screen <- 0     # Indicates screening.
   
   # Decide on pathology heterogeneity and the size of the ensemble.
-  ind_hetero <- 0     # Indicates if pathologies differ by individual.
+  ind_hetero <- 1     # Indicates if pathologies differ by individual.
   nmember <- 400      # Indicates the number of ensemble members.
   
   # Construct the file_id conditioned on flags.
