@@ -110,5 +110,4 @@ model_comparison <- model_comparison %>%
 
 # Save model comparison data frame.
 write_rds(model_comparison, here::here("Figures", str_c("model-fit_", file_id, "_", nmember, ".rds")))
-# write_rds(model_comparison, here::here("Figures", "model_fit.rds"))
 
