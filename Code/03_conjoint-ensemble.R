@@ -14,8 +14,8 @@ set.seed(42)
 # Load data and draw a sample of ensembles of size nmember.
 data <- read_rds(here::here("Data", str_c("sim_", file_id, ".rds")))
 data$train_Z <- matrix(rep(1, nrow(data$train_Y)), ncol = 1)
-if (ind_ana == 1) mat_ana <- data$mat_ana[sample(nrow(data$mat_ana), nmember),]
-if (ind_screen == 1) mat_screen = data$mat_screen[sample(nrow(data$mat_screen), nmember),]
+mat_ana <- data$mat_ana[sample(nrow(data$mat_ana), nmember),]
+mat_screen <- data$mat_screen[sample(nrow(data$mat_screen), nmember),]
 
 # Run HMNL to Initialize Ensemble -----------------------------------------
 if (!file.exists(here::here("Output", str_c("hmnl-fit_", file_id, ".rds")))) {
@@ -59,28 +59,6 @@ tau_mean <- mean(hmnl_draws$tau)
 tau_scale <- sqrt(var(as.vector(hmnl_draws$tau)))
 
 # Run HMNL Ensemble -------------------------------------------------------
-fit_extract_average <- function(stan_data) {
-  # Estimate with VB.
-  fit <- rstan::vb(
-    stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
-    data = stan_data,
-    init = 0,
-    output_samples = 100,
-    seed = 42
-  )
-  
-  # Extract the posterior draws for Gamma, Sigma, and log_lik.
-  draws <- rstan::extract(fit, pars = c("Gamma", "Sigma", "log_lik"))
-  
-  # Compute posterior means.
-  ensemble_draws <- NULL
-  ensemble_draws$Gamma <- apply(draws$Gamma, c(2, 3), mean)
-  ensemble_draws$Sigma <- apply(draws$Sigma, c(2, 3), mean)
-  ensemble_draws$log_lik <- draws$log_lik
-  
-  return(ensemble_draws)
-}
-
 # Compute the conjoint ensemble.
 stan_data_list <- vector(mode = "list", length = nmember)
 for (k in 1:nmember) {
@@ -103,18 +81,38 @@ for (k in 1:nmember) {
     X = data$train_X,          # Array of observation-level covariates.
     Z = data$train_Z,          # Matrix of population-level covariates.
     
-    # Matrix of ensemble indicators for ANA and/or screening.
-    if (ind_ana == 1) mat_ana = mat_ana,
-    if (ind_screen == 1) mat_screen = mat_screen
+    mat_ana = mat_ana,         # Matrix of ensemble indicators for ANA.
+    mat_screen = mat_screen    # Matrix of ensemble indicators for screening.
   )
   
   stan_data_list[[k]] <- stan_data
 }
 
-ensemble_draws <- vector(mode = "list", length = nmember)
+fit_extract_average <- function(stan_data) {
+  # Estimate with VB.
+  fit <- rstan::vb(
+    stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
+    data = stan_data,
+    init = 0,
+    output_samples = 100,
+    seed = 42
+  )
+  
+  # Extract the posterior draws for Gamma, Sigma, and log_lik.
+  draws <- rstan::extract(fit, pars = c("Gamma", "Sigma", "log_lik"))
+  
+  # Compute posterior means.
+  ensemble_draws <- NULL
+  ensemble_draws$Gamma <- apply(draws$Gamma, c(2, 3), mean)
+  ensemble_draws$Sigma <- apply(draws$Sigma, c(2, 3), mean)
+  ensemble_draws$log_lik <- draws$log_lik
+  
+  return(ensemble_draws)
+}
+
 ensemble_draws <- mclapply(stan_data_list, fit_extract_average, mc.cores = detectCores())
 
 # Save ensemble fit.
-ensemble_fit <- list(mat_ana, mat_screen, ensemble_draws)
+ensemble_fit <- list(mat_ana = mat_ana, mat_screen = mat_screen, ensemble_draws = ensemble_draws)
 write_rds(ensemble_fit, here::here("Output", str_c("ensemble-fit_", file_id, "_", nmember, ".rds")))
 
