@@ -1,11 +1,11 @@
 predictive_fit_ensemble = function(indices, ensemble_weights, ensemble_draws, 
-                                   test_X, test_Y, mat_ana, mat_screen, Z){
+                                   test_X, test_Y, mat_ana, mat_screen, test_Z){
   # Compute the hit rate, hit prob, and loo metrics for the ensemble model.
   #   ensemble_weights - estimated weights for each of the models
   #   ensemble_fit - ensemble output with log_lik, betadraws, gammas, and Omegas for each model
   #   test_Y - choices (hold-out sample)
   #   test_X - design matrices (hold-out sample)
-  #   Z - matrix of covariates
+  #   test_Z - matrix of covariates
   
   nens <- length(ensemble_draws)
   ndraw <- length(ensemble_draws[[1]]$log_lik[,1,1]) # Number of draws
@@ -14,7 +14,7 @@ predictive_fit_ensemble = function(indices, ensemble_weights, ensemble_draws,
   nscns <- length(test_X[1, ,1,1])      # Number of choice tasks
   nalts <- length(test_X[1,1, ,1])      # Number of alternatives 
   nlvls <- length(test_X[1,1,1, ])      # Number of att levels
-  if( is.null(Z) ) Z <- matrix(1, nr = nresp, nc = 1)
+  if( is.null(test_Z) ) test_Z <- matrix(1, nr = nresp, nc = 1)
   
   #weight log_lik for each model to get log_lik for ensemble
   LLmat_ens = matrix(0, nr=ndraw , 
@@ -65,7 +65,7 @@ predictive_fit_ensemble = function(indices, ensemble_weights, ensemble_draws,
     #loop over respondents
     for(resp in 1:nresp){
       #multiply by Z to get mean of dist of het for resp
-      betas <- matrix(Z[resp,]%*%meangammas, nc=1)
+      betas <- matrix(test_Z[resp,]%*%meangammas, nc=1)
       
       #set gammadraws_mat column = 0 if ensemble ignores the level
       betas[index_ana==1,] <- 0

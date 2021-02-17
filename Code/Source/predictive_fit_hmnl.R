@@ -1,16 +1,16 @@
-predictive_fit_hmnl = function(hmnl_draws, test_X, test_Y, Z){
+predictive_fit_hmnl = function(hmnl_draws, test_X, test_Y, test_Z){
   # Compute the hit rate for the indicated model.
   #   hmnl_fit - hmnl output with log_lik, betadraws, gammadraws, and Omegadraws
   #   test_Y - choices (hold-out sample)
   #   test_X - design matrices (hold-out sample)
-  #   Z - matrix of covariates
+  #   test_Z - matrix of covariates
 
   ndraw <- length(hmnl_draws$Gamma[,1,1]) # Number of draws
   nresp <- length(test_Y[,1])           # Number of respondents
   nscns <- length(test_X[1, ,1,1])      # Number of choice tasks
   nalts <- length(test_X[1,1, ,1])      # Number of alternatives 
   nlvls <- length(test_X[1,1,1, ])      # Number of att levels
-  if(is.null(Z)){Z <- matrix(1, nr=nresp, nc = 1)}
+  if(is.null(test_Z)){test_Z <- matrix(1, nr=nresp, nc = 1)}
   
   #stack resps and scns to avoid loops (this needs changed if using hold out tasks)
   test_X_stacked <- NULL
@@ -34,7 +34,7 @@ predictive_fit_hmnl = function(hmnl_draws, test_X, test_Y, Z){
     #transpose dimensions of gammadraw array
     meangammas <- apply(gammadraws,c(2,3),mean)
     #multiply by Z to get mean of dist of het
-    betas <- matrix(Z[resp,]%*%meangammas, nc=1)
+    betas <- matrix(test_Z[resp,]%*%meangammas, nc=1)
 
     #get utility for each alternative
     Umat_meangammas[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),] <- 
