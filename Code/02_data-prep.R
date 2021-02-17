@@ -11,63 +11,67 @@ set.seed(42)
 
 # Simulate Data and Induce Clever Randomization ---------------------------
 if (ind_sim == 1) {
-  # Simulate data, induce clever randomization, and save.
-  data <- simulate_data(
-    nhh = 300,           # Number of respondents (households).
-    ntask = 12,          # Number of choice tasks.
-    nalt = 3,            # Number of choice alternatives.
-    natt = 5,            # Number of attributes.
-    nlevel = 3,          # Number of estimable attribute levels for each attribute.
-    nversion = 10,       # Number of versions of the experimental design.
-    ana = ind_ana,       # Attribute non-attendance flag.
-    screen = ind_screen, # Screening flag.
-    hetero = ind_hetero  # Pathologies differ by individual flag.
-  )
-  
-  data <- clever_randomization(
-    Y = data$Y,          # Choice data to cleverly randomize.
-    X = data$X,          # Design matrices to cleverly randomize.
-    pct_test = .20,      # Percent of data to be saved for testing.
-    nmember = 2000       # Number of possible members in the ensemble.
-  )
-  
-  # Save simulated data.
-  write_rds(data, here::here("Data", str_c("sim_", file_id, ".rds")))
+  if (!file.exists(here::here("Data", str_c("sim_", file_id, ".rds")))) {
+    # Simulate data, induce clever randomization, and save.
+    data <- simulate_data(
+      nhh = 300,           # Number of respondents (households).
+      ntask = 12,          # Number of choice tasks.
+      nalt = 3,            # Number of choice alternatives.
+      natt = 5,            # Number of attributes.
+      nlevel = 3,          # Number of estimable attribute levels for each attribute.
+      nversion = 10,       # Number of versions of the experimental design.
+      ana = ind_ana,       # Attribute non-attendance flag.
+      screen = ind_screen, # Screening flag.
+      hetero = ind_hetero  # Pathologies differ by individual flag.
+    )
+    
+    data <- clever_randomization(
+      Y = data$Y,          # Choice data to cleverly randomize.
+      X = data$X,          # Design matrices to cleverly randomize.
+      pct_test = .20,      # Percent of data to be saved for testing.
+      nmember = 2000       # Number of possible members in the ensemble.
+    )
+    
+    # Save simulated data.
+    write_rds(data, here::here("Data", str_c("sim_", file_id, ".rds")))
+  }
 }
 
 # Clean Data and Induce Clever Randomization ------------------------------
 if (ind_emp == 1) {
-  # Load design.
-  design <- read.csv(here::here("Data", str_c("emp_", file_id, "_design.csv")), header = TRUE)
-  design <- design[,-1]
-  
-  # Load choice data.
-  choice_data <- read.csv(here::here("Data", str_c("emp_", file_id, "_final.csv")), header=TRUE)
-  choice_data <- choice_data[,-1]
-  
-  # Sample Characteristics
-  nobs <- nrow(choice_data)
-  ntask <- 10
-  nalt <- 4
-  natt <- ncol(design) - 3
-  
-  # Format Data for Stan
-  regdata <- NULL
-  X <- array(double(nobs*ntask*nalt*natt),dim=c(nobs,ntask,nalt,natt))
-  Y <- as.matrix(choice_data[,c("C1","C2","C3","C4","C5","C6","C7","C8","C9","C10")])
-  
-  for (i in 1:nobs) {
-    nver <- choice_data[i,"X0.Version"]
-    tmp <- design[which(design[,1]==nver),]
-    for (j in 1:ntask) {
-      X[i,j,,] <- as.matrix(tmp[which(tmp[,2] == j), 4:(ncol(design))])
+  if (!file.exists(here::here("Data", str_c("emp_", file_id, ".rds")))) {
+    # Load design.
+    design <- read.csv(here::here("Data", str_c("emp_", file_id, "_design.csv")), header = TRUE)
+    design <- design[,-1]
+    
+    # Load choice data.
+    choice_data <- read.csv(here::here("Data", str_c("emp_", file_id, "_final.csv")), header=TRUE)
+    choice_data <- choice_data[,-1]
+    
+    # Sample Characteristics
+    nobs <- nrow(choice_data)
+    ntask <- 10
+    nalt <- 4
+    natt <- ncol(design) - 3
+    
+    # Format Data for Stan
+    regdata <- NULL
+    X <- array(double(nobs*ntask*nalt*natt),dim=c(nobs,ntask,nalt,natt))
+    Y <- as.matrix(choice_data[,c("C1","C2","C3","C4","C5","C6","C7","C8","C9","C10")])
+    
+    for (i in 1:nobs) {
+      nver <- choice_data[i,"X0.Version"]
+      tmp <- design[which(design[,1]==nver),]
+      for (j in 1:ntask) {
+        X[i,j,,] <- as.matrix(tmp[which(tmp[,2] == j), 4:(ncol(design))])
+      }
     }
+    
+    # Induce clever randomization.
+    data <- clever_randomization(Y = Y, X = X, pct_test = .1, nmember = 2000)
+    
+    # Save data.
+    write_rds(data, here::here("Data", str_c("emp_", file_id, ".rds")))
   }
-  
-  # Induce clever randomization.
-  data <- clever_randomization(Y = Y, X = X, pct_test = .1, nmember = 2000)
-  
-  # Save data.
-  write_rds(data, here::here("Data", str_c("emp_", file_id, ".rds")))
 }
 
