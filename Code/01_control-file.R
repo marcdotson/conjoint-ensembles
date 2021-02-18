@@ -10,8 +10,8 @@ if (ind_sim == 1) {
   ind_screen <- 0     # Indicates screening.
   
   # Decide on pathology heterogeneity and the size of the ensemble.
-  ind_hetero <- 0     # Indicates if pathologies differ by individual.
-  nmember <- 1000     # Indicates the number of ensemble members.
+  ind_hetero <- 1     # Indicates if pathologies differ by individual.
+  nmember <- 2000     # Indicates the number of ensemble members.
   
   # Construct the file_id conditioned on flags.
   if (ind_none == 1) file_id <- "none"
@@ -44,8 +44,8 @@ source(here::here("Code", "03_conjoint-ensemble.R"))
 # Produce weights using the ensemble output.
 source(here::here("Code", "04_meta-learner.R"))
 
-# Run the models specific to the indicated pathology.
-source(here::here("Code", "05_competing-models.R"))
+# # Run the models specific to the indicated pathology.
+# source(here::here("Code", "05_competing-models.R"))
 
 # Compute and compare fit across models.
 source(here::here("Code", "06_model-comparison.R"))
