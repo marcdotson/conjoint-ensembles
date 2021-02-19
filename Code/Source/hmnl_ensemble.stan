@@ -43,15 +43,36 @@ transformed parameters {
   }
   
   // Impose fixed values using ensemble indicator matrices.
-  // CONFIRM IMPOSITION FOR BETA (NON-CENTERED) AND NOT DELTA (CENTERED).
-  for (r in 1:R) {
-    for (i in 1:I) {
-      if (ind_ana == 1) {
+  // for (r in 1:R) {
+  //   for (i in 1:I) {
+  //     if (ind_ana == 1) {
+  //       if (mat_ana[k, i] == 1) {
+  //         Beta[r, i] = 0;
+  //       }
+  //     }
+  //     if (ind_screen == 1) {
+  //       if (mat_screen[k, i] == 1) {
+  //         Beta[r, i] = -1000;
+  //       }
+  //     }
+  //   }
+  // }
+  
+  // Impose fixed values using ANA indicator matrix.
+  if (ind_ana == 1) {
+    for (r in 1:R) {
+      for (i in 1:I) {
         if (mat_ana[k, i] == 1) {
           Beta[r, i] = 0;
         }
       }
-      if (ind_screen == 1) {
+    }
+  }
+  
+  // Impose fixed values using screening indicator matrix.
+  if (ind_screen == 1) {
+    for (r in 1:R) {
+      for (i in 1:I) {
         if (mat_screen[k, i] == 1) {
           Beta[r, i] = -1000;
         }
