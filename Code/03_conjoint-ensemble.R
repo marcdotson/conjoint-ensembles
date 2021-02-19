@@ -81,6 +81,8 @@ for (k in 1:nmember) {
     X = data$train_X,          # Array of observation-level covariates.
     Z = data$train_Z,          # Matrix of population-level covariates.
     
+    ind_ana = ind_ana,         # Flag indicating attribute non-attendance.
+    ind_screen = ind_screen,   # Flag indicating screening.
     mat_ana = mat_ana,         # Matrix of ensemble indicators for ANA.
     mat_screen = mat_screen    # Matrix of ensemble indicators for screening.
   )
