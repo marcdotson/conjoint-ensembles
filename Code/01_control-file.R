@@ -6,7 +6,7 @@ ind_emp <- 0 # Indicates empirical data.
 if (ind_sim == 1) {
   # Indicate which pathologies to simulate.
   ind_none <- 0       # Indicates no pathologies.
-  ind_ana <- 1        # Indicates attribute non-attendance.
+  ind_ana <- 0        # Indicates attribute non-attendance.
   ind_screen <- 1     # Indicates screening.
   
   # Decide on pathology heterogeneity and the size of the ensemble.
