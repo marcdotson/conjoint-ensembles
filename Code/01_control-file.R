@@ -7,17 +7,17 @@ if (ind_sim == 1) {
   # Indicate which pathologies to simulate.
   ind_none <- 0       # Indicates no pathologies.
   ind_ana <- 1        # Indicates attribute non-attendance.
-  ind_screen <- 0     # Indicates screening.
+  ind_screen <- 1     # Indicates screening.
   
   # Decide on pathology heterogeneity and the size of the ensemble.
   ind_hetero <- 1     # Indicates if pathologies differ by individual.
-  nmember <- 2000     # Indicates the number of ensemble members.
+  nmember <- 200      # Indicates the number of ensemble members.
   
   # Construct the file_id conditioned on flags.
   if (ind_none == 1) file_id <- "none"
   if (ind_ana == 1) file_id <- "ana"
   if (ind_screen == 1) file_id <- "screen"
-  if (ind_ana == 1 & ind_screen) file_id <- "ana-screen"
+  if (ind_ana == 1 & ind_screen == 1) file_id <- "ana-screen"
   if (ind_hetero == 1) file_id <- paste(file_id, "-hetero", sep = "")
   if (ind_hetero == 0) file_id <- paste(file_id, "-homo", sep = "")
 }
