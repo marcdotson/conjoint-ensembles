@@ -19,6 +19,17 @@ ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_", file_id, "_
 # if (ind_ana == 1) read_rds(here::here("Output", str_c("ana-fit_", file_id, ".rds")))
 # if (ind_screen == 1) read_rds(here::here("Output", str_c("screen-fit_", file_id, ".rds")))
 
+# # Try equal weights instead.
+# for (k in 1:length(ensemble_fit$ensemble_weights)) {
+#   ensemble_fit$ensemble_weights[k] <- 1 / length(ensemble_fit$ensemble_weights)
+# }
+
+# # Try dropping the final member and renormalizing weights instead.
+# ensemble_fit$ensemble_weights[length(ensemble_fit$ensemble_weights)] <- 0
+# for (k in 1:length(ensemble_fit$ensemble_weights)) {
+#   ensemble_fit$ensemble_weights[k] <- (ensemble_fit$ensemble_weights[k] / sum(ensemble_fit$ensemble_weights))
+# }
+
 # Compute Model Fit -------------------------------------------------------
 # Extract needed draws.
 hmnl_draws <- extract(hmnl_fit, pars = c("Beta", "Gamma", "Omega", "tau"))

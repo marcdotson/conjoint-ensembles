@@ -7,11 +7,11 @@ if (ind_sim == 1) {
   # Indicate which pathologies to simulate.
   ind_none <- 0       # Indicates no pathologies.
   ind_ana <- 1        # Indicates attribute non-attendance.
-  ind_screen <- 1     # Indicates screening.
+  ind_screen <- 0     # Indicates screening.
   
   # Decide on pathology heterogeneity and the size of the ensemble.
   ind_hetero <- 1     # Indicates if pathologies differ by individual.
-  nmember <- 400      # Indicates the number of ensemble members.
+  nmember <- 2000      # Indicates the number of ensemble members.
   
   # Construct the file_id conditioned on flags.
   if (ind_none == 1) file_id <- "none"
@@ -35,11 +35,11 @@ if (ind_emp == 1) {
 }
 
 # Run the Ensemble and Competing Models -----------------------------------
-# Simulate data or clean empirical data and induce randomization.
-source(here::here("Code", "02_data-prep.R"))
+# # Simulate data or clean empirical data and induce randomization.
+# source(here::here("Code", "02_data-prep.R"))
 
-# Run the conjoint ensemble using the clever randomization.
-source(here::here("Code", "03_conjoint-ensemble.R"))
+# # Run the conjoint ensemble using the clever randomization.
+# source(here::here("Code", "03_conjoint-ensemble.R"))
 
 # # Produce weights using the ensemble output.
 # source(here::here("Code", "04_meta-learner.R"))
