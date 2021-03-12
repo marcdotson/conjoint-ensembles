@@ -32,7 +32,7 @@
   OSU Fisher School of Business\\
   \href{mailto:bailey.1117@osu.edu}{\nolinkurl{bailey.1117@osu.edu}}\\
   }
-\date{November 26, 2020}
+\date{February 17, 2021}
 
 \maketitle
 \doublespacing
@@ -117,6 +117,15 @@ The ensemble approach does come with some disadvantages. For example, our infere
 
 \hypertarget{model-specification}{%
 \section{Model Specification}\label{model-specification}}
+
+\hypertarget{pareto-k-diagnostic-warnings}{%
+\subsection{Pareto k diagnostic warnings}\label{pareto-k-diagnostic-warnings}}
+
+To run an ensemble of choice models, we are using a variational approximation to full posterior inference. This greatly reduces the computational burden of running the ensemble and is justified since our focus is on prediction in market simulation rather than using the full posterior inference. One consistent challenge with variational approximation lies within\ldots{}
+
+Pareto smoothing is using in computing the LOO-PSIS, but we see the same error when using the variational approximation: ``Warning: Pareto k diagnostic value is 1.54. Resampling is disabled. Decreasing tol\_rel\_obj may help if variational algorithm has terminated prematurely. Otherwise consider using sampling instead.''
+
+We can set this convergence tolerance \textless{} 0.01 via tol\_rel\_obj = 0.0001 to try and mitigate warning/improve fit, but it doesn't seem to have much effect. As of right now, we ingore this warnings since the errors may likely be induced by our modification of the parameter space as we induce randomization in proxy of pathological behaviors. Instead of trying to evaluate which observations may be leading to challenges with Pareto-smoothing, if we see this same error propogated in the absence of any randomization, that should indicate it is indeed the randomization leading to the challenges.
 
 Describe stacking as an ensemble approach (point estimates versus distributions).
 
