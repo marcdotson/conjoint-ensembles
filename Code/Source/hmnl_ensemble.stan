@@ -74,7 +74,8 @@ transformed parameters {
     for (r in 1:R) {
       for (i in 1:I) {
         if (mat_screen[k, i] == 1) {
-          Beta[r, i] = -1000;
+          // Beta[r, i] = -1000;
+          Beta[r, i] = -100;
         }
       }
     }
