@@ -17,6 +17,7 @@ if (ind_emp == 1) data <- read_rds(here::here("Data", str_c("emp_", file_id, ".r
 data$train_Z <- matrix(rep(1, nrow(data$train_Y)), ncol = 1)
 mat_ana <- data$mat_ana[sample(nrow(data$mat_ana), nmember),]
 mat_screen <- data$mat_screen[sample(nrow(data$mat_screen), nmember),]
+mat_resp <- data$mat_resp[sample(nrow(data$mat_resp), nmember),]
 
 # Run HMNL to Initialize Ensemble -----------------------------------------
 if (!file.exists(here::here("Output", str_c("hmnl-fit_", file_id, ".rds")))) {
@@ -132,6 +133,22 @@ for (k in 1:nmember) {
 # Compute the conjoint ensemble.
 stan_data_list <- vector(mode = "list", length = nmember)
 for (k in 1:nmember) {
+  # If respondent quality pathology is active, we need to reconstruct
+  # the dataset for each ensemble member to implement the randomization 
+  # described by resp_mat
+  
+  if(ind_resp == 1){
+  train_Y1 = data$train_Y
+  train_X1 = data$train_X
+  
+    mat_vec = mat_resp[k,]
+  
+    for(i in 1:length(mat_vec)){
+        train_Y1[i,] = data$train_Y[mat_vec[i],]
+        train_X1[i,,,] = data$train_X[mat_vec[i],,,]
+    }
+  }
+  
   stan_data <- list(
     R = dim(data$train_X)[1],  # Number of respondents.
     S = dim(data$train_X)[2],  # Number of choice tasks.

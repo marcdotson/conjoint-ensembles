@@ -7,7 +7,8 @@ if (ind_sim == 1) {
   # Indicate which pathologies to simulate.
   ind_none <- 0       # Indicates no pathologies.
   ind_ana <- 0        # Indicates attribute non-attendance.
-  ind_screen <- 1     # Indicates screening.
+  ind_screen <- 0     # Indicates screening.
+  ind_resp <- 1       # Indicates respondent quality (bootstrap).
   
   # Decide on pathology heterogeneity and the size of the ensemble.
   ind_hetero <- 1     # Indicates if pathologies differ by individual.
@@ -17,7 +18,11 @@ if (ind_sim == 1) {
   if (ind_none == 1) file_id <- "none"
   if (ind_ana == 1) file_id <- "ana"
   if (ind_screen == 1) file_id <- "screen"
+  if (ind_resp == 1) file_id <- "resp"
   if (ind_ana == 1 & ind_screen == 1) file_id <- "ana-screen"
+  if (ind_ana == 1 & ind_resp == 1) file_id <- "ana-resp"
+  if (ind_screen == 1 & ind_screen == 1) file_id <- "screen-resp"
+  if (ind_ana == 1 & ind_screen == 1 & ind_resp == 1) file_id <- "ana-screen-resp"
   if (ind_hetero == 1) file_id <- paste(file_id, "-hetero", sep = "")
   if (ind_hetero == 0) file_id <- paste(file_id, "-homo", sep = "")
 }

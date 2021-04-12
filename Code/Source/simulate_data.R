@@ -7,6 +7,7 @@ simulate_data <- function(
   nversion = 10,  # Number of versions of the experimental design.
   ana = FALSE,    # Attribute non-attendance flag.
   screen = FALSE, # Screening pathology flag.
+  resp = FALSE,   # Respondnt quality flag.
   hetero = FALSE  # Pathologies at the individual-level.
 ) {
 
@@ -57,6 +58,13 @@ simulate_data <- function(
     }
   }
   
+  # Induce randomization in simulated data for respondent data 
+  # forcing random choice if resp == TRUE.
+  resp.id = 0
+  if(resp == TRUE){
+    resp.id = sample(1:nhh,sample(0:25,1),replace=FALSE)
+  }
+  
   if(hetero == FALSE){
     ana.vec = ana.mat[1,]
     screen.vec = screen.mat[1,]
@@ -81,8 +89,12 @@ simulate_data <- function(
       xtmp <- as.matrix(tmp[which(tmp[,2] == j), 4:(ncol(desmat))])
       betah <- bbar + rnorm(length(bbar), 0, 1)
       betah <- betah * ana.vec + screen.vec
-      U <- as.vector(xtmp %*% betah) - as.vector(log(-log(runif(nalt))))
-      Y[j] = which(U == max(U))
+      U <- as.vector(xtmp %*% betah)
+      prob.y = exp(U)/sum(exp(U))
+      if(i %in% resp.id) prob.y = prob.y*0 + 1/nalt
+      Y[j] = sample(1:nalt,1,prob = prob.y)
+      #U <- as.vector(xtmp %*% betah) - as.vector(log(-log(runif(nalt)))) + resp.err
+      #Y[j] = which(U == max(U))
       X[,,j] = xtmp
     }
     regdata[[i]] = list(X = X, Y = Y)
