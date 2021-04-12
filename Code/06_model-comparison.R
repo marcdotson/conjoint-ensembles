@@ -19,6 +19,24 @@ ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_", file_id, "_
 # if (ind_ana == 1) read_rds(here::here("Output", str_c("ana-fit_", file_id, ".rds")))
 # if (ind_screen == 1) read_rds(here::here("Output", str_c("screen-fit_", file_id, ".rds")))
 
+# Weed out problems with ELBO for joint-pathology models.
+ensemble_fit$ensemble_draws <- 
+  ensemble_fit$ensemble_draws[-which(lapply(ensemble_fit$ensemble_draws, length) == 1)]
+
+length(ensemble_fit$ensemble_draws)
+
+# Try equal weights instead.
+ensemble_fit$ensemble_weights <- rep(NA, length(ensemble_fit$ensemble_draws)) # For models without any weights.
+for (k in 1:length(ensemble_fit$ensemble_weights)) {
+  ensemble_fit$ensemble_weights[k] <- 1 / length(ensemble_fit$ensemble_weights)
+}
+
+# # Try dropping the final member and renormalizing weights instead.
+# ensemble_fit$ensemble_weights[length(ensemble_fit$ensemble_weights)] <- 0
+# for (k in 1:length(ensemble_fit$ensemble_weights)) {
+#   ensemble_fit$ensemble_weights[k] <- (ensemble_fit$ensemble_weights[k] / sum(ensemble_fit$ensemble_weights))
+# }
+
 # Compute Model Fit -------------------------------------------------------
 # Extract needed draws.
 hmnl_draws <- extract(hmnl_fit, pars = c("Beta", "Gamma", "Omega", "tau"))
@@ -68,7 +86,7 @@ model_comparison <- model_comparison %>%
 # Print results.
 model_comparison
 
-#Still Need to add competing models here with predictive fit.
+# Still need to add competing models here with predictive fit.
 
 # Compute fit metrics for ANA model
 #ana_pred_fit <- predictive_fit_ana(
