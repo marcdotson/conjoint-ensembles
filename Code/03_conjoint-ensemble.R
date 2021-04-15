@@ -64,6 +64,20 @@ tau_scale <- sqrt(var(as.vector(hmnl_draws$tau)))
 # TEMP
 temp <- vector(mode = "list", length = nmember)
 for (k in 1:nmember) {
+  # Reconstruct data for each ensemble member for respondent quality.
+  if (ind_resp == 1) {
+    # Temporary full dataset.
+    train_Y1 = data$train_Y
+    train_X1 = data$train_X
+    
+    # Pull respondents for the specific member.
+    mat_vec = mat_resp[k,]
+    for (i in 1:length(mat_vec)) {
+      train_Y1[i,] <- data$train_Y[mat_vec[i],]
+      train_X1[i,,,] <- data$train_X[mat_vec[i],,,]
+    }
+  }
+  
   stan_data <- list(
     R = dim(data$train_X)[1],  # Number of respondents.
     S = dim(data$train_X)[2],  # Number of choice tasks.
@@ -133,19 +147,17 @@ for (k in 1:nmember) {
 # Compute the conjoint ensemble.
 stan_data_list <- vector(mode = "list", length = nmember)
 for (k in 1:nmember) {
-  # If respondent quality pathology is active, we need to reconstruct
-  # the dataset for each ensemble member to implement the randomization 
-  # described by resp_mat
-  
-  if(ind_resp == 1){
-  train_Y1 = data$train_Y
-  train_X1 = data$train_X
-  
+  # Reconstruct data for each ensemble member for respondent quality.
+  if (ind_resp == 1) {
+    # Temporary full dataset.
+    train_Y1 = data$train_Y
+    train_X1 = data$train_X
+    
+    # Pull respondents for the specific member.
     mat_vec = mat_resp[k,]
-  
-    for(i in 1:length(mat_vec)){
-        train_Y1[i,] = data$train_Y[mat_vec[i],]
-        train_X1[i,,,] = data$train_X[mat_vec[i],,,]
+    for (i in 1:length(mat_vec)) {
+      train_Y1[i,] <- data$train_Y[mat_vec[i],]
+      train_X1[i,,,] <- data$train_X[mat_vec[i],,,]
     }
   }
   

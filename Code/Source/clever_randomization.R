@@ -39,8 +39,7 @@ clever_randomization <- function(
     screen.ind <- sample(1:natt,1,replace = FALSE)
     mat_ana[i,ana.ind] <- 1
     mat_screen[i,screen.ind] <- 1
-    #bootstrap respondents
-    mat_resp[i,] <- sort(sample(1:nobs_train,nobs_train, replace =TRUE))
+    mat_resp[i,] <- sort(sample(1:nobs_train, nobs_train, replace = TRUE))
   }
   
   return(list(train_Y = train_Y, train_X = train_X, test_Y = test_Y,

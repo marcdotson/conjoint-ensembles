@@ -7,7 +7,7 @@ simulate_data <- function(
   nversion = 10,  # Number of versions of the experimental design.
   ana = FALSE,    # Attribute non-attendance flag.
   screen = FALSE, # Screening pathology flag.
-  resp = FALSE,   # Respondnt quality flag.
+  resp = FALSE,   # Respondent quality flag.
   hetero = FALSE  # Pathologies at the individual-level.
 ) {
 

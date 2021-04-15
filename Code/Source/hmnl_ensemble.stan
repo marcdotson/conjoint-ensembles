@@ -69,17 +69,17 @@ transformed parameters {
     }
   }
   
-  // Impose fixed values using screening indicator matrix.
-  if (ind_screen == 1) {
-    for (r in 1:R) {
-      for (i in 1:I) {
-        if (mat_screen[k, i] == 1) {
-          // Beta[r, i] = -1000;
-          Beta[r, i] = -100;
-        }
-      }
-    }
-  }
+  // // Impose fixed values using screening indicator matrix.
+  // if (ind_screen == 1) {
+  //   for (r in 1:R) {
+  //     for (i in 1:I) {
+  //       if (mat_screen[k, i] == 1) {
+  //         // Beta[r, i] = -1000;
+  //         Beta[r, i] = -100;
+  //       }
+  //     }
+  //   }
+  // }
 }
 
 // Hierarchical multinomial logit model.

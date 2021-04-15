@@ -22,7 +22,7 @@ if (ind_sim == 1) {
       nversion = 10,       # Number of versions of the experimental design.
       ana = ind_ana,       # Attribute non-attendance flag.
       screen = ind_screen, # Screening flag.
-      resp = ind_resp,      # Respondent quality flag.
+      resp = ind_resp,     # Respondent quality flag.
       hetero = ind_hetero  # Pathologies differ by individual flag.
     )
     
@@ -30,7 +30,7 @@ if (ind_sim == 1) {
       Y = data$Y,          # Choice data to cleverly randomize.
       X = data$X,          # Design matrices to cleverly randomize.
       pct_test = .20,      # Percent of data to be saved for testing.
-      nmember = 500        # Number of possible members in the ensemble.
+      nmember = 2000       # Number of possible members in the ensemble.
     )
     
     # Save simulated data.
