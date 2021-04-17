@@ -18,7 +18,7 @@ LooPSIS_list <- vector(mode = "list", length = nmember)
 cores <- detectCores()
 for (k in 1:nmember) {
   # Extract log_lik array from each ensemble draws.
-  loglik <- ensemble_fit$log_lik
+  loglik <- ensemble_fit$ensemble_draws[[k]]$log_lik
   ndraw <- dim(loglik)[1]
   LLmat <- matrix(loglik, nr = ndraw)
   
