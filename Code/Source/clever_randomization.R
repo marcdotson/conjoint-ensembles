@@ -35,9 +35,13 @@ clever_randomization <- function(
   mat_resp <- matrix(double(nmember *  nobs_train), ncol = nobs_train)
 
   for(i in 1:nmember){
-    ana.ind <- sample(1:natt,3,replace = FALSE)
+    # ana.ind <- sample(1:natt,3,replace = FALSE)
+    ana.ind <- sample(1:natt, size = round(runif(n = 1, min = 1, max = natt - 1)), replace = FALSE)
     screen.ind <- sample(1:natt,1,replace = FALSE)
-    mat_ana[i,ana.ind] <- 1
+    # mat_ana[i,ana.ind] <- 1
+    for (j in 1:natt) {
+      if (j %in% ana.ind) mat_ana[i, ((j * nlevel - j) - 1):(j * nlevel - j)] <- 0
+    }
     mat_screen[i,screen.ind] <- 1
     mat_resp[i,] <- sort(sample(1:nobs_train, nobs_train, replace = TRUE))
   }

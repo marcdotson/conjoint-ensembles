@@ -49,8 +49,12 @@ simulate_data <- function(
   
   for(i in 1:nhh){
     if(ana == TRUE) {
-      ana.draw <- sample(1:nbeta, 3, replace = FALSE)
-      ana.mat[i,ana.draw] <- 0
+      # ana.draw <- sample(1:nbeta, 3, replace = FALSE)
+      # ana.mat[i,ana.draw] <- 0
+      ana.draw <- sample(1:natt, size = round(runif(n = 1, min = 1, max = natt - 1)), replace = FALSE)
+      for (j in 1:natt) {
+        if (j %in% ana.draw) ana.mat[i, ((j * nlevel - j) - 1):(j * nlevel - j)] <- 0
+      }
     }
     if(screen == TRUE) {
       screen.draw <- sample(1:nbeta, 1, replace = FALSE)

@@ -119,6 +119,7 @@ for (k in 1:nmember) {
   # Estimate with VB.
   fit <- rstan::vb(
     stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
+    # stan_model(here::here("Code", "Source", "hmnl_ensemble-centered.stan")),
     data = stan_data,
     init = 0,
     # init = init_fun,
@@ -140,6 +141,7 @@ for (k in 1:nmember) {
   temp[[k]] <- ensemble_draws
 }
 # END TEMP
+
 
 
 
