@@ -45,9 +45,6 @@ clever_randomization <- function(
     }
     mat_screen[i, screen.ind] <- 1
     mat_resp[i,] <- sort(sample(1:nobs_train, nobs_train, replace = TRUE))
-    
-    test_ana.ind[[i]] <- ana.ind
-    test_screen.ind[[i]] <- screen.ind
   }
   
   return(list(train_Y = train_Y, train_X = train_X, test_Y = test_Y,
