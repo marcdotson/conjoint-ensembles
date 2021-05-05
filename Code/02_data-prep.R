@@ -18,7 +18,7 @@ if (ind_sim == 1) {
       ntask = 12,          # Number of choice tasks.
       nalt = 3,            # Number of choice alternatives.
       natt = 5,            # Number of attributes.
-      nlevel = 3,          # Number of estimable attribute levels for each attribute.
+      nlevel = 3,          # Number of attribute levels for each attribute.
       nversion = 10,       # Number of versions of the experimental design.
       ana = ind_ana,       # Attribute non-attendance flag.
       screen = ind_screen, # Screening flag.
@@ -29,6 +29,8 @@ if (ind_sim == 1) {
     data <- clever_randomization(
       Y = data$Y,          # Choice data to cleverly randomize.
       X = data$X,          # Design matrices to cleverly randomize.
+      natt = 5,            # Number of attributes across design matrices.
+      nlevels = rep(3, 5), # Vector of attribute levels for each attribute.
       pct_test = .20,      # Percent of data to be saved for testing.
       nmember = 2000       # Number of possible members in the ensemble.
     )

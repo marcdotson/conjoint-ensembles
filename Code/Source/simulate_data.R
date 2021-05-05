@@ -3,7 +3,7 @@ simulate_data <- function(
   ntask = 12,     # Number of choice tasks.
   nalt = 3,       # Number of choice alternatives.
   natt = 5,       # Number of attributes.
-  nlevel = 3,     # Number of estimable attribute levels for each attribute.
+  nlevel = 3,     # Number of attribute levels for each attribute.
   nversion = 10,  # Number of versions of the experimental design.
   ana = FALSE,    # Attribute non-attendance flag.
   screen = FALSE, # Screening pathology flag.
