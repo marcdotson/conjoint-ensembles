@@ -147,3 +147,20 @@ Letters, 110 (3), 203–205.
 Gilbride, T., Allenby, G. (2004). A Choice Model with Conjunctive, Disjunctive, and Compensatory Screening Rules. Marketing Science, Volume 23 No. 3.
 
 Shin, J., Ferguson, S. (2016). Exploring Product Solution Differences Due to Choice Model Selection in the Presence of Noncompensatory Decisions With Conjunctive Screening Rules. Journal of Mechanical Design.
+
+# Appendix
+
+This is a summary of our current workflow, including simulating data.
+
+## Data Preparation
+
+
+
+## Conjoint Ensembles
+
+## Meta-Learner
+
+## Competing Models
+
+## Model Comparison
+
