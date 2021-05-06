@@ -212,7 +212,7 @@ fit_extract_average <- function(stan_data) {
   return(ensemble_draws)
 }
 
-ensemble_draws <- parallel::mclapply(stan_data_list, fit_extract_average, mc.cores = detectCores())
+ensemble_draws <- parallel::mclapply(stan_data_list, fit_extract_average, mc.cores = parallel::detectCores())
 
 # Save ensemble fit.
 ensemble_fit <- list(mat_ana = mat_ana, mat_screen = mat_screen, ensemble_draws = ensemble_draws)
