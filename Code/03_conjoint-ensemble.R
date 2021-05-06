@@ -2,11 +2,10 @@
 # Load packages.
 library(tidyverse)
 library(rstan)
-library(parallel)
 
 # Set Stan and future options.
-options(mc.cores = detectCores())
-rstan_options(auto_write = TRUE)
+options(mc.cores = parallel::detectCores())
+rstan_options(auto_write = FALSE)
 
 # Set the simulation seed.
 set.seed(42)
@@ -213,7 +212,7 @@ fit_extract_average <- function(stan_data) {
   return(ensemble_draws)
 }
 
-ensemble_draws <- mclapply(stan_data_list, fit_extract_average, mc.cores = detectCores())
+ensemble_draws <- parallel::mclapply(stan_data_list, fit_extract_average, mc.cores = detectCores())
 
 # Save ensemble fit.
 ensemble_fit <- list(mat_ana = mat_ana, mat_screen = mat_screen, ensemble_draws = ensemble_draws)
