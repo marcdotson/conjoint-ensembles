@@ -71,7 +71,14 @@ if (ind_emp == 1) {
     }
     
     # Induce clever randomization.
-    data <- clever_randomization(Y = Y, X = X, pct_test = .1, nmember = 2000)
+    data <- clever_randomization(
+      Y = Y,                                  # Choice data to cleverly randomize.
+      X = X,                                  # Design matrices to cleverly randomize.
+      natt = 9,                               # Number of attributes across design matrices.
+      nlevels = c(5, 8, 3, 4, 2, 2, 2, 2, 2), # Vector of attribute levels for each attribute.
+      pct_test = .1,                          # Percent of data to be saved for testing.
+      nmember = 2000                          # Number of possible members in the ensemble.
+    )
     
     # Save data.
     write_rds(data, here::here("Data", str_c("emp_", file_id, ".rds")))
