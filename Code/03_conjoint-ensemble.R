@@ -68,15 +68,22 @@ for (k in 1:nmember) {
     # Temporary full dataset.
     train_Y1 = data$train_Y
     train_X1 = data$train_X
-    
+    train_Z1 <- data$train_Z
+
     # Pull respondents for the specific member.
     mat_vec = mat_resp[k,]
     for (i in 1:length(mat_vec)) {
       train_Y1[i,] <- data$train_Y[mat_vec[i],]
       train_X1[i,,,] <- data$train_X[mat_vec[i],,,]
+      train_Z1[i,] <- data$train_Z[mat_vec[i],]
     }
+
+    # Overwrite the original data.
+    data$train_Y <- train_Y1
+    data$train_X <- train_X1
+    data$train_Z <- train_Z1
   }
-  
+
   stan_data <- list(
     R = dim(data$train_X)[1],  # Number of respondents.
     S = dim(data$train_X)[2],  # Number of choice tasks.
@@ -101,7 +108,7 @@ for (k in 1:nmember) {
     mat_ana = mat_ana,         # Matrix of ensemble indicators for ANA.
     mat_screen = mat_screen    # Matrix of ensemble indicators for screening.
   )
-  
+
   # init_fun <- function(...) {
   #   list(
   #     Gamma = apply(hmnl_draws$Gamma, c(2, 3), mean),
@@ -115,17 +122,25 @@ for (k in 1:nmember) {
   #   # matrix[R, I] Delta;                // Matrix of non-centered observation-level parameters.
   # }
 
-  # Estimate with VB.
-  fit <- rstan::vb(
-    stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
-    # stan_model(here::here("Code", "Source", "hmnl_ensemble-centered.stan")),
+  # # Estimate with VB.
+  # fit <- rstan::vb(
+  #   stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
+  #   data = stan_data,
+  #   init = 0,
+  #   # init = init_fun,
+  #   seed = 42,
+  #   # eval_elbo = 200,
+  #   # elbo_samples = 200,
+  #   output_samples = 100
+  # )
+  
+  # Estimate with full posterior sampling.
+  fit <- stan(
+    here::here("Code", "Source", "hmnl_ensemble.stan"),
     data = stan_data,
-    init = 0,
-    # init = init_fun,
-    seed = 42,
-    # eval_elbo = 200,
-    # elbo_samples = 200,
-    output_samples = 100
+    chains = 1,
+    thin = 10,
+    seed = 42
   )
 
   # Extract the posterior draws for Gamma, Sigma, and log_lik.
@@ -143,23 +158,28 @@ for (k in 1:nmember) {
 
 
 
-
-
 # Compute the conjoint ensemble.
 stan_data_list <- vector(mode = "list", length = nmember)
 for (k in 1:nmember) {
   # Reconstruct data for each ensemble member for respondent quality.
   if (ind_resp == 1) {
     # Temporary full dataset.
-    train_Y1 = data$train_Y
-    train_X1 = data$train_X
+    train_Y1 <- data$train_Y
+    train_X1 <- data$train_X
+    train_Z1 <- data$train_Z
     
     # Pull respondents for the specific member.
     mat_vec = mat_resp[k,]
     for (i in 1:length(mat_vec)) {
       train_Y1[i,] <- data$train_Y[mat_vec[i],]
       train_X1[i,,,] <- data$train_X[mat_vec[i],,,]
+      train_Z1[i,] <- data$train_Z[mat_vec[i],]
     }
+    
+    # Overwrite the original data.
+    data$train_Y <- train_Y1
+    data$train_X <- train_X1
+    data$train_Z <- train_Z1
   }
   
   stan_data <- list(
@@ -176,7 +196,7 @@ for (k in 1:nmember) {
     Omega_shape = 2,           # Shape of population-level scale.
     tau_mean = tau_mean,       # Mean of population-level scale.
     tau_scale = tau_scale,     # Scale of population-level scale.
-
+    
     Y = data$train_Y,          # Matrix of observations.
     X = data$train_X,          # Array of observation-level covariates.
     Z = data$train_Z,          # Matrix of population-level covariates.
@@ -191,13 +211,22 @@ for (k in 1:nmember) {
 }
 
 fit_extract_average <- function(stan_data) {
-  # Estimate with VB.
-  fit <- rstan::vb(
-    stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
+  # # Estimate with VB.
+  # fit <- rstan::vb(
+  #   stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
+  #   data = stan_data,
+  #   init = 0,
+  #   seed = 42,
+  #   output_samples = 100
+  # )
+  
+  # Estimate with full posterior sampling.
+  fit <- stan(
+    here::here("Code", "Source", "hmnl_ensemble.stan"),
     data = stan_data,
-    init = 0,
-    seed = 42,
-    output_samples = 100
+    chains = 1,
+    thin = 10,
+    seed = 42
   )
   
   # Extract the posterior draws for Gamma, Sigma, and log_lik.
