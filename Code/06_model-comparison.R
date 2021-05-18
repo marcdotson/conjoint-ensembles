@@ -19,11 +19,11 @@ ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_", file_id, "_
 # if (ind_ana == 1) read_rds(here::here("Output", str_c("ana-fit_", file_id, ".rds")))
 # if (ind_screen == 1) read_rds(here::here("Output", str_c("screen-fit_", file_id, ".rds")))
 
-# Weed out problems with ELBO for joint-pathology models.
-ensemble_fit$ensemble_draws <- 
-  ensemble_fit$ensemble_draws[-which(lapply(ensemble_fit$ensemble_draws, length) == 1)]
-
-length(ensemble_fit$ensemble_draws)
+# # Weed out problems with ELBO for joint-pathology models.
+# ensemble_fit$ensemble_draws <- 
+#   ensemble_fit$ensemble_draws[-which(lapply(ensemble_fit$ensemble_draws, length) == 1)]
+# 
+# length(ensemble_fit$ensemble_draws)
 
 # Try equal weights instead.
 ensemble_fit$ensemble_weights <- rep(NA, length(ensemble_fit$ensemble_draws)) # For models without any weights.

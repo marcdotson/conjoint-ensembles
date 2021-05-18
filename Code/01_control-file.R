@@ -1,7 +1,7 @@
 # Set Indicator Flags -----------------------------------------------------
 # Indicate simulated or empirical data.
-ind_sim <- 0 # Indicates simulated data.
-ind_emp <- 1 # Indicates empirical data.
+ind_sim <- 1 # Indicates simulated data.
+ind_emp <- 0 # Indicates empirical data.
 
 if (ind_sim == 1) {
   # Indicate which pathologies to simulate.
