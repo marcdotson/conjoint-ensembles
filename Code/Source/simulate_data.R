@@ -94,9 +94,9 @@ simulate_data <- function(
       betah <- bbar + rnorm(length(bbar), 0, 1)
       betah <- betah * ana.vec + screen.vec
       U <- as.vector(xtmp %*% betah)
-      prob.y = exp(U)/sum(exp(U))
-      if(i %in% resp.id) prob.y = prob.y*0 + 1/nalt
-      Y[j] = sample(1:nalt,1,prob = prob.y)
+      prob.y <- exp(U) / sum(exp(U))
+      if (i %in% resp.id) prob.y <- prob.y * 0 + 1 / nalt
+      Y[j] <- sample(1:nalt, 1, prob = prob.y)
       #U <- as.vector(xtmp %*% betah) - as.vector(log(-log(runif(nalt)))) + resp.err
       #Y[j] = which(U == max(U))
       X[,,j] = xtmp

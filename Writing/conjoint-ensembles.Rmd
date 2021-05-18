@@ -159,7 +159,8 @@ This is a summary of our current workflow, including simulating data.
 - When screening is present, simulate screening where each respondent screens based on one attribute level.
 - When respondent quality is present, force a random choice for up to 25 respondents.
 - Generate betas as a random normal deviation from a random uniform baseline from -1 to 2.
-- When generating betas, multiply by ANA indicator and add screening...does this apply regardless of flag??
+- When generating betas, multiply by ANA indicator and add screening (defaults to 1 and 0, respectively).
+- When generating an outcome, set the choice probabilities to equal if the respondent is low quality.
 
 ## Conjoint Ensembles
 
