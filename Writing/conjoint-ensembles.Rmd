@@ -154,13 +154,19 @@ This is a summary of our current workflow, including simulating data.
 
 ## Data Preparation
 
+`simulate_data()`
+
 - Simulate data with discrete attributes with the same number of levels for each attribute.
-- When ANA is present, simulate ANA where each respondent pays attention to at least one attribute and has non-attendance for at least one attribute.
-- When screening is present, simulate screening where each respondent screens based on one attribute level.
-- When respondent quality is present, force a random choice for up to 25 respondents.
-- Generate betas as a random normal deviation from a random uniform baseline from -1 to 2.
+- When ANA is flagged, simulate ANA where each respondent pays attention to at least one attribute and has non-attendance for at least one attribute.
+- When screening is flagged, simulate screening where each respondent screens based on one attribute level.
+- When respondent quality is flagged, force a random choice for up to 25 respondents.
+- Generate betas as a random normal deviation from a random uniform average from -1 to 2.
 - When generating betas, multiply by ANA indicator and add screening (defaults to 1 and 0, respectively).
 - When generating an outcome, set the choice probabilities to equal if the respondent is low quality.
+
+`clever_randomization()`
+
+
 
 ## Conjoint Ensembles
 
