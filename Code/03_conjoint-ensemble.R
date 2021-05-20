@@ -71,7 +71,7 @@ for (k in 1:nmember) {
     train_Z1 <- data$train_Z
 
     # Pull respondents for the specific member.
-    mat_vec = mat_resp[k,]
+    mat_vec <- mat_resp[k,]
     for (i in 1:length(mat_vec)) {
       train_Y1[i,] <- data$train_Y[mat_vec[i],]
       train_X1[i,,,] <- data$train_X[mat_vec[i],,,]
@@ -169,7 +169,7 @@ for (k in 1:nmember) {
     train_Z1 <- data$train_Z
     
     # Pull respondents for the specific member.
-    mat_vec = mat_resp[k,]
+    mat_vec <- mat_resp[k,]
     for (i in 1:length(mat_vec)) {
       train_Y1[i,] <- data$train_Y[mat_vec[i],]
       train_X1[i,,,] <- data$train_X[mat_vec[i],,,]

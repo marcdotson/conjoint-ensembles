@@ -175,6 +175,18 @@ This is a summary of our current workflow, including simulating data.
 
 ## Conjoint Ensembles
 
+- Load data and draw a sample of ensembles of size `nmember`.
+- If a full posterior HMNL has been run, load the model fit, otherwise run a full posterior HMNL.
+- Use the HMNL posterior to construct the hyperparameter values for the HMNL ensemble.
+- If respondent quality is flagged, the training data is reconstructed using the bootstrapped sample.
+
+`hmnl_ensemble()`
+
+- Both the number of ensembles `K` and the current ensemble `k` are passed to `hmnl_ensemble()` each run.
+- If ANA is flagged, the betas flagged for that member are set to 0 in the transformed parameters block.
+- If screening is flagged, the betas flagged for that member are set to -100 in the transformed parameters block.
+
+
 ## Meta-Learner
 
 ## Competing Models
