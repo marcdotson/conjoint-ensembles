@@ -30,7 +30,7 @@ if (ind_sim == 1) {
       Y = data$Y,          # Choice data to cleverly randomize.
       X = data$X,          # Design matrices to cleverly randomize.
       natt = 5,            # Number of attributes across design matrices.
-      nlevels = rep(3, 5), # Vector of attribute levels for each attribute.
+      nlevels = rep(3, 5), # Vector of number of attribute levels for each attribute.
       pct_test = .20,      # Percent of data to be saved for testing.
       nmember = 2000       # Number of possible members in the ensemble.
     )

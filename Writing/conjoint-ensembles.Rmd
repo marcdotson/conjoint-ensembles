@@ -166,7 +166,12 @@ This is a summary of our current workflow, including simulating data.
 
 `clever_randomization()`
 
-
+- Determine the number of observations and the total number of attribute levels, assuming only discrete attributes but not assuming that we have the same number of levels for each attribute.
+- Split the data into training and testing data.
+- Produce a matrix of randomization patterns for each possible pathology where each row is a new randomization specific to a possible ensemble member.
+- Randomize ANA such that each respondent pays attention to at least one attribute and has non-attendance for at least one attribute.
+- Randomize screening such that each respondent screens based on at least one attribute level.
+- Randomize respondent quality such that we continue with the same number of bootstrapped respondents.
 
 ## Conjoint Ensembles
 
