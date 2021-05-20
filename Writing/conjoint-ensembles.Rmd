@@ -186,8 +186,12 @@ This is a summary of our current workflow, including simulating data.
 - If ANA is flagged, the betas flagged for that member are set to 0 in the transformed parameters block.
 - If screening is flagged, the betas flagged for that member are set to -100 in the transformed parameters block.
 
-
 ## Meta-Learner
+
+- Pull the log likelihood for each ensemble member.
+- Pull the relative effective sample size for each ensemble member.
+- Compute the PSIS-LOO CV for each ensemble member using the log likelihoods and relative effective sample sizes.
+- Use the PSIS-LOO CV output to perform model stacking and produce ensemble weights.
 
 ## Competing Models
 
