@@ -63,7 +63,7 @@ simulate_data <- function(
   }
   
   # If respondent quality is flagged, randomly determine up to 25 low-quality respondents.
-  force a random choice for up to 25 respondents.
+  # force a random choice for up to 25 respondents.
   resp.id <- 0
   if (resp == TRUE) {
     resp.id <- sample(1:nhh, sample(0:25, 1), replace = FALSE)
