@@ -20,7 +20,7 @@ predictive_fit_ensemble = function(indices, ensemble_weights, ensemble_draws,
   LLmat_ens = matrix(0, nr=ndraw , 
                      # nc=exp(sum(log(dim(ensemble_draws[[k]]$log_lik))))/ndraw)
                      nc = dim(ensemble_draws[[1]]$log_lik)[2] * dim(ensemble_draws[[1]]$log_lik)[3])
-  loglik=ensemble_draws[[k]]$log_lik
+  loglik=ensemble_draws[[1]]$log_lik
   ndraw=dim(loglik)[1]
   for(k in 1:nens){
     #extract log_lik array from each stanfit object
