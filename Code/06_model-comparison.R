@@ -16,26 +16,30 @@ data <- read_rds(here::here("Data", str_c("sim_", file_id, ".rds")))
 data$test_Z <- matrix(rep(1, nrow(data$test_Y)), ncol = 1)
 hmnl_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_id, ".rds")))
 ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_", file_id, "_", nmember, ".rds")))
-# if (ind_ana == 1) read_rds(here::here("Output", str_c("ana-fit_", file_id, ".rds")))
-# if (ind_screen == 1) read_rds(here::here("Output", str_c("screen-fit_", file_id, ".rds")))
 
-# # Weed out problems with ELBO for joint-pathology models.
-# ensemble_fit$ensemble_draws <- 
-#   ensemble_fit$ensemble_draws[-which(lapply(ensemble_fit$ensemble_draws, length) == 1)]
-# 
-# length(ensemble_fit$ensemble_draws)
+# # Try equal weights.
+# ensemble_fit$ensemble_weights <- rep(NA, length(ensemble_fit$ensemble_draws))
+# for (k in 1:length(ensemble_fit$ensemble_weights)) {
+#   ensemble_fit$ensemble_weights[k] <- 1 / length(ensemble_fit$ensemble_weights)
+# }
 
-# Try equal weights instead.
-ensemble_fit$ensemble_weights <- rep(NA, length(ensemble_fit$ensemble_draws)) # For models without any weights.
+# Try random weights.
+set.seed(42)
+temp_ensemble_weights <- runif(n = length(ensemble_fit$ensemble_draws), min = 0, max = 1)
 for (k in 1:length(ensemble_fit$ensemble_weights)) {
-  ensemble_fit$ensemble_weights[k] <- 1 / length(ensemble_fit$ensemble_weights)
+  ensemble_fit$ensemble_weights[k] <- temp_ensemble_weights[k] / sum(temp_ensemble_weights)
 }
 
-# # Try dropping the final member and renormalizing weights instead.
+# # Try dropping the final member and normalizing weights.
 # ensemble_fit$ensemble_weights[length(ensemble_fit$ensemble_weights)] <- 0
 # for (k in 1:length(ensemble_fit$ensemble_weights)) {
 #   ensemble_fit$ensemble_weights[k] <- (ensemble_fit$ensemble_weights[k] / sum(ensemble_fit$ensemble_weights))
 # }
+
+# # Try weeding out ensemble members with VB errors.
+# ensemble_fit$ensemble_draws <-
+#   ensemble_fit$ensemble_draws[-which(lapply(ensemble_fit$ensemble_draws, length) == 1)]
+# length(ensemble_fit$ensemble_draws)
 
 # Compute Model Fit -------------------------------------------------------
 # Extract needed draws.
