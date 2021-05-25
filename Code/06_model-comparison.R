@@ -12,7 +12,8 @@ source(here::here("Code", "Source", "predictive_fit_ensemble.R"))
 set.seed(42)
 
 # Load data, ensemble, and competing model fit.
-data <- read_rds(here::here("Data", str_c("sim_", file_id, ".rds")))
+if (ind_sim == 1) data <- read_rds(here::here("Data", str_c("sim_", file_id, ".rds")))
+if (ind_emp == 1) data <- read_rds(here::here("Data", str_c("emp_", file_id, ".rds")))
 data$test_Z <- matrix(rep(1, nrow(data$test_Y)), ncol = 1)
 hmnl_fit <- read_rds(here::here("Output", str_c("hmnl-fit_", file_id, ".rds")))
 ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_", file_id, "_", nmember, ".rds")))
