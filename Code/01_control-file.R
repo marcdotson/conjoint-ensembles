@@ -44,9 +44,15 @@ if (ind_emp == 1) {
   # Construct the file_id conditioned on flags.
   if (ind_beef == 1) file_id <- "ground-beef"
   if (ind_zero == 1) file_id <- "zerorez"
-  # if (ind_ana == 1 & ind_screen == 1) file_id <- paste(file_id, "-ana-screen", sep = "")
-  # if (ind_hetero == 1) file_id <- paste(file_id, "-hetero", sep = "")
-  # if (ind_hetero == 0) file_id <- paste(file_id, "-homo", sep = "")
+  if (ind_ana == 1) file_id <- paste(file_id, "_ana", sep = "")
+  if (ind_screen == 1) file_id <- paste(file_id, "_screen", sep = "")
+  if (ind_resp == 1) file_id <- paste(file_id, "_resp", sep = "")
+  if (ind_ana == 1 & ind_screen == 1) file_id <- paste(file_id, "_ana-screen", sep = "")
+  if (ind_ana == 1 & ind_resp == 1) file_id <- paste(file_id, "_ana-resp", sep = "")
+  if (ind_screen == 1 & ind_resp == 1) file_id <- paste(file_id, "_screen-resp", sep = "")
+  if (ind_ana == 1 & ind_screen == 1 & ind_resp == 1) file_id <- paste(file_id, "_ana-screen-resp", sep = "")
+  if (ind_hetero == 1) file_id <- paste(file_id, "-hetero", sep = "")
+  if (ind_hetero == 0) file_id <- paste(file_id, "-homo", sep = "")
 }
 
 # Run the Ensemble and Competing Models -----------------------------------

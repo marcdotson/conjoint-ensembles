@@ -87,6 +87,13 @@ We could choose the base models a different way. For example, each base model co
 
 The ensemble approach does come with some disadvantages. For example, our inferences are certainly biased. However, a relatively small increase in bias results in a much larger increase in predictive accuracy (Schmueli 2010). The ensemble approach is also scalable in the number of pathologies, easier to understand conceptually, and fairly easy to implement. The ensemble will continue to improve as additional base models are included with the existing base models.
 
+## Meta-Learners
+
+An ensemble requires a way to combine the different ensemble members. Typically, each ensemble member is weighted where the weights are determined by an additional model, the meta-learner. Finding the optimal weights can be challenging.
+
+We've used LOO to find optimal weights through a form of stacking where the outcome of interest is the PSIS-LOO. We see clear improvement in LOO for the ensemble methods, but not for the actual hold-out predictive fit measures. 
+Instead of using LOO, we can use part of the test data as validation to find the weights, starting with stacking using a simple logistic regression.
+
 # Model Specification
 
 ## Pareto k diagnostic warnings
