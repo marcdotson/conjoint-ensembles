@@ -10,7 +10,7 @@ data {
 
 // Parameters for the multinomial logit.
 parameters {
-  vector[L] beta;    // Vector of aggregate beta coefficients.
+  vector[L] beta;                    // Vector of aggregate beta coefficients.
 }
 
 // Multinomial logit model.

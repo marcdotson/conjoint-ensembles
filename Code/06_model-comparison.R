@@ -39,6 +39,7 @@ data$validate_Z <- as.matrix(data$test_Z[1:round(dim(data$test_Z)[1]/2),])
 data$test_Y <- data$test_Y[(round(dim(data$test_Y)[1]/2) + 1):dim(data$test_Y)[1],]
 data$test_X <- data$test_X[(round(dim(data$test_X)[1]/2) + 1):dim(data$test_X)[1],,,]
 data$test_Z <- as.matrix(data$test_Z[(round(dim(data$test_Z)[1]/2) + 1):dim(data$test_Z)[1],])
+
 # Produce predictions for each ensemble member using the validation data.
 ensemble_predictions <- vector(mode = "list", length = nmember)
 for (k in 1:nmember) {
@@ -48,57 +49,41 @@ for (k in 1:nmember) {
     validate_Z = data$validate_Z
   )
 }
+
 # Restructure validation data and predictions for the meta-learner.
-meta_data <- vector(mode = "list", length = ncol(data$validate_Y))
-for (n in 1:length(meta_data)) {
-  temp_data <- as.matrix(data$validate_Y[,n])
+meta_Y <- as.vector(t(data$validate_Y))
+meta_X <- array(NA, dim = c(length(meta_Y), max(meta_Y), nmember))
+for (n in 1:length(meta_Y)) {
+  temp_X <- NULL
   for (k in 1:nmember) {
-    temp_data <- cbind(temp_data, as.matrix(ensemble_predictions[[k]][,n]))
+    temp_X <- cbind(temp_X, as.vector(t(ensemble_predictions[[k]]))[n])
   }
-  meta_data[[n]] <- as.data.frame(temp_data)
+  meta_X[n,,] <- matrix(rep(temp_X, max(meta_Y)), nrow = max(meta_Y), byrow = TRUE)
 }
+
 # Produce weights for each of the choice tasks in the validation data.
-meta_fit <- vector(mode = "list", length = length(meta_data))
-for (n in 1:length(meta_data)) {
-  stan_data <- list(
-    R = dim(data$train_X)[1],  # Number of respondents.
-    S = dim(data$train_X)[2],  # Number of choice tasks.
-    A = dim(data$train_X)[3],  # Number of choice alternatives.
-    I = dim(data$train_X)[4],  # Number of observation-level covariates.
-    J = ncol(data$train_Z),    # Number of population-level covariates.
-    K = nmember,               # Number of members of the ensemble.
-    k = k,                     # Ensemble member number.
-    
-    Gamma_mean = Gamma_mean,   # Mean of population-level means.
-    Gamma_scale = Gamma_scale, # Scale of population-level means.
-    Omega_shape = 2,           # Shape of population-level scale.
-    tau_mean = tau_mean,       # Mean of population-level scale.
-    tau_scale = tau_scale,     # Scale of population-level scale.
-    
-    Y = data$train_Y,          # Matrix of observations.
-    X = data$train_X,          # Array of observation-level covariates.
-    Z = data$train_Z,          # Matrix of population-level covariates.
-    
-    ind_ana = ind_ana,         # Flag indicating attribute non-attendance.
-    ind_screen = ind_screen,   # Flag indicating screening.
-    mat_ana = mat_ana,         # Matrix of ensemble indicators for ANA.
-    mat_screen = mat_screen    # Matrix of ensemble indicators for screening.
-  )
+stan_data <- list(
+  N = dim(meta_X)[1], # Number of observations.
+  A = dim(meta_X)[2], # Number of choice alternatives.
+  L = dim(meta_X)[3], # Number of (estimable) attribute levels.
   
-  fit <- stan(
-    here::here("Code", "Source", "hmnl_ensemble.stan"),
-    data = stan_data,
-    chains = 1,
-    thin = 10,
-    seed = 42
-  )
-}
+  Y = meta_Y,         # Vector of observations.
+  X = meta_X          # Matrix of observation-level covariates.
+)
 
-fit <- multinom(V1 ~ ., data = meta_data[[1]], MaxNWts = 5000)
-coef(fit)
+options(mc.cores = parallel::detectCores())
+rstan_options(auto_write = FALSE)
 
-temp_ensemble_weights <- runif(n = length(ensemble_fit$ensemble_draws), min = 0, max = 1)
-for (k in 1:length(ensemble_fit$ensemble_weights)) {
+meta_fit <- stan(
+  here::here("Code", "Source", "mnl.stan"),
+  data = stan_data,
+  seed = 42
+)
+
+# Extract weights for each ensemble and normalize.
+temp_ensemble_weights <- extract(meta_fit, pars = c("beta"))
+temp_ensemble_weights <- apply(temp_ensemble_weights$beta, 2, mean)
+for (k in 1:nmember) {
   ensemble_fit$ensemble_weights[k] <- temp_ensemble_weights[k] / sum(temp_ensemble_weights)
 }
 
