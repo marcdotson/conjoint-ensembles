@@ -44,7 +44,7 @@ predictive_fit_stacking <- function(member_draws, validate_X, validate_Z){
   
   #find location of highest prob
   locs <- apply(probs, 2, which.max)
-  predicted_Y <- matrix(locs, nrow = nresp, ncol = nscns, byrow = TRUE)
+  Y <- matrix(locs, nrow = nresp, ncol = nscns, byrow = TRUE)
   
-  return(predicted_Y)
+  return(list(predicted_Y = Y, predicted_probs = probs))
 }
