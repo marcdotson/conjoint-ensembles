@@ -50,49 +50,79 @@ for (k in 1:nmember) {
   )
 }
 
-# Restructure validation data and predictions for the meta-learner.
+# Produce counts or probabilities for the meta-learner.
 meta_Y <- as.vector(t(data$validate_Y))
-meta_X <- array(NA, dim = c(length(meta_Y), max(meta_Y), nmember))
+meta_pred_X <- matrix(NA, nrow = length(meta_Y), ncol = nmember)
+meta_prob_X <- array(NA, dim = c(length(meta_Y), max(meta_Y), nmember))
+for (k in 1:nmember) {
+  for (n in 1:length(meta_Y)) {
+    meta_pred_X[n,k] <- ensemble_predictions[[k]]$predicted_Y[n]
+    meta_prob_X[n,,k] <- ensemble_predictions[[k]]$predicted_probs[,n]
+  }
+}
+temp_ensemble_counts <- rep(NA, nmember)
+temp_ensemble_sum_probs <- rep(NA, nmember)
+for(k in 1:nmember) {
+  temp_ensemble_counts[k] <- sum(meta_Y == meta_pred_X[,k])
+  temp_probs <- NULL
+  for (n in 1:length(meta_Y)) {
+    temp_probs <- c(temp_probs, meta_prob_X[n, meta_Y[n], k])
+  }
+  temp_ensemble_sum_probs[k] <- sum(temp_probs)
+}
+
+# Normalize the counts or probabilities.
+for (k in 1:nmember) {
+  # ensemble_fit$ensemble_weights[k] <- temp_ensemble_counts[k] / sum(temp_ensemble_counts)
+  ensemble_fit$ensemble_weights[k] <- temp_ensemble_sum_probs[k] / sum(temp_ensemble_sum_probs)
+}
+
+# # Restructure validation data and predictions for the meta-learner.
+# meta_Y <- as.vector(t(data$validate_Y))
+# meta_X <- array(NA, dim = c(length(meta_Y), max(meta_Y), nmember))
 # for (n in 1:length(meta_Y)) {
 #   temp_X <- NULL
 #   for (k in 1:nmember) {
 #     temp_X <- cbind(temp_X, as.vector(t(ensemble_predictions[[k]]$predicted_Y))[n])
 #   }
-#   meta_X[n,,] <- matrix(rep(temp_X, max(meta_Y)), nrow = max(meta_Y), byrow = TRUE)
+#   meta_X[n,,] <- matrix(temp_X, nrow = max(meta_Y), byrow = TRUE)
 # }
-for (k in 1:nmember) {
-  for (n in 1:length(meta_Y)) {
-    meta_X[n,,k] <- ensemble_predictions[[k]]$predicted_probs[,n]
-  }
-}
+# for (k in 1:nmember) {
+#   for (n in 1:length(meta_Y)) {
+#     meta_X[n,,k] <- ensemble_predictions[[k]]$predicted_probs[,n]
+#   }
+# }
+# 
+# # Produce weights for each of the choice tasks in the validation data.
+# stan_data <- list(
+#   N = dim(meta_X)[1], # Number of observations.
+#   A = dim(meta_X)[2], # Number of choice alternatives.
+#   L = dim(meta_X)[3], # Number of (estimable) attribute levels.
+#   
+#   Y = meta_Y,         # Vector of observations.
+#   X = meta_X          # Matrix of observation-level covariates.
+# )
+# 
+# options(mc.cores = parallel::detectCores())
+# rstan_options(auto_write = FALSE)
+# 
+# meta_fit <- stan(
+#   here::here("Code", "Source", "mnl.stan"),
+#   data = stan_data,
+#   seed = 42
+# )
+# 
+# # Extract weights for each ensemble and normalize.
+# temp_ensemble_weights <- extract(meta_fit, pars = c("beta"))
+# temp_ensemble_weights <- apply(temp_ensemble_weights$beta, 2, mean)
+# temp_ensemble_weights <- (temp_ensemble_weights - min(temp_ensemble_weights)) / 
+#   (max(temp_ensemble_weights) - min(temp_ensemble_weights))
+# for (k in 1:nmember) {
+#   ensemble_fit$ensemble_weights[k] <- temp_ensemble_weights[k] / sum(temp_ensemble_weights)
+# }
 
-# Produce weights for each of the choice tasks in the validation data.
-stan_data <- list(
-  N = dim(meta_X)[1], # Number of observations.
-  A = dim(meta_X)[2], # Number of choice alternatives.
-  L = dim(meta_X)[3], # Number of (estimable) attribute levels.
-  
-  Y = meta_Y,         # Vector of observations.
-  X = meta_X          # Matrix of observation-level covariates.
-)
-
-options(mc.cores = parallel::detectCores())
-rstan_options(auto_write = FALSE)
-
-meta_fit <- stan(
-  here::here("Code", "Source", "mnl.stan"),
-  data = stan_data,
-  seed = 42
-)
-
-# Extract weights for each ensemble and normalize.
-temp_ensemble_weights <- extract(meta_fit, pars = c("beta"))
-temp_ensemble_weights <- apply(temp_ensemble_weights$beta, 2, mean)
-temp_ensemble_weights <- (temp_ensemble_weights - min(temp_ensemble_weights)) / 
-  (max(temp_ensemble_weights) - min(temp_ensemble_weights))
-for (k in 1:nmember) {
-  ensemble_fit$ensemble_weights[k] <- temp_ensemble_weights[k] / sum(temp_ensemble_weights)
-}
+sum(ensemble_fit$ensemble_weights)
+hist(ensemble_fit$ensemble_weights)
 
 # # Try dropping the final member and normalizing weights.
 # ensemble_fit$ensemble_weights[length(ensemble_fit$ensemble_weights)] <- 0

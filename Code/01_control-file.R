@@ -35,7 +35,7 @@ if (ind_emp == 1) {
   # SHOULD BE ALL BY DEFAULT!!!
   ind_ana <- 1        # Indicates attribute non-attendance.
   ind_screen <- 0     # Indicates screening.
-  ind_resp <- 1       # Indicates respondent quality (bootstrap).
+  ind_resp <- 0       # Indicates respondent quality (bootstrap).
   
   # Decide on pathology heterogeneity and the size of the ensemble.
   ind_hetero <- 1     # Indicates if pathologies differ by individual.

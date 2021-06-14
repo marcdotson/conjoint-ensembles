@@ -10,8 +10,8 @@ author:
 - name: "Roger Bailey"
   affiliation: "OSU Fisher School of Business"
   email: "bailey.1117@osu.edu"
-date: "November 26, 2020"
-abstract: "Respondent behavior in conjoint studies often deviates from the assumptions of random utility theory. We refer to deviations from normative choice behavior as data pathologies.A variety of models have been developed that attempt to correct for specific pathologies (e.g., screening rules, respondent quality, attribute non-attendance). While useful, these approaches tend to be both conceptually complex and computationally intensive. As such, these approaches have not widely diffused into the practice of marketing research.In this paper we draw on innovations in machine learning to develop a practical approach that relies on (clever) randomization strategies and ensembling to simultaneously accommodate multiple data pathologies in a single model. We provide tips and tricks on how to implement this approach in practice."
+date: "August 1, 2021"
+abstract: "Respondent behavior in conjoint studies often deviates from the assumptions of random utility theory. We refer to deviations from normative choice behavior as data pathologies. A variety of models have been developed that attempt to correct for specific pathologies (e.g., screening rules, respondent quality, attribute non-attendance). While useful, these approaches tend to be both conceptually complex and computationally intensive. As such, these approaches have not widely diffused into the practice of marketing research. In this paper we draw on innovations in machine learning to develop a practical approach that relies on (clever) randomization strategies and ensembling to simultaneously accommodate multiple data pathologies in a single model. We provide tips and tricks on how to implement this approach in practice."
 keywords:
 - "Choice Modeling"
 - "Machine Learning"
@@ -33,31 +33,15 @@ Ensemble-based approaches currently dominate the world of competitive out-of-sam
 
 In the world of conjoint, most studies are conducted using a single model. When the aim of a conjoint study is solely inference and not prediction, a single-model approach is arguably best. The academic literature for conjoint is filled with models designed to improve inference, especially when respondents behave in ways that deviate from the standard model. For example, models that account for screening behavior, respondent quality, and attribute non-attendance account specifically for deviations. We refer to these and other respondent-level behaviors that deviate from the assumptions of the normative model of consumer choice as "data pathologies."
 
-While each of the models that address a specific data pathology have been shown to improve both model fit and inference in contexts where that particular data pathology is present, none of these approaches has had a meaningful impact on the practice of conjoint.  In our opinion, this is the result of three key factors. First, the derivation and implementation of these models is complex and thus tough for practitioners to understand, implement, and sell to clients. Second, there is a lack of commercial software than can be used to easily implement and simulate from these models. The custom coding is required that can dramatically increase the expense and cycle time of a project. Third, each model is designed to capture a single pathology in the data. While this is useful, it is highly likely that multiple pathologies may be present and problematic in any given study.
+While each of the models that address a specific data pathology have been shown to improve both model fit and inference in contexts where that particular data pathology is present, none of these approaches has had a meaningful impact on the practice of conjoint. In our opinion, this is the result of three key factors. First, the derivation and implementation of these models is complex and thus tough for practitioners to understand, implement, and sell to clients. Second, there is a lack of commercial software than can be used to easily implement and simulate from these models. The custom coding is required that can dramatically increase the expense and cycle time of a project. Third, each model is designed to capture a single pathology in the data. While this is useful, it is highly likely that multiple pathologies may be present and problematic in any given study.
 
 In this paper we explore alternative strategies for simultaneously accommodating multiple data pathologies in a single modeling framework. Our approach draws heavily on innovations in machine learning, in particular the work of Breiman (2001) who showed remarkable improvement in prediction resulting from averaging (or taking the consensus prediction) from an ensemble of diverse models. Breiman’s approach relies on the use of randomization to create diversity in the data used to calibrate an ensemble of models, thus helping hedge against model misspecification and overfitting.
 
-We argue there are three reasons to argue for an ensemble-based approach to conjoint analysis. First, the end goal of many conjoint studies is prediction in the form of accurate market simulations and thus a single-model approach is a mismatch with the objective. Second, we still have uncertainty about the correct model for any given conjoint study, in particular it is often impossible to no a prior what data pathology is present and thus which pathology-specific model to employ. Third, there is no single model that accounts for all the respondent behaviors that result in the data pathologies that have been addressed separately in the literature.
+We argue there are three reasons to argue for an ensemble-based approach to conjoint analysis. First, the end goal of many conjoint studies is prediction in the form of accurate market simulations and thus a single-model approach is a mismatch with the objective. Second, we still have uncertainty about the correct model for any given conjoint study, in particular it is often impossible to know a priori what data pathology is present and thus which pathology-specific model to employ. Third, there is no single model that accounts for all the respondent behaviors that result in the data pathologies that have been addressed separately in the literature.
 
 The remainder of the paper will be organized as follows. In Section 2, we walk through ensemble approaches to prediction. In Section 3, we specify our ensemble approach to conjoint analysis. In Section 4, we provide results from simulation studies. We provide evidence from empirical applications in Section 5. Finally, in Section 6, we conclude.
 
-# Data Pathologies/Accommodating Data Pathologies
-
-## Attribute Non-Attendance
-
-Respondents may ignore an attribute because it either does not affect their utility or they want to simplify the choice task (Alemu et al. 2012). This pathology is called attribute non-attendance (ANA). Yegoryan et al. (2018) found that the majority of respondents used only three to four attributes out of the six available. Because of ANA, a model that assumes the use of all attributes may be biased. One of the best approaches found to mitigate the effect of ANA is a latent class model (Hess & Hensher 2013, Hole 2013).
-
-## Screening Rules
-
-Research in market-based product design has often used compensatory preference models (that assume an additive part-worth rule), however literature has shown that consumers often use noncompensatory heuristics (Shin & Ferguson 2016). It cannot be assumed that respondents only come to a decision by considering all of the attributes, adding up all the positives and negatives, and choosing the best net sum.  Respondents come with priorities and use heuristics: they might have a minimum requirement that must be met or they may require the inclusion of other features to make up for missing features. Within conjoint, alternatives that pass a respondent's mental 'screen' are evaluated; alternatives that do not pass the screen are not evaluated. Models have been constructed to account for the bias that comes from both noncompensatory and compensatory screening rules (Gilbride & Allenby 2004).
-
 # Ensemble Approaches to Prediction
-
-We may want to merge with the introduction (this is where we'll need a number of references).
-
-Update the end of the section once we've determined which randomization scheme(s) we actually use.
-
-Flesh out the "topological coverage" justification for the ensemble (consider moving entirely to model specification).
 
 Often, scientific models are used for explanation, meaning they are used to test causal theories (Schmueli 2010). While important for social science research, explanatory models may not yield good predictions. Profit-maximizing firms depend on the ability to anticipate consumer response to product offerings. Hence, what the firm often requires is a good predictive model. For conjoint analysis, the hierarchical linear model is a good explanatory model but its predictions do not take full advantage of the complexity in the data. This is particularly pronounced when the data contains multiple data pathologies. Predictive accuracy can be improved without totally sacrificing the ability to understand why respondents made their choices.
 
@@ -67,13 +51,13 @@ The first strategy is to include the effects of the data pathology in a specific
 
 Furthermore, this strategy assumes that the analyst is able to exactly specify the data generating process of the pathology. This is a strong assumption and likely does not hold in the majority of cases. In addition to the increased complexity, tailored models are more computationally intensive than standard models. In this case, the marginal benefit provided by the tailored model would have to exceed the marginal cost associated with the additional computation. Computational complexity usually increases super-linearly whereas improved model performance is sub-linear or linear at best.
 
-Even if some practitioners are able to account for the pathology and can afford the increased computational cost, the tailored model is not robust to pathologies in the data other than those accounted for by the model. If other pathologies are unexpectedly present, the model will perform suboptimally.
+Even if some practitioners are able to account for the pathology and can afford the increased computational cost, the tailored model is not robust to pathologies in the data other than those accounted for by the model. If other pathologies are unexpectedly present, the model will perform sub-optimally.
 
 The second strategy is to account for data pathologies in a way that is more flexible than the first strategy. This could be reasonably done during the process of constructing the priors of a Bayesian model. This is a similarly principled modeling approach since knowledge of potential data pathologies constitutes prior information that can be represented by the prior distribution. The model can represent any number of data pathologies as well as their interactions by using a mixture prior.
 
 Additionally, we can still use the standard multinomial logit model or any model of discrete choice that can be formulated as a Bayesian model; accounting for pathologies in the prior means we don't have to change the structure of our model. With this, we get accurate inference on all of the parameters jointly and the resulting predictions are more reliable. Of course, the ideal case is unrealistic and presents a variety of problems. Certainly, if only a few pathologies are present, then the mixture model approach is best. However, the computational intensity spikes for nontrivial pathologies.
 
-In some cases, a sufficiently complicated prior may lead to an intractable posterior, at least given the current tools for Bayesian analysis. Furthermore, knowledge of the pathologies is assumed to be known beforehand. Sometimes this is reasonable but for general purpose software solutions, this is unrealistic. In addition, the different pathologies may interfere with each other in the prior. This can create multimodal posteriors (which results in model and computational complexity) or unidentifiable regions in the posterior (which prevents the model from capturing the effects of the pathology).
+In some cases, a sufficiently complicated prior may lead to an intractable posterior, at least given the current tools for Bayesian analysis. Furthermore, knowledge of the pathologies is assumed to be known beforehand. Sometimes this is reasonable but for general purpose software solutions, this is unrealistic. In addition, the different pathologies may interfere with each other in the prior. This can create multi-modal posteriors (which results in model and computational complexity) or unidentifiable regions in the posterior (which prevents the model from capturing the effects of the pathology).
 
 Finally, adding additional structure for pathologies that in reality are not present is undesirable but largely unavoidable. This leaves us with a method that is complete in scope but computationally unrealistic and does not scale linearly with the addition of more pathologies.
 
@@ -86,6 +70,16 @@ By way of example, suppose each base model is trained on $l-1$ of the features w
 We could choose the base models a different way. For example, each base model could be specified with a different prior that accounts for a specific pathology or respondent behavior. Then the base models will generate predictions that account for the effects of each pathology respectively. **Other ways of specifying base models include dropping individuals or choice-tasks from the design matrix. In this paper, we show results for the ensemble generated by base models trained on $l-1$ feature variables.**
 
 The ensemble approach does come with some disadvantages. For example, our inferences are certainly biased. However, a relatively small increase in bias results in a much larger increase in predictive accuracy (Schmueli 2010). The ensemble approach is also scalable in the number of pathologies, easier to understand conceptually, and fairly easy to implement. The ensemble will continue to improve as additional base models are included with the existing base models.
+
+## Accommodating Data Pathologies
+
+### Attribute Non-Attendance
+
+Respondents may ignore an attribute because it either does not affect their utility or they want to simplify the choice task (Alemu et al. 2012). This pathology is called attribute non-attendance (ANA). Yegoryan et al. (2018) found that the majority of respondents used only three to four attributes out of the six available. Because of ANA, a model that assumes the use of all attributes may be biased. One of the best approaches found to mitigate the effect of ANA is a latent class model (Hess & Hensher 2013, Hole 2013).
+
+### Screening Rules
+
+Research in market-based product design has often used compensatory preference models (that assume an additive part-worth rule), however literature has shown that consumers often use noncompensatory heuristics (Shin & Ferguson 2016). It cannot be assumed that respondents only come to a decision by considering all of the attributes, adding up all the positives and negatives, and choosing the best net sum.  Respondents come with priorities and use heuristics: they might have a minimum requirement that must be met or they may require the inclusion of other features to make up for missing features. Within conjoint, alternatives that pass a respondent's mental 'screen' are evaluated; alternatives that do not pass the screen are not evaluated. Models have been constructed to account for the bias that comes from both noncompensatory and compensatory screening rules (Gilbride & Allenby 2004).
 
 ## Meta-Learners
 
@@ -103,7 +97,6 @@ To run an ensemble of choice models, we are using a variational approximation to
 Pareto smoothing is using in computing the LOO-PSIS, but we see the same error when using the variational approximation: "Warning: Pareto k diagnostic value is 1.54. Resampling is disabled. Decreasing tol_rel_obj may help if variational algorithm has terminated prematurely. Otherwise consider using sampling instead."
 
 We can set this convergence tolerance < 0.01 via tol_rel_obj = 0.0001 to try and mitigate warning/improve fit, but it doesn't seem to have much effect. As of right now, we ingore this warnings since the errors may likely be induced by our modification of the parameter space as we induce randomization in proxy of pathological behaviors. Instead of trying to evaluate which observations may be leading to challenges with Pareto-smoothing, if we see this same error propogated in the absence of any randomization, that should indicate it is indeed the randomization leading to the challenges.
-
 
 Describe stacking as an ensemble approach (point estimates versus distributions).
 
@@ -130,10 +123,6 @@ Split data into training set, test set, and holdout set. The training data will 
 Next, train the base models on the entire training set and make predictions on the holdout set. You will now have base model predictions for three data sets: the first half of the training set, the second half of the training set, and the holdout set.
 
 Concatenate the predictions from the two halves of the training set. Regress (logistic) the actual responses on these base model predictions. This gives coefficients that weight the base models according to their ability to predict within the training set. Weight the base model prediction distributions of the holdout set by the generated coefficients. This generates new weighted prediction distributions. Find the mode of this new predictive distribution. This mode is the ensemble's prediction.
-
-```{r ensemble-relative, echo = FALSE, out.width = "75%", fig.align = "center", fig.cap = "The x-axis represents the induced pathology."}
-knitr::include_graphics("../Figures/Figure_1.png")
-```
 
 # Empirical Application
 
@@ -202,5 +191,8 @@ This is a summary of our current workflow, including simulating data.
 
 ## Competing Models
 
+...
+
 ## Model Comparison
 
+...
