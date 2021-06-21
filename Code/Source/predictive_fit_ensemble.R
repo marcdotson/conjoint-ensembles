@@ -2,14 +2,13 @@ predictive_fit_ensemble = function(indices, ensemble_weights, ensemble_draws,
                                    test_X, test_Y, mat_ana, mat_screen, test_Z){
   # Compute the hit rate, hit prob, and loo metrics for the ensemble model.
   #   ensemble_weights - estimated weights for each of the models
-  #   ensemble_fit - ensemble output with log_lik, betadraws, gammas, and Omegas for each model
+  #   ensemble_draws - ensemble output with log_lik, betadraws, gammas, and Omegas for each model
   #   test_Y - choices (hold-out sample)
   #   test_X - design matrices (hold-out sample)
   #   test_Z - matrix of covariates
   
   nens <- length(ensemble_draws)
   ndraw <- length(ensemble_draws[[1]]$log_lik[,1,1]) # Number of draws
-  nens <- length(ensemble_draws)
   nresp <- length(test_Y[,1])           # Number of respondents
   nscns <- length(test_X[1, ,1,1])      # Number of choice tasks
   nalts <- length(test_X[1,1, ,1])      # Number of alternatives 
@@ -20,14 +19,14 @@ predictive_fit_ensemble = function(indices, ensemble_weights, ensemble_draws,
   LLmat_ens = matrix(0, nr=ndraw , 
                      # nc=exp(sum(log(dim(ensemble_draws[[k]]$log_lik))))/ndraw)
                      nc = dim(ensemble_draws[[1]]$log_lik)[2] * dim(ensemble_draws[[1]]$log_lik)[3])
-  loglik=ensemble_draws[[1]]$log_lik
-  ndraw=dim(loglik)[1]
+  # loglik=ensemble_draws[[1]]$log_lik
+  # ndraw=dim(loglik)[1]
   for(k in 1:nens){
     #extract log_lik array from each stanfit object
     loglik=ensemble_draws[[k]]$log_lik
     LLmat <- matrix(loglik, nr=ndraw)
     LLmat_ens <- LLmat_ens + ensemble_weights[k]*LLmat
-  }  
+  }
   
   #get effective sample size
   cores <- parallel::detectCores()
