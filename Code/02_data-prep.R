@@ -23,7 +23,8 @@ if (ind_sim == 1) {
       ana = ind_ana,       # Attribute non-attendance flag.
       screen = ind_screen, # Screening flag.
       resp = ind_resp,     # Respondent quality flag.
-      hetero = ind_hetero  # Pathologies differ by individual flag.
+      hetero = ind_hetero, # Pathologies differ by individual flag.
+      test = ind_test      # Test flag.
     )
     
     data <- clever_randomization(
@@ -32,7 +33,9 @@ if (ind_sim == 1) {
       natt = 5,            # Number of attributes across design matrices.
       nlevels = rep(3, 5), # Vector of number of attribute levels for each attribute.
       pct_test = .20,      # Percent of data to be saved for testing.
-      nmember = 2000       # Number of possible members in the ensemble.
+      nmember = 2000,      # Number of possible members in the ensemble.
+      test = ind_test,     # Test flag.
+      data = data          # Simulated data list.
     )
     
     # Save simulated data.
@@ -42,13 +45,13 @@ if (ind_sim == 1) {
 
 # Clean Data and Induce Clever Randomization ------------------------------
 if (ind_emp == 1) {
-  if (!file.exists(here::here("Data", str_c("emp_", file_id, ".rds")))) {
+  if (!file.exists(here::here("Data", str_c("emp_", data_id, ".rds")))) {
     # Load design.
-    design <- read.csv(here::here("Data", str_c("emp_", file_id, "_design.csv")), header = TRUE)
+    design <- read.csv(here::here("Data", str_c("emp_", data_id, "_design.csv")), header = TRUE)
     design <- design[,-1]
     
     # Load choice data.
-    choice_data <- read.csv(here::here("Data", str_c("emp_", file_id, "_final.csv")), header=TRUE)
+    choice_data <- read.csv(here::here("Data", str_c("emp_", data_id, "_final.csv")), header=TRUE)
     choice_data <- choice_data[,-1]
     
     # Sample Characteristics
@@ -81,7 +84,7 @@ if (ind_emp == 1) {
     )
     
     # Save data.
-    write_rds(data, here::here("Data", str_c("emp_", file_id, ".rds")))
+    write_rds(data, here::here("Data", str_c("emp_", data_id, ".rds")))
   }
 }
 

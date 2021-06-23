@@ -8,7 +8,8 @@ simulate_data <- function(
   ana = FALSE,    # Attribute non-attendance flag.
   screen = FALSE, # Screening pathology flag.
   resp = FALSE,   # Respondent quality flag.
-  hetero = FALSE  # Pathologies at the individual-level.
+  hetero = FALSE, # Pathologies at the individual-level.
+  test = FALSE    # Test flag.
 ) {
 
   # Function to simulate choice data with or without pathologies.
@@ -117,11 +118,31 @@ simulate_data <- function(
     }
   }
   
-  return(
-    list(
-      X = X,      # Design matrix.
-      Y = Y,      # Choice data.
-      bbar = bbar # Average betas.
+  if (test == 0) {
+    return(
+      list(
+        X = X,      # Design matrix.
+        Y = Y,      # Choice data.
+        bbar = bbar # Average betas.
+      )
     )
-  )
+  }
+  if (test == 1) {
+    mat_ana <- ifelse(ana.mat == 0, 1, 0)
+    mat_screen <- ifelse(screen.mat != 0, 1, 0)
+    mat_resp <- 1:nhh
+    mat_resp <- sort(c(mat_resp[-resp.id], mat_resp)[1:nhh])
+    
+    return(
+      list(
+        X = X,      # Design matrix.
+        Y = Y,      # Choice data.
+        mat_ana = mat_ana,
+        mat_screen = mat_screen,
+        mat_resp = mat_resp,
+        bbar = bbar # Average betas.
+      )
+    )
+  }
+  
 }

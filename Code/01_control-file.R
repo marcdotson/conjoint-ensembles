@@ -3,6 +3,12 @@
 ind_sim <- 0        # Indicates simulated data.
 ind_emp <- 1        # Indicates empirical data.
 
+if (ind_sim == 1) {
+  # Indicates a test where we pass the actual constraint 
+  # matrices into the ensemble estimation.
+  ind_test <- 0
+}
+
 if (ind_emp == 1) {
   # Indicate which empirical data to use.
   ind_beef <- 1     # Indicates Ground Beef.
@@ -31,8 +37,12 @@ if (ind_ana == 1 & ind_screen == 1 & ind_resp == 1) file_id <- "ana-screen-resp"
 if (ind_hetero == 1) file_id <- paste(file_id, "-hetero", sep = "")
 if (ind_hetero == 0) file_id <- paste(file_id, "-homo", sep = "")
 
+# Finalize the file_id conditioned on flags.
+if (ind_sim == 1) {
+  if (ind_test == 1) file_id <- paste(file_id, "-test", sep = "")
+}
+
 if (ind_emp == 1) {
-  # Finalize the file_id conditioned on flags.
   if (ind_beef == 1) data_id <- "ground-beef"
   if (ind_zero == 1) data_id <- "zerorez"
   file_id <- paste(data_id, "_", file_id, sep = "")
@@ -45,13 +55,17 @@ source(here::here("Code", "02_data-prep.R"))
 # Run the conjoint ensemble using the clever randomization.
 source(here::here("Code", "03_conjoint-ensemble.R"))
 
-# Produce weights using the ensemble output.
-source(here::here("Code", "04_meta-learner.R"))
+# # Produce weights using the ensemble output.
+# source(here::here("Code", "04_meta-learner.R"))
 
-# Run the models specific to the indicated pathology.
-source(here::here("Code", "05_competing-models.R"))
+# # Run the models specific to the indicated pathology.
+# source(here::here("Code", "05_competing-models.R"))
 
 # Compute and compare fit across models.
 source(here::here("Code", "06_model-comparison.R"))
+
+sum(ensemble_fit$ensemble_weights)
+hist(ensemble_fit$ensemble_weights)
+
 model_comparison
 
