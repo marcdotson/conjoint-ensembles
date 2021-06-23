@@ -82,6 +82,7 @@ simulate_data <- function(
   
   # Generate average betas.
   bbar <- runif(nbeta, -1, 2)
+  betas <- NULL
   
   # Generate Y|X.
   regdata <- NULL
@@ -92,11 +93,12 @@ simulate_data <- function(
     tmp <- desmat[which(desmat[,1] == nver),]
     ana.vec <- ana.mat[i,]
     screen.vec <- screen.mat[i,]
+    # Generate betas as a deviation from the average.
+    betah <- bbar + rnorm(length(bbar), 0, 1)
+    betas[[i]] <- betah
     for (j in 1:ntask) {
-      xtmp <- as.matrix(tmp[which(tmp[,2] == j), 4:(ncol(desmat))])
-      # Generate betas as a deviation from the average.
-      betah <- bbar + rnorm(length(bbar), 0, 1)
       # Multiply betas by an ANA indicator and add screening (defaults to 1 and 0, respectively).
+      xtmp <- as.matrix(tmp[which(tmp[,2] == j), 4:(ncol(desmat))])
       betah <- betah * ana.vec + screen.vec
       U <- as.vector(xtmp %*% betah)
       prob.y <- exp(U) / sum(exp(U))
@@ -140,7 +142,8 @@ simulate_data <- function(
         mat_ana = mat_ana,
         mat_screen = mat_screen,
         mat_resp = mat_resp,
-        bbar = bbar # Average betas.
+        bbar = bbar, # Average betas.
+        betas = betas
       )
     )
   }

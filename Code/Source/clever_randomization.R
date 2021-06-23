@@ -49,6 +49,10 @@ clever_randomization <- function(
       # Randomize respondent quality such that we continue with the same number of bootstrapped respondents.
       mat_resp[i,] <- sort(sample(1:nobs_train, nobs_train, replace = TRUE))
     }
+    
+    return(list(train_Y = train_Y, train_X = train_X, test_Y = test_Y,
+                test_X = test_X, mat_ana = mat_ana, mat_screen = mat_screen,
+                mat_resp = mat_resp))
   }
   if (test == 1) {
     mat_ana <- mat_screen <- matrix(double(nmember * nlevels_tot), nrow = nmember)
@@ -59,9 +63,9 @@ clever_randomization <- function(
       mat_screen[i,] <- data$mat_screen[1,]
       mat_resp[i,] <- data$mat_resp[train_ind]
     }
+    
+    return(list(train_Y = train_Y, train_X = train_X, test_Y = test_Y,
+                test_X = test_X, mat_ana = mat_ana, mat_screen = mat_screen,
+                mat_resp = mat_resp, betas = data$betas, bbar = data$bbar))
   }
-  
-  return(list(train_Y = train_Y, train_X = train_X, test_Y = test_Y,
-              test_X = test_X, mat_ana = mat_ana, mat_screen = mat_screen,
-              mat_resp = mat_resp))
 }
