@@ -74,8 +74,8 @@ for(k in 1:nmember) {
 
 # Normalize the counts or probabilities.
 for (k in 1:nmember) {
-  # ensemble_fit$ensemble_weights[k] <- temp_ensemble_counts[k] / sum(temp_ensemble_counts)
-  ensemble_fit$ensemble_weights[k] <- temp_ensemble_sum_probs[k] / sum(temp_ensemble_sum_probs)
+  ensemble_fit$ensemble_weights[k] <- temp_ensemble_counts[k] / sum(temp_ensemble_counts)
+  # ensemble_fit$ensemble_weights[k] <- temp_ensemble_sum_probs[k] / sum(temp_ensemble_sum_probs)
 }
 
 # # Restructure validation data and predictions for the meta-learner.
