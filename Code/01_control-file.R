@@ -6,7 +6,7 @@ ind_emp <- 0        # Indicates empirical data.
 if (ind_sim == 1) {
   # Indicates a test where we pass the actual constraint 
   # matrices into the ensemble estimation.
-  ind_test <- 0
+  ind_test <- 1
 }
 
 if (ind_emp == 1) {
@@ -19,11 +19,11 @@ if (ind_emp == 1) {
 ind_none <- 0       # Indicates no pathologies.
 ind_ana <- 1        # Indicates attribute non-attendance.
 ind_screen <- 0     # Indicates screening.
-ind_resp <- 1       # Indicates respondent quality (bootstrap).
+ind_resp <- 0       # Indicates respondent quality (bootstrap).
 
 # Decide on pathology heterogeneity and the size of the ensemble.
-ind_hetero <- 1     # Indicates if pathologies differ by individual.
-nmember <- 1000     # Indicates the number of ensemble members.
+ind_hetero <- 0     # Indicates if pathologies differ by individual.
+nmember <- 2     # Indicates the number of ensemble members.
 
 # Construct the file_id conditioned on flags.
 if (ind_none == 1) file_id <- "none"
@@ -64,11 +64,7 @@ source(here::here("Code", "03_conjoint-ensemble.R"))
 # Compute and compare fit across models.
 source(here::here("Code", "06_model-comparison.R"))
 
-sum(ensemble_fit$ensemble_weights)
-hist(ensemble_fit$ensemble_weights)
-
 ensemble_fit$ensemble_weights
-
 model_comparison
 
 # Parameter recovery...

@@ -125,6 +125,8 @@ for (k in 1:nmember) {
 sum(ensemble_fit$ensemble_weights)
 hist(ensemble_fit$ensemble_weights)
 
+ensemble_fit$ensemble_weights
+
 # # Try dropping the final member and normalizing weights.
 # ensemble_fit$ensemble_weights[length(ensemble_fit$ensemble_weights)] <- 0
 # for (k in 1:length(ensemble_fit$ensemble_weights)) {
@@ -135,6 +137,24 @@ hist(ensemble_fit$ensemble_weights)
 # ensemble_fit$ensemble_draws <-
 #   ensemble_fit$ensemble_draws[-which(lapply(ensemble_fit$ensemble_draws, length) == 1)]
 # length(ensemble_fit$ensemble_draws)
+
+# Parameter Recovery ------------------------------------------------------
+if (ind_test == 1) {
+  # Compare parameter estimates and the true values.
+  tibble(
+    param = 1:length(data$bbar),
+    true = data$bbar,
+    estimate_1 = as.vector(ensemble_fit$ensemble_draws[[1]]$Gamma),
+    estimate_2 = as.vector(ensemble_fit$ensemble_draws[[2]]$Gamma)
+  ) %>% 
+    pivot_longer(contains("estimate"), names_to = "type", values_to = "estimate") %>% 
+    ggplot(aes(x = true, y = estimate)) +
+    geom_point(size = 3, alpha = 0.75, show.legend = FALSE) +
+    facet_wrap(~ type)
+
+  # write_rds(model_comparison, here::here("Figures", str_c("model-fit_", file_id, "_", nmember, ".rds")))
+}
+
 
 # Compute Model Fit -------------------------------------------------------
 # Extract needed draws.
@@ -226,6 +246,6 @@ model_comparison <- model_comparison %>%
     )
   )
 
-# Save model comparison data frame.
-write_rds(model_comparison, here::here("Figures", str_c("model-fit_", file_id, "_", nmember, ".rds")))
+# # Save model comparison data frame.
+# write_rds(model_comparison, here::here("Figures", str_c("model-fit_", file_id, "_", nmember, ".rds")))
 
