@@ -1,7 +1,7 @@
 # Set Indicator Flags -----------------------------------------------------
 # Indicate simulated or empirical data.
-ind_sim <- 0        # Indicates simulated data.
-ind_emp <- 1        # Indicates empirical data.
+ind_sim <- 1        # Indicates simulated data.
+ind_emp <- 0        # Indicates empirical data.
 
 if (ind_sim == 1) {
   # Indicates a test where we pass the actual constraint 
@@ -32,7 +32,7 @@ if (ind_screen == 1) file_id <- "screen"
 if (ind_resp == 1) file_id <- "resp"
 if (ind_ana == 1 & ind_screen == 1) file_id <- "ana-screen"
 if (ind_ana == 1 & ind_resp == 1) file_id <- "ana-resp"
-if (ind_screen == 1 & ind_screen == 1) file_id <- "screen-resp"
+if (ind_screen == 1 & ind_resp == 1) file_id <- "screen-resp"
 if (ind_ana == 1 & ind_screen == 1 & ind_resp == 1) file_id <- "ana-screen-resp"
 if (ind_hetero == 1) file_id <- paste(file_id, "-hetero", sep = "")
 if (ind_hetero == 0) file_id <- paste(file_id, "-homo", sep = "")
@@ -67,5 +67,9 @@ source(here::here("Code", "06_model-comparison.R"))
 sum(ensemble_fit$ensemble_weights)
 hist(ensemble_fit$ensemble_weights)
 
+ensemble_fit$ensemble_weights
+
 model_comparison
+
+# Parameter recovery...
 
