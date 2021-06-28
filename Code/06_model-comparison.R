@@ -32,7 +32,6 @@ ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_", file_id, "_
 #   ensemble_fit$ensemble_weights[k] <- temp_ensemble_weights[k] / sum(temp_ensemble_weights)
 # }
 
-# Try logistic weights.
 # Use the first half of the test data for validation data.
 data$validate_Y <- data$test_Y[1:round(dim(data$test_Y)[1]/2),]
 data$validate_X <- data$test_X[1:round(dim(data$test_X)[1]/2),,,]
@@ -51,7 +50,7 @@ for (k in 1:nmember) {
   )
 }
 
-# Produce counts or probabilities for the meta-learner.
+# Produce counts or probabilities to calculate the ensemble weights.
 meta_Y <- as.vector(t(data$validate_Y))
 meta_pred_X <- matrix(NA, nrow = length(meta_Y), ncol = nmember)
 meta_prob_X <- array(NA, dim = c(length(meta_Y), max(meta_Y), nmember))
@@ -78,16 +77,16 @@ for (k in 1:nmember) {
   # ensemble_fit$ensemble_weights[k] <- temp_ensemble_sum_probs[k] / sum(temp_ensemble_sum_probs)
 }
 
-# # Restructure validation data and predictions for the meta-learner.
+# # Restructure validation data and predictions or probabilities for the meta-learner.
 # meta_Y <- as.vector(t(data$validate_Y))
 # meta_X <- array(NA, dim = c(length(meta_Y), max(meta_Y), nmember))
-# for (n in 1:length(meta_Y)) {
-#   temp_X <- NULL
-#   for (k in 1:nmember) {
-#     temp_X <- cbind(temp_X, as.vector(t(ensemble_predictions[[k]]$predicted_Y))[n])
-#   }
-#   meta_X[n,,] <- matrix(temp_X, nrow = max(meta_Y), byrow = TRUE)
-# }
+# # for (n in 1:length(meta_Y)) {
+# #   temp_X <- NULL
+# #   for (k in 1:nmember) {
+# #     temp_X <- cbind(temp_X, as.vector(t(ensemble_predictions[[k]]$predicted_Y))[n])
+# #   }
+# #   meta_X[n,,] <- matrix(temp_X, nrow = max(meta_Y), byrow = TRUE)
+# # }
 # for (k in 1:nmember) {
 #   for (n in 1:length(meta_Y)) {
 #     meta_X[n,,k] <- ensemble_predictions[[k]]$predicted_probs[,n]
@@ -99,7 +98,7 @@ for (k in 1:nmember) {
 #   N = dim(meta_X)[1], # Number of observations.
 #   A = dim(meta_X)[2], # Number of choice alternatives.
 #   L = dim(meta_X)[3], # Number of (estimable) attribute levels.
-#   
+# 
 #   Y = meta_Y,         # Vector of observations.
 #   X = meta_X          # Matrix of observation-level covariates.
 # )
@@ -116,12 +115,13 @@ for (k in 1:nmember) {
 # # Extract weights for each ensemble and normalize.
 # temp_ensemble_weights <- extract(meta_fit, pars = c("beta"))
 # temp_ensemble_weights <- apply(temp_ensemble_weights$beta, 2, mean)
-# temp_ensemble_weights <- (temp_ensemble_weights - min(temp_ensemble_weights)) / 
+# temp_ensemble_weights <- (temp_ensemble_weights - min(temp_ensemble_weights)) /
 #   (max(temp_ensemble_weights) - min(temp_ensemble_weights))
 # for (k in 1:nmember) {
 #   ensemble_fit$ensemble_weights[k] <- temp_ensemble_weights[k] / sum(temp_ensemble_weights)
 # }
 
+# Check the ensemble weights.
 sum(ensemble_fit$ensemble_weights)
 hist(ensemble_fit$ensemble_weights)
 
