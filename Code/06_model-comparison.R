@@ -142,19 +142,23 @@ ensemble_fit$ensemble_weights
 if (ind_test == 1) {
   # Compare parameter estimates and the true values.
   tibble(
-    param = 1:length(data$bbar),
+    param = as.factor(1:length(data$bbar)),
     true = data$bbar,
     estimate_1 = as.vector(ensemble_fit$ensemble_draws[[1]]$Gamma),
     estimate_2 = as.vector(ensemble_fit$ensemble_draws[[2]]$Gamma)
   ) %>% 
-    pivot_longer(contains("estimate"), names_to = "type", values_to = "estimate") %>% 
-    ggplot(aes(x = true, y = estimate)) +
-    geom_point(size = 3, alpha = 0.75, show.legend = FALSE) +
-    facet_wrap(~ type)
-
-  # write_rds(model_comparison, here::here("Figures", str_c("model-fit_", file_id, "_", nmember, ".rds")))
+    mutate(
+      difference_1 = true - estimate_1,
+      difference_2 = true - estimate_2
+    ) %>% 
+    pivot_longer(contains("difference"), names_to = "comparison", values_to = "difference") %>%
+    ggplot(aes(x = param, y = difference, fill = comparison)) +
+    geom_col(position = "dodge") +
+    scale_fill_discrete(type = c("darkred", "darkgray")) +
+    theme(legend.position = "bottom")
+  
+  ggsave(here::here("Figures", str_c("parameter-recovery_", file_id, ".png")), width = 7, height = 3)
 }
-
 
 # Compute Model Fit -------------------------------------------------------
 # Extract needed draws.
