@@ -56,9 +56,10 @@ simulate_data <- function(
         if (j %in% ana.draw) ana.mat[i, ((j * nlevel - j) - 1):(j * nlevel - j)] <- 0
       }
     }
-    # If screening is flagged, simulate screening where each respondent screens based on one attribute level.
+    # If screening is flagged, simulate screening where each respondent screens based on at least one 
+    # attribute level but not all of them.
     if (screen == TRUE) {
-      screen.draw <- sample(1:nbeta, 1, replace = FALSE)
+      screen.draw <- sample(1:nbeta, size = round(runif(n = 1, min = 1, max = nbeta -1)), replace = FALSE)
       screen.mat[i, screen.draw] <- -100
     }
   }
@@ -99,7 +100,7 @@ simulate_data <- function(
     for (j in 1:ntask) {
       # Multiply betas by an ANA indicator and add screening (defaults to 1 and 0, respectively).
       xtmp <- as.matrix(tmp[which(tmp[,2] == j), 4:(ncol(desmat))])
-      betah <- betah * ana.vec + screen.vec
+      betah <- betas[[i]] * ana.vec + screen.vec
       U <- as.vector(xtmp %*% betah)
       prob.y <- exp(U) / sum(exp(U))
       # If respondent quality is flagged, force a random choice for the up to 25 respondents.

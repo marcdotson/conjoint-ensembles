@@ -138,28 +138,6 @@ ensemble_fit$ensemble_weights
 #   ensemble_fit$ensemble_draws[-which(lapply(ensemble_fit$ensemble_draws, length) == 1)]
 # length(ensemble_fit$ensemble_draws)
 
-# Parameter Recovery ------------------------------------------------------
-if (ind_test == 1) {
-  # Compare parameter estimates and the true values.
-  tibble(
-    param = as.factor(1:length(data$bbar)),
-    true = data$bbar,
-    estimate_1 = as.vector(ensemble_fit$ensemble_draws[[1]]$Gamma),
-    estimate_2 = as.vector(ensemble_fit$ensemble_draws[[2]]$Gamma)
-  ) %>% 
-    mutate(
-      difference_1 = true - estimate_1,
-      difference_2 = true - estimate_2
-    ) %>% 
-    pivot_longer(contains("difference"), names_to = "comparison", values_to = "difference") %>%
-    ggplot(aes(x = param, y = difference, fill = comparison)) +
-    geom_col(position = "dodge") +
-    scale_fill_discrete(type = c("darkred", "darkgray")) +
-    theme(legend.position = "bottom")
-  
-  ggsave(here::here("Figures", str_c("parameter-recovery_", file_id, ".png")), width = 7, height = 3)
-}
-
 # Compute Model Fit -------------------------------------------------------
 # Extract needed draws.
 hmnl_draws <- extract(hmnl_fit, pars = c("Beta", "Gamma", "Omega", "tau"))
@@ -252,4 +230,28 @@ model_comparison <- model_comparison %>%
 
 # # Save model comparison data frame.
 # write_rds(model_comparison, here::here("Figures", str_c("model-fit_", file_id, "_", nmember, ".rds")))
+
+# Parameter Recovery ------------------------------------------------------
+if (ind_test == 1) {
+  # Compare parameter estimates and the true values.
+  tibble(
+    param = as.factor(1:length(data$bbar)),
+    true = data$bbar,
+    hmnl_estimate = apply(hmnl_draws$Gamma, 3, mean),
+    ensm_estimate_1 = as.vector(ensemble_fit$ensemble_draws[[1]]$Gamma),
+    ensm_estimate_2 = as.vector(ensemble_fit$ensemble_draws[[2]]$Gamma)
+  ) %>% 
+    mutate(
+      hmnl_est_diff = true - hmnl_estimate,
+      ensm_est_diff_1 = true - ensm_estimate_1,
+      ensm_est_diff_2 = true - ensm_estimate_2
+    ) %>% 
+    pivot_longer(contains("diff"), names_to = "contrast", values_to = "difference") %>%
+    ggplot(aes(x = param, y = difference, fill = contrast)) +
+    geom_col(position = "dodge") +
+    scale_fill_discrete(type = c("gray40", "gray50", "darkred")) +
+    theme(legend.position = "bottom")
+  
+  ggsave(here::here("Figures", str_c("parameter-recovery_", file_id, ".png")), width = 7, height = 3)
+}
 
