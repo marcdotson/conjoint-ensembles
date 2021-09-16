@@ -10,7 +10,7 @@ author:
 - name: "Roger Bailey"
   affiliation: "OSU Fisher School of Business"
   email: "bailey.1117@osu.edu"
-date: "November 26, 2020"
+date: "February 17, 2021"
 abstract: "Respondent behavior in conjoint studies often deviates from the assumptions of random utility theory. We refer to deviations from normative choice behavior as data pathologies.A variety of models have been developed that attempt to correct for specific pathologies (e.g., screening rules, respondent quality, attribute non-attendance). While useful, these approaches tend to be both conceptually complex and computationally intensive. As such, these approaches have not widely diffused into the practice of marketing research.In this paper we draw on innovations in machine learning to develop a practical approach that relies on (clever) randomization strategies and ensembling to simultaneously accommodate multiple data pathologies in a single model. We provide tips and tricks on how to implement this approach in practice."
 keywords:
 - "Choice Modeling"
