@@ -1,6 +1,6 @@
 ---
 title: "Code"
-output: github_document
+format: gfm
 ---
 
 ## R Scripts
@@ -16,7 +16,7 @@ The project work is broken down into the following steps with corresponding scri
 
 ## Functions
 
-The following functions are stored in `Source`.
+The following functions are stored in `/code/source`.
 
 - `ana_hbmnl.R` One of two functions to estimate an HMNL with attribute non-attendance.
 - `ana_hmnl.R` One of two functions to estimate an HMNL with attribute non-attendance.

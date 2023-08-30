@@ -5,12 +5,12 @@
 .Ruserdata
 
 # Folders
-Output/*
-Private/*
+output/*
+private/*
 
 # Files
-Code/Source/*.rds
-Data/emp_*
+code/source/*.rds
+data/emp_*
 *.pdf
 
 # Miscellaneous

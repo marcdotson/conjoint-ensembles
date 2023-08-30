@@ -1,31 +1,51 @@
 ---
 title: "Clever Randomization and Ensembling Strategies for Accommodating Multiple Data Pathologies in Conjoint Studies"
 author: 
-- name: "Marc R. Dotson"
-  affiliation: "BYU Marriott School of Business"
-  email: "marc.dotson@byue.edu"
-- name: "Jeffrey P. Dotson"
-  affiliation: "BYU Marriott School of Business"
-  email: "jpd@byu.edu"
-- name: "Roger Bailey"
-  affiliation: "OSU Fisher School of Business"
-  email: "bailey.1117@osu.edu"
-date: "February 17, 2021"
-abstract: "Respondent behavior in conjoint studies often deviates from the assumptions of random utility theory. We refer to deviations from normative choice behavior as data pathologies.A variety of models have been developed that attempt to correct for specific pathologies (e.g., screening rules, respondent quality, attribute non-attendance). While useful, these approaches tend to be both conceptually complex and computationally intensive. As such, these approaches have not widely diffused into the practice of marketing research.In this paper we draw on innovations in machine learning to develop a practical approach that relies on (clever) randomization strategies and ensembling to simultaneously accommodate multiple data pathologies in a single model. We provide tips and tricks on how to implement this approach in practice."
+  - name: "Marc R. Dotson"
+    affiliation: "BYU Marriott School of Business"
+    email: "marc.dotson@byue.edu"
+  - name: "Jeffrey P. Dotson"
+    affiliation: "BYU Marriott School of Business"
+    email: "jpd@byu.edu"
+  - name: "Roger Bailey"
+    affiliation: "OSU Fisher School of Business"
+    email: "bailey.1117@osu.edu"
+date: "February 17, 2024"
+abstract: | 
+  Respondent behavior in conjoint studies often deviates from the assumptions of random utility theory. We refer to deviations from normative choice behavior as data pathologies.A variety of models have been developed that attempt to correct for specific pathologies (e.g., screening rules, respondent quality, attribute non-attendance). While useful, these approaches tend to be both conceptually complex and computationally intensive. As such, these approaches have not widely diffused into the practice of marketing research.In this paper we draw on innovations in machine learning to develop a practical approach that relies on (clever) randomization strategies and ensembling to simultaneously accommodate multiple data pathologies in a single model. We provide tips and tricks on how to implement this approach in practice.
 keywords:
-- "Choice Modeling"
-- "Machine Learning"
-- "Random Forests"
+  - "Choice Modeling"
+  - "Machine Learning"
+  - "Random Forests"
 bibliography: references.bib
-output: 
-  bookdown::pdf_document2:
-    keep_tex: true
-    template: mktg-article.tex
-    citation_package: natbib
+format: 
+  jasa-pdf: 
+    keep-tex: true
+    cite-method: natbib
+    journal:
+      blinded: false
+execute:
+  echo: false
 # params:
-#   data_path: "../Data/ad_data.rds"
+#   data_path: "../data/ad_data.rds"
 #   data_name: "Advertising Data"
+knitr:
+  opts_chunk:
+    fig.path: "../figures/"
 ---
+
+```{r}
+#| label: setup
+#| warning: false
+#| message: false
+
+# Load packages.
+library(tidyverse)
+library(tidymodels)
+
+# Import data.
+data <- readRDS(params$data_path)
+```
 
 # Introduction
 
