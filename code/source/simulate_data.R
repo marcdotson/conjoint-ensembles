@@ -8,7 +8,8 @@ simulate_data <- function(
   ana = FALSE,    # Attribute non-attendance flag.
   screen = FALSE, # Screening pathology flag.
   resp = FALSE,   # Respondent quality flag.
-  hetero = FALSE  # Pathologies at the individual-level.
+  hetero = FALSE, # Pathologies at the individual-level.
+  test = FALSE    # Test flag.
 ) {
 
   # Function to simulate choice data with or without pathologies.
@@ -55,9 +56,10 @@ simulate_data <- function(
         if (j %in% ana.draw) ana.mat[i, ((j * nlevel - j) - 1):(j * nlevel - j)] <- 0
       }
     }
-    # If screening is flagged, simulate screening where each respondent screens based on one attribute level.
+    # If screening is flagged, simulate screening where each respondent screens based on at least one 
+    # attribute level but not all of them.
     if (screen == TRUE) {
-      screen.draw <- sample(1:nbeta, 1, replace = FALSE)
+      screen.draw <- sample(1:nbeta, size = round(runif(n = 1, min = 1, max = nbeta -1)), replace = FALSE)
       screen.mat[i, screen.draw] <- -100
     }
   }
@@ -81,6 +83,7 @@ simulate_data <- function(
   
   # Generate average betas.
   bbar <- runif(nbeta, -1, 2)
+  betas <- NULL
   
   # Generate Y|X.
   regdata <- NULL
@@ -91,12 +94,13 @@ simulate_data <- function(
     tmp <- desmat[which(desmat[,1] == nver),]
     ana.vec <- ana.mat[i,]
     screen.vec <- screen.mat[i,]
+    # Generate betas as a deviation from the average.
+    betah <- bbar + rnorm(length(bbar), 0, 1)
+    betas[[i]] <- betah
     for (j in 1:ntask) {
-      xtmp <- as.matrix(tmp[which(tmp[,2] == j), 4:(ncol(desmat))])
-      # Generate betas as a deviation from the average.
-      betah <- bbar + rnorm(length(bbar), 0, 1)
       # Multiply betas by an ANA indicator and add screening (defaults to 1 and 0, respectively).
-      betah <- betah * ana.vec + screen.vec
+      xtmp <- as.matrix(tmp[which(tmp[,2] == j), 4:(ncol(desmat))])
+      betah <- betas[[i]] * ana.vec + screen.vec
       U <- as.vector(xtmp %*% betah)
       prob.y <- exp(U) / sum(exp(U))
       # If respondent quality is flagged, force a random choice for the up to 25 respondents.
@@ -117,11 +121,32 @@ simulate_data <- function(
     }
   }
   
-  return(
-    list(
-      X = X,      # Design matrix.
-      Y = Y,      # Choice data.
-      bbar = bbar # Average betas.
+  if (test == 0) {
+    return(
+      list(
+        X = X,      # Design matrix.
+        Y = Y,      # Choice data.
+        bbar = bbar # Average betas.
+      )
     )
-  )
+  }
+  if (test == 1) {
+    mat_ana <- ifelse(ana.mat == 0, 1, 0)
+    mat_screen <- ifelse(screen.mat != 0, 1, 0)
+    # mat_resp <- 1:nhh
+    # mat_resp <- sort(c(mat_resp[-resp.id], mat_resp)[1:nhh])
+    
+    return(
+      list(
+        X = X,      # Design matrix.
+        Y = Y,      # Choice data.
+        mat_ana = mat_ana,
+        mat_screen = mat_screen,
+        # mat_resp = mat_resp,
+        bbar = bbar, # Average betas.
+        betas = betas
+      )
+    )
+  }
+  
 }
