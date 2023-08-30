@@ -3,15 +3,15 @@
 library(tidyverse)
 
 # Source functions.
-source(here::here("Code", "Source", "simulate_data.R"))
-source(here::here("Code", "Source", "clever_randomization.R"))
+source(here::here("code", "source", "simulate_data.R"))
+source(here::here("code", "source", "clever_randomization.R"))
 
 # Set the simulation seed.
 set.seed(42)
 
 # Simulate Data and Induce Clever Randomization ---------------------------
 if (ind_sim == 1) {
-  if (!file.exists(here::here("Data", str_c("sim_", file_id, ".rds")))) {
+  if (!file.exists(here::here("data", str_c("sim_", file_id, ".rds")))) {
     # Simulate data, induce clever randomization, and save.
     data <- simulate_data(
       nhh = 300,           # Number of respondents (households).
@@ -36,19 +36,19 @@ if (ind_sim == 1) {
     )
     
     # Save simulated data.
-    write_rds(data, here::here("Data", str_c("sim_", file_id, ".rds")))
+    write_rds(data, here::here("data", str_c("sim_", file_id, ".rds")))
   }
 }
 
 # Clean Data and Induce Clever Randomization ------------------------------
 if (ind_emp == 1) {
-  if (!file.exists(here::here("Data", str_c("emp_", file_id, ".rds")))) {
+  if (!file.exists(here::here("data", str_c("emp_", data_id, ".rds")))) {
     # Load design.
-    design <- read.csv(here::here("Data", str_c("emp_", file_id, "_design.csv")), header = TRUE)
+    design <- read.csv(here::here("data", str_c("emp_", data_id, "_design.csv")), header = TRUE)
     design <- design[,-1]
     
     # Load choice data.
-    choice_data <- read.csv(here::here("Data", str_c("emp_", file_id, "_final.csv")), header=TRUE)
+    choice_data <- read.csv(here::here("data", str_c("emp_", data_id, "_final.csv")), header=TRUE)
     choice_data <- choice_data[,-1]
     
     # Sample Characteristics
@@ -81,7 +81,7 @@ if (ind_emp == 1) {
     )
     
     # Save data.
-    write_rds(data, here::here("Data", str_c("emp_", file_id, ".rds")))
+    write_rds(data, here::here("data", str_c("emp_", data_id, ".rds")))
   }
 }
 

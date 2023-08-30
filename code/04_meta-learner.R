@@ -9,8 +9,9 @@ library(parallel)
 set.seed(42)
 
 # Load data and ensemble fit.
-data <- read_rds(here::here("Data", str_c("sim_", file_id, ".rds")))
-ensemble_fit <- read_rds(here::here("Output", str_c("ensemble-fit_", file_id, "_", nmember, ".rds")))
+if (ind_sim == 1) data <- read_rds(here::here("data", str_c("sim_", file_id, ".rds")))
+if (ind_emp == 1) data <- read_rds(here::here("data", str_c("emp_", file_id, ".rds")))
+ensemble_fit <- read_rds(here::here("output", str_c("ensemble-fit_", file_id, "_", nmember, ".rds")))
 
 # Run the Meta-Learner ----------------------------------------------------
 # Create array of likelihoods with effective sample sizes.
@@ -40,5 +41,5 @@ ensemble_weights <- loo_model_weights(
 
 # Append weights to model fit.
 ensemble_fit$ensemble_weights <- ensemble_weights
-write_rds(ensemble_fit, here::here("Output", str_c("ensemble-fit_", file_id, "_", nmember, ".rds")))
+write_rds(ensemble_fit, here::here("output", str_c("ensemble-fit_", file_id, "_", nmember, ".rds")))
 

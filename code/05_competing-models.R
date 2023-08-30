@@ -7,14 +7,14 @@ library(bayesm)
 library(RcppArmadillo)
 
 # Source functions.
-source(here::here("Code", "Source", "ana_hmnl.R"))
-source(here::here("Code", "Source", "conj_hmnl_e.R"))
+source(here::here("code", "source", "ana_hmnl.R"))
+source(here::here("code", "source", "conj_hmnl_e.R"))
 
 # Set the simulation seed.
 set.seed(42)
 
 # Load data and ensemble fit.
-data <- read_rds(here::here("Data", str_c("sim_", file_id, ".rds")))
+data <- read_rds(here::here("data", str_c("sim_", file_id, ".rds")))
 data$train_Z <- matrix(rep(1, nrow(data$train_Y)), ncol = 1)
 
 # Run Competing Models ----------------------------------------------------
@@ -42,7 +42,7 @@ nu <- nvar+3                                            # DoF for IW prior for V
 
 # Fit attribute non-attendance model.
 if (ind_ana == 1) {
-  if (!file.exists(here::here("Output", str_c("ana-fit_", file_id, ".rds"))) {
+  if (!file.exists(here::here("output", str_c("ana-fit_", file_id, ".rds"))) {
     # Create input lists
     data=NULL
     for(resp in 1:nresp){
@@ -62,13 +62,13 @@ if (ind_ana == 1) {
     outcomp = ana_hmnl(Data,Prior,Mcmc)
     
     # Save model output.
-    write_rds(outcomp, here::here("Output", str_c("ana-fit_", file_id, ".rds")))
+    write_rds(outcomp, here::here("output", str_c("ana-fit_", file_id, ".rds")))
   }
 }
   
 # Fit screening model.
 if (ind_screen == 1) {
-  if (!here::here("Output", str_c("screen-fit_", file_id, ".rds"))) {
+  if (!here::here("output", str_c("screen-fit_", file_id, ".rds"))) {
     # Create input lists
     data=NULL
     for(resp in 1:nresp){
@@ -95,7 +95,7 @@ if (ind_screen == 1) {
     outcomp = conj_hmnl_e(Data,Prior,Mcmc,Cont)
     
     # Save model output.
-    write_rds(outcomp, here::here("Output", str_c("screen-fit_", file_id, ".rds")))
+    write_rds(outcomp, here::here("output", str_c("screen-fit_", file_id, ".rds")))
   }
 }
 
