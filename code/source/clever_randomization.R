@@ -12,8 +12,14 @@ clever_randomization <- function(
   # two matrices that indicates if an attribute level is used for 
   # screening or is not attended to.
   
+  ####################################
   # Needs to be modified to all for control over the type of pathology investigated 
   # and the number of attribute levels used for both screening and ANA.
+  ####################################
+  
+  ####################################
+  # How do we think about covering the potential models space?
+  ####################################
   
   # Determine the number of observation nunits and total number of levels.
   nobs <- dim(X)[1]

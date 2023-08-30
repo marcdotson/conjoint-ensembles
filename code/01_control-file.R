@@ -18,13 +18,13 @@ if (ind_emp == 1) {
 # Indicate which pathologies to randomize for.
 ind_none <- 0       # Indicates no pathologies.
 ind_ana <- 1        # Indicates attribute non-attendance.
-ind_screen <- 1     # Indicates screening.
+ind_screen <- 0     # Indicates screening.
 ind_resp <- 0       # Indicates respondent quality (bootstrap).
 
 # Decide on pathology heterogeneity and the size of the ensemble.
 ind_hetero <- 0     # Indicates if pathologies differ by individual.
 nmember <- 1000     # Indicates the number of ensemble members.
-if (ind_test == 1) nmember <- 2
+if (ind_test == 1) nmember <- 2 # Constrain tests to small ensemble sizes.
 
 # Construct the file_id conditioned on flags.
 if (ind_none == 1) file_id <- "none"

@@ -1,7 +1,7 @@
 # Preamble ----------------------------------------------------------------
 # Load packages.
 library(tidyverse)
-library(rstan)
+# library(rstan) # REPLACE WITH CMDSTANR
 library(cmdstanr)
 library(posterior)
 library(bayesplot)
@@ -23,6 +23,9 @@ mat_screen <- data$mat_screen[sample(nrow(data$mat_screen), nmember),]
 mat_resp <- data$mat_resp[sample(nrow(data$mat_resp), nmember),]
 
 # Run HMNL to Initialize Ensemble -----------------------------------------
+#################################
+# Pathfinder alone should be used to initalize (if even needed).
+#################################
 if (!file.exists(here::here("output", str_c("hmnl-fit_", ifelse(ind_sim == 1, file_id, data_id), ".rds")))) {
   stan_data <- list(
     R = dim(data$train_X)[1], # Number of respondents.

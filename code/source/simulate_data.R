@@ -66,10 +66,13 @@ simulate_data <- function(
   
   # If respondent quality is flagged, randomly determine up to 25 low-quality respondents.
   # force a random choice for up to 25 respondents.
+  ####################################
+  # REWRITE TO MIRROR ANA & SCREENING (always heterogeneous).
   resp.id <- 0
   if (resp == TRUE) {
     resp.id <- sample(1:nhh, sample(0:25, 1), replace = FALSE)
   }
+  ####################################
   
   # If heterogeneity isn't flagged, have the first iteration of ANA and screening apply for all members.
   if (hetero == FALSE) {
@@ -133,8 +136,11 @@ simulate_data <- function(
   if (test == 1) {
     mat_ana <- ifelse(ana.mat == 0, 1, 0)
     mat_screen <- ifelse(screen.mat != 0, 1, 0)
+    ####################################
+    # REWRITE TO MIRROR ANA & SCREENING (always heterogeneous).
     # mat_resp <- 1:nhh
     # mat_resp <- sort(c(mat_resp[-resp.id], mat_resp)[1:nhh])
+    ####################################
     
     return(
       list(
