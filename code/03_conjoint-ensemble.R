@@ -7,9 +7,9 @@ library(posterior)
 library(bayesplot)
 library(tidybayes)
 
-# Set Stan and future options.
-options(mc.cores = parallel::detectCores())
-rstan_options(auto_write = FALSE)
+# # Set Stan and future options.
+# options(mc.cores = parallel::detectCores())
+# rstan_options(auto_write = FALSE)
 
 # Set the simulation seed.
 set.seed(42)
@@ -45,11 +45,11 @@ if (!file.exists(here::here("output", str_c("hmnl-fit_", ifelse(ind_sim == 1, fi
     Z = data$train_Z          # Matrix of population-level covariates.
   )
   
-  hmnl_fit <- stan(
-    here::here("code", "source", "hmnl.stan"),
-    data = stan_data,
-    seed = 42
-  )
+  # hmnl_fit <- stan(
+  #   here::here("code", "source", "hmnl.stan"),
+  #   data = stan_data,
+  #   seed = 42
+  # )
   
   # Save HMNL fit.
   write_rds(hmnl_fit, here::here("output", str_c("hmnl-fit_", file_id, ".rds")))
@@ -59,13 +59,13 @@ if (!file.exists(here::here("output", str_c("hmnl-fit_", ifelse(ind_sim == 1, fi
   if (ind_emp == 1) hmnl_fit <- read_rds(here::here("output", str_c("hmnl-fit_", data_id, ".rds")))
 }
 
-# Use posteriors to construct priors.
-hmnl_draws <- extract(hmnl_fit, pars = c("Gamma", "Omega", "tau", "Delta"))
-Gamma_mean <- mean(hmnl_draws$Gamma)
-Gamma_scale <- sqrt(var(hmnl_draws$Gamma))
-Omega_shape <- mean(hmnl_draws$Omega)
-tau_mean <- mean(hmnl_draws$tau)
-tau_scale <- sqrt(var(as.vector(hmnl_draws$tau)))
+# # Use posteriors to construct priors.
+# hmnl_draws <- extract(hmnl_fit, pars = c("Gamma", "Omega", "tau", "Delta"))
+# Gamma_mean <- mean(hmnl_draws$Gamma)
+# Gamma_scale <- sqrt(var(hmnl_draws$Gamma))
+# Omega_shape <- mean(hmnl_draws$Omega)
+# tau_mean <- mean(hmnl_draws$tau)
+# tau_scale <- sqrt(var(as.vector(hmnl_draws$tau)))
 
 # Run HMNL Ensemble -------------------------------------------------------
 # # NOT PARALLELIZED
@@ -234,17 +234,17 @@ fit_extract_average <- function(stan_data) {
   #   output_samples = 100
   # )
   
-  # Estimate with full posterior sampling.
-  fit <- stan(
-    here::here("code", "source", "hmnl_ensemble.stan"),
-    data = stan_data,
-    chains = 1,
-    thin = 10,
-    seed = 42
-  )
+  # # Estimate with full posterior sampling.
+  # fit <- stan(
+  #   here::here("code", "source", "hmnl_ensemble.stan"),
+  #   data = stan_data,
+  #   chains = 1,
+  #   thin = 10,
+  #   seed = 42
+  # )
   
-  # Extract the posterior draws for Gamma, Sigma, and log_lik.
-  draws <- rstan::extract(fit, pars = c("Gamma", "Sigma", "log_lik"))
+  # # Extract the posterior draws for Gamma, Sigma, and log_lik.
+  # draws <- rstan::extract(fit, pars = c("Gamma", "Sigma", "log_lik"))
   
   # Compute posterior means.
   ensemble_draws <- NULL
@@ -255,7 +255,7 @@ fit_extract_average <- function(stan_data) {
   return(ensemble_draws)
 }
 
-ensemble_draws <- parallel::mclapply(stan_data_list, fit_extract_average, mc.cores = parallel::detectCores())
+# ensemble_draws <- parallel::mclapply(stan_data_list, fit_extract_average, mc.cores = parallel::detectCores())
 
 # Save ensemble fit.
 ensemble_fit <- list(mat_ana = mat_ana, mat_screen = mat_screen, ensemble_draws = ensemble_draws)

@@ -4,8 +4,8 @@ ind_sim <- 1        # Indicates simulated data.
 ind_emp <- 0        # Indicates empirical data.
 
 if (ind_sim == 1) {
-  # Indicates a test where we pass the actual constraint 
-  # matrices into the ensemble estimation.
+  # Indicates a test where we pass on the actual constraint 
+  # matrices and estimate a single, best-performing model.
   ind_test <- 1
 }
 
@@ -19,12 +19,12 @@ if (ind_emp == 1) {
 ind_none <- 0       # Indicates no pathologies.
 ind_ana <- 1        # Indicates attribute non-attendance.
 ind_screen <- 0     # Indicates screening.
-ind_resp <- 0       # Indicates respondent quality (bootstrap).
+# ind_resp <- 0       # Indicates respondent quality (still a bootstrap).
 
 # Decide on pathology heterogeneity and the size of the ensemble.
 ind_hetero <- 0     # Indicates if pathologies differ by individual.
 nmember <- 1000     # Indicates the number of ensemble members.
-if (ind_test == 1) nmember <- 2 # Constrain tests to small ensemble sizes.
+# if (ind_test == 1) nmember <- 2 # Constrain tests to small ensemble sizes.
 
 # Construct the file_id conditioned on flags.
 if (ind_none == 1) file_id <- "none"
@@ -39,15 +39,15 @@ if (ind_hetero == 1) file_id <- paste(file_id, "-hetero", sep = "")
 if (ind_hetero == 0) file_id <- paste(file_id, "-homo", sep = "")
 
 # Finalize the file_id conditioned on flags.
-if (ind_sim == 1) {
-  if (ind_test == 1) file_id <- paste(file_id, "-test", sep = "")
-}
+if (ind_test == 1) file_id <- paste(file_id, "-test", sep = "")
 
 if (ind_emp == 1) {
   if (ind_beef == 1) data_id <- "ground-beef"
   if (ind_zero == 1) data_id <- "zerorez"
   file_id <- paste(data_id, "_", file_id, sep = "")
 }
+
+file_id
 
 # Run the Ensemble and Competing Models -----------------------------------
 # Simulate data or clean empirical data and induce randomization.
@@ -62,8 +62,8 @@ source(here::here("code", "03_conjoint-ensemble.R"))
 # # Run the models specific to the indicated pathology.
 # source(here::here("code", "05_competing-models.R"))
 
-# Compute and compare fit across models.
-source(here::here("code", "06_model-comparison.R"))
-ensemble_fit$ensemble_weights
-model_comparison
+# # Compute and compare fit across models.
+# source(here::here("code", "06_model-comparison.R"))
+# ensemble_fit$ensemble_weights
+# model_comparison
 
