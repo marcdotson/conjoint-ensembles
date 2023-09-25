@@ -19,7 +19,7 @@ if (ind_emp == 1) {
 ind_none <- 0       # Indicates no pathologies.
 ind_ana <- 1        # Indicates attribute non-attendance.
 ind_screen <- 0     # Indicates screening.
-# ind_resp <- 0       # Indicates respondent quality (still a bootstrap).
+ind_resp <- 0       # Indicates respondent quality (still a bootstrap).
 
 # Decide on pathology heterogeneity and the size of the ensemble.
 ind_hetero <- 0     # Indicates if pathologies differ by individual.

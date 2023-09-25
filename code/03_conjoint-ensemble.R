@@ -2,7 +2,7 @@
 # Load packages.
 library(tidyverse)
 # library(rstan) # REPLACE WITH CMDSTANR
-library(cmdstanr)
+# library(cmdstanr)
 library(posterior)
 library(bayesplot)
 library(tidybayes)
@@ -50,9 +50,9 @@ if (!file.exists(here::here("output", str_c("hmnl-fit_", ifelse(ind_sim == 1, fi
   #   data = stan_data,
   #   seed = 42
   # )
-  
-  # Save HMNL fit.
-  write_rds(hmnl_fit, here::here("output", str_c("hmnl-fit_", file_id, ".rds")))
+  # 
+  # # Save HMNL fit.
+  # write_rds(hmnl_fit, here::here("output", str_c("hmnl-fit_", file_id, ".rds")))
 } else {
   # Read HMNL fit.
   if (ind_sim == 1) hmnl_fit <- read_rds(here::here("output", str_c("hmnl-fit_", file_id, ".rds")))
@@ -260,4 +260,6 @@ fit_extract_average <- function(stan_data) {
 # Save ensemble fit.
 ensemble_fit <- list(mat_ana = mat_ana, mat_screen = mat_screen, ensemble_draws = ensemble_draws)
 write_rds(ensemble_fit, here::here("output", str_c("ensemble-fit_", file_id, "_", nmember, ".rds")))
+
+rempBayes(lgtdata = stan_data)
 
