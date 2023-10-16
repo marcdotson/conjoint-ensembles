@@ -42,16 +42,15 @@ nu <- nvar+3                                            # DoF for IW prior for V
 
 # Fit attribute non-attendance model.
 if (ind_ana == 1) {
-  if (!file.exists(here::here("output", str_c("ana-fit_", file_id, ".rds"))) {
+  if (!file.exists(here::here("output", str_c("ana-fit_", file_id, ".rds")))) {
     # Create input lists
     data=NULL
-    for(resp in 1:nresp){
-      data[[resp]]=list(y=Y[resp,] %>% 
-                        as.matrix(),
-                        X_raw=X_raw[((resp-1)*nalt*ntask + 1):(resp*nalt*ntask),]%>%
-                        as.matrix(),
-                        S=S[resp,] %>%
-                        as.matrix())
+    for (resp in 1:nresp) {
+      data[[resp]] = list(
+        y=Y[resp,] %>% as.matrix(),
+        X_raw=X_raw[((resp-1)*nalt*ntask + 1):(resp*nalt*ntask),] %>% as.matrix(),
+        S=S[resp,] %>% as.matrix()
+      )
     }
     alpha=c(2,2)
     Data <- list(nalts=nalt, data=data, Z=Z, lvlvec=nlvl)

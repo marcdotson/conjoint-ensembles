@@ -24,7 +24,9 @@ ind_resp <- 0       # Indicates respondent quality (still a bootstrap).
 # Decide on pathology heterogeneity and the size of the ensemble.
 ind_hetero <- 0     # Indicates if pathologies differ by individual.
 nmember <- 1000     # Indicates the number of ensemble members.
-# if (ind_test == 1) nmember <- 2 # Constrain tests to small ensemble sizes.
+if (ind_test == 1) {
+  nmember <- 1      # Constrain tests to a single, best-performing model.
+}
 
 # Construct the file_id conditioned on flags.
 if (ind_none == 1) file_id <- "none"

@@ -1,11 +1,10 @@
 # Preamble ----------------------------------------------------------------
 # Load packages.
 library(tidyverse)
-# library(rstan) # REPLACE WITH CMDSTANR
-# library(cmdstanr)
-library(posterior)
-library(bayesplot)
-library(tidybayes)
+library(cmdstanr)
+# library(posterior) # CRASHING R?!
+# library(bayesplot)
+# library(tidybayes)
 
 # # Set Stan and future options.
 # options(mc.cores = parallel::detectCores())
@@ -24,7 +23,7 @@ mat_resp <- data$mat_resp[sample(nrow(data$mat_resp), nmember),]
 
 # Run HMNL to Initialize Ensemble -----------------------------------------
 #################################
-# Pathfinder alone should be used to initalize (if even needed).
+# Pathfinder alone should be used to initialize (if even needed).
 #################################
 if (!file.exists(here::here("output", str_c("hmnl-fit_", ifelse(ind_sim == 1, file_id, data_id), ".rds")))) {
   stan_data <- list(
@@ -43,6 +42,13 @@ if (!file.exists(here::here("output", str_c("hmnl-fit_", ifelse(ind_sim == 1, fi
     Y = data$train_Y,         # Matrix of observations.
     X = data$train_X,         # Array of observation-level covariates.
     Z = data$train_Z          # Matrix of population-level covariates.
+  )
+  
+  hmnl <- cmdstan_model(here::here("code", "source", "hmnl.stan"))
+  
+  hmnl_fit <- hmnl$sample(
+    data = stan_data,
+    seed = 42
   )
   
   # hmnl_fit <- stan(

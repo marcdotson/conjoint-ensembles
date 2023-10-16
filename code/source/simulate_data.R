@@ -148,7 +148,7 @@ simulate_data <- function(
         Y = Y,      # Choice data.
         mat_ana = mat_ana,
         mat_screen = mat_screen,
-        # mat_resp = mat_resp,
+        # mat_resp = mat_resp, # Requires REWRITE TO MIRROR ANA & SCREENING (always heterogeneous).
         bbar = bbar, # Average betas.
         betas = betas
       )
