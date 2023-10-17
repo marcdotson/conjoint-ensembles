@@ -2,13 +2,9 @@
 # Load packages.
 library(tidyverse)
 library(cmdstanr)
-# library(posterior) # CRASHING R?!
-# library(bayesplot)
-# library(tidybayes)
-
-# # Set Stan and future options.
-# options(mc.cores = parallel::detectCores())
-# rstan_options(auto_write = FALSE)
+library(posterior)
+library(bayesplot)
+library(tidybayes)
 
 # Set the simulation seed.
 set.seed(42)
@@ -48,17 +44,13 @@ if (!file.exists(here::here("output", str_c("hmnl-fit_", ifelse(ind_sim == 1, fi
   
   hmnl_fit <- hmnl$sample(
     data = stan_data,
-    seed = 42
+    seed = 42,
+    chains = 4, 
+    parallel_chains = 4
   )
-  
-  # hmnl_fit <- stan(
-  #   here::here("code", "source", "hmnl.stan"),
-  #   data = stan_data,
-  #   seed = 42
-  # )
-  # 
-  # # Save HMNL fit.
-  # write_rds(hmnl_fit, here::here("output", str_c("hmnl-fit_", file_id, ".rds")))
+
+  # Save HMNL fit.
+  write_rds(hmnl_fit, here::here("output", str_c("hmnl-fit_", file_id, ".rds")))
 } else {
   # Read HMNL fit.
   if (ind_sim == 1) hmnl_fit <- read_rds(here::here("output", str_c("hmnl-fit_", file_id, ".rds")))

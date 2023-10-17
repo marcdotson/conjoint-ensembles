@@ -55,17 +55,17 @@ file_id
 # Simulate data or clean empirical data and induce randomization.
 source(here::here("code", "02_data-prep.R"))
 
-# Run the conjoint ensemble using the clever randomization.
-source(here::here("code", "03_conjoint-ensemble.R"))
-
-# # Produce weights using the ensemble output.
-# source(here::here("code", "04_meta-learner.R"))
-
-# # Run the models specific to the indicated pathology.
-# source(here::here("code", "05_competing-models.R"))
-
-# # Compute and compare fit across models.
-# source(here::here("code", "06_model-comparison.R"))
-# ensemble_fit$ensemble_weights
-# model_comparison
+# # Run the conjoint ensemble using the clever randomization.
+# source(here::here("code", "03_conjoint-ensemble.R"))
+# 
+# # # Produce weights using the ensemble output.
+# # source(here::here("code", "04_meta-learner.R"))
+# 
+# # # Run the models specific to the indicated pathology.
+# # source(here::here("code", "05_competing-models.R"))
+# 
+# # # Compute and compare fit across models.
+# # source(here::here("code", "06_model-comparison.R"))
+# # ensemble_fit$ensemble_weights
+# # model_comparison
 
