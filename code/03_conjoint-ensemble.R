@@ -3,7 +3,7 @@
 library(tidyverse)
 library(cmdstanr)
 library(posterior)
-library(bayesplot)
+# library(bayesplot)
 library(tidybayes)
 
 # Set the simulation seed.
@@ -18,34 +18,33 @@ mat_screen <- data$mat_screen[sample(nrow(data$mat_screen), nmember),]
 mat_resp <- data$mat_resp[sample(nrow(data$mat_resp), nmember),]
 
 # Run HMNL to Initialize Ensemble -----------------------------------------
-#################################
-# Pathfinder alone should be used to initialize (if even needed).
-#################################
+# Pathfinder alone could be used to initialize, if needed.
 if (!file.exists(here::here("output", str_c("hmnl-fit_", ifelse(ind_sim == 1, file_id, data_id), ".rds")))) {
+  # Specify data as a list.
   stan_data <- list(
     R = dim(data$train_X)[1], # Number of respondents.
     S = dim(data$train_X)[2], # Number of choice tasks.
     A = dim(data$train_X)[3], # Number of choice alternatives.
     I = dim(data$train_X)[4], # Number of observation-level covariates.
     J = ncol(data$train_Z),   # Number of population-level covariates.
-    
+
     Gamma_mean = 0,           # Mean of population-level means.
     Gamma_scale = 5,          # Scale of population-level means.
     Omega_shape = 2,          # Shape of population-level scale.
     tau_mean = 0,             # Mean of population-level scale.
     tau_scale = 5,            # Scale of population-level scale.
-    
+
     Y = data$train_Y,         # Matrix of observations.
     X = data$train_X,         # Array of observation-level covariates.
     Z = data$train_Z          # Matrix of population-level covariates.
   )
   
+  # Compile and estimate the model.
   hmnl <- cmdstan_model(here::here("code", "src", "hmnl.stan"))
-  
   hmnl_fit <- hmnl$sample(
     data = stan_data,
     seed = 42,
-    chains = 4, 
+    chains = 4,
     parallel_chains = 4
   )
 
@@ -57,15 +56,120 @@ if (!file.exists(here::here("output", str_c("hmnl-fit_", ifelse(ind_sim == 1, fi
   if (ind_emp == 1) hmnl_fit <- read_rds(here::here("output", str_c("hmnl-fit_", data_id, ".rds")))
 }
 
-# # Use posteriors to construct priors.
-# hmnl_draws <- extract(hmnl_fit, pars = c("Gamma", "Omega", "tau", "Delta"))
-# Gamma_mean <- mean(hmnl_draws$Gamma)
-# Gamma_scale <- sqrt(var(hmnl_draws$Gamma))
-# Omega_shape <- mean(hmnl_draws$Omega)
-# tau_mean <- mean(hmnl_draws$tau)
-# tau_scale <- sqrt(var(as.vector(hmnl_draws$tau)))
+# Use posteriors to construct priors for the ensemble.
+hmnl_draws <- hmnl_fit$draws(format = "df")
+
+######
+# Do we use gather_draws()? Take blog notes on posterior vs. tidybayes.
+######
+
+names(hmnl_draws) |> as.data.frame()
+
+test <- gather_draws(hmnl_fit, Gamma[j, i], Omega[h, n], tau[k], Delta[r, v])
+
+spread_rvars(model, b[i,v])
+
+subset_draws(hmnl_draws, variable = "Gamma") |> as_tibble() |> select(contains("Gamma")) |> as.vector() |> str()
+
+hmnl_draws |> 
+  select(contains("Gamma")) |> 
+  
+
+hmnl_draws <- extract(hmnl_fit, pars = c("Gamma", "Omega", "tau", "Delta"))
+Gamma_mean <- mean(hmnl_draws$Gamma)
+Gamma_scale <- sqrt(var(hmnl_draws$Gamma))
+Omega_shape <- mean(hmnl_draws$Omega)
+tau_mean <- mean(hmnl_draws$tau)
+tau_scale <- sqrt(var(as.vector(hmnl_draws$tau)))
 
 # Run HMNL Ensemble -------------------------------------------------------
+# Pathfinder could be run in place of the full posterior, perhaps without any initalization.
+# Specify data as a list of lists.
+stan_data_list <- vector(mode = "list", length = nmember)
+for (k in 1:nmember) {
+  # Temporary full dataset.
+  train_Y1 <- data$train_Y
+  train_X1 <- data$train_X
+  train_Z1 <- data$train_Z
+  
+  # Reconstruct data for each ensemble member for respondent quality.
+  if (ind_resp == 1) {
+    # Pull respondents for the specific member.
+    mat_vec <- mat_resp[k,]
+    for (i in 1:length(mat_vec)) {
+      train_Y1[i,] <- data$train_Y[mat_vec[i],]
+      train_X1[i,,,] <- data$train_X[mat_vec[i],,,]
+      train_Z1[i,] <- data$train_Z[mat_vec[i],]
+    }
+    
+    # # Overwrite the original data. WHY?! DON'T DO THIS.
+    # data$train_Y <- train_Y1
+    # data$train_X <- train_X1
+    # data$train_Z <- train_Z1
+  }
+  
+  stan_data <- list(
+    R = dim(data$train_X)[1],  # Number of respondents.
+    S = dim(data$train_X)[2],  # Number of choice tasks.
+    A = dim(data$train_X)[3],  # Number of choice alternatives.
+    I = dim(data$train_X)[4],  # Number of observation-level covariates.
+    J = ncol(data$train_Z),    # Number of population-level covariates.
+    K = nmember,               # Number of members of the ensemble.
+    k = k,                     # Ensemble member number.
+    
+    Gamma_mean = Gamma_mean,   # Mean of population-level means.
+    Gamma_scale = Gamma_scale, # Scale of population-level means.
+    Omega_shape = 2,           # Shape of population-level scale.
+    tau_mean = tau_mean,       # Mean of population-level scale.
+    tau_scale = tau_scale,     # Scale of population-level scale.
+    
+    # Y = data$train_Y,          # Matrix of observations.
+    # X = data$train_X,          # Array of observation-level covariates.
+    # Z = data$train_Z,          # Matrix of population-level covariates.
+    Y = train_Y1,          # Matrix of observations.
+    X = train_X1,          # Array of observation-level covariates.
+    Z = train_Z1,          # Matrix of population-level covariates.
+    
+    ind_ana = ind_ana,         # Flag indicating attribute non-attendance.
+    ind_screen = ind_screen,   # Flag indicating screening.
+    mat_ana = mat_ana,         # Matrix of ensemble indicators for ANA.
+    mat_screen = mat_screen    # Matrix of ensemble indicators for screening.
+  )
+  
+  stan_data_list[[k]] <- stan_data
+}
+
+fit_extract_average <- function(stan_data) {
+  # # Estimate with VB.
+  # fit <- rstan::vb(
+  #   stan_model(here::here("Code", "src", "hmnl_ensemble.stan")),
+  #   data = stan_data,
+  #   init = 0,
+  #   seed = 42,
+  #   output_samples = 100
+  # )
+  
+  # Estimate with full posterior sampling.
+  fit <- stan(
+    here::here("code", "src", "hmnl_ensemble.stan"),
+    data = stan_data,
+    chains = 1,
+    thin = 10,
+    seed = 42
+  )
+
+  # Extract the posterior draws for Gamma, Sigma, and log_lik.
+  draws <- rstan::extract(fit, pars = c("Gamma", "Sigma", "log_lik"))
+  
+  # Compute posterior means.
+  ensemble_draws <- NULL
+  ensemble_draws$Gamma <- apply(draws$Gamma, c(2, 3), mean)
+  ensemble_draws$Sigma <- apply(draws$Sigma, c(2, 3), mean)
+  ensemble_draws$log_lik <- draws$log_lik
+  
+  return(ensemble_draws)
+}
+
 # # NOT PARALLELIZED
 # temp <- vector(mode = "list", length = nmember)
 # for (k in 1:nmember) {
@@ -163,95 +267,6 @@ if (!file.exists(here::here("output", str_c("hmnl-fit_", ifelse(ind_sim == 1, fi
 # 
 #   temp[[k]] <- ensemble_draws
 # }
-
-
-
-# PARALLELIZED
-# Compute the conjoint ensemble.
-stan_data_list <- vector(mode = "list", length = nmember)
-for (k in 1:nmember) {
-  # Temporary full dataset.
-  train_Y1 = data$train_Y
-  train_X1 = data$train_X
-  train_Z1 <- data$train_Z
-  
-  # Reconstruct data for each ensemble member for respondent quality.
-  if (ind_resp == 1) {
-    # Pull respondents for the specific member.
-    mat_vec <- mat_resp[k,]
-    for (i in 1:length(mat_vec)) {
-      train_Y1[i,] <- data$train_Y[mat_vec[i],]
-      train_X1[i,,,] <- data$train_X[mat_vec[i],,,]
-      train_Z1[i,] <- data$train_Z[mat_vec[i],]
-    }
-    
-    # # Overwrite the original data. WHY?! DON'T DO THIS.
-    # data$train_Y <- train_Y1
-    # data$train_X <- train_X1
-    # data$train_Z <- train_Z1
-  }
-  
-  stan_data <- list(
-    R = dim(data$train_X)[1],  # Number of respondents.
-    S = dim(data$train_X)[2],  # Number of choice tasks.
-    A = dim(data$train_X)[3],  # Number of choice alternatives.
-    I = dim(data$train_X)[4],  # Number of observation-level covariates.
-    J = ncol(data$train_Z),    # Number of population-level covariates.
-    K = nmember,               # Number of members of the ensemble.
-    k = k,                     # Ensemble member number.
-    
-    Gamma_mean = Gamma_mean,   # Mean of population-level means.
-    Gamma_scale = Gamma_scale, # Scale of population-level means.
-    Omega_shape = 2,           # Shape of population-level scale.
-    tau_mean = tau_mean,       # Mean of population-level scale.
-    tau_scale = tau_scale,     # Scale of population-level scale.
-    
-    # Y = data$train_Y,          # Matrix of observations.
-    # X = data$train_X,          # Array of observation-level covariates.
-    # Z = data$train_Z,          # Matrix of population-level covariates.
-    Y = train_Y1,          # Matrix of observations.
-    X = train_X1,          # Array of observation-level covariates.
-    Z = train_Z1,          # Matrix of population-level covariates.
-    
-    ind_ana = ind_ana,         # Flag indicating attribute non-attendance.
-    ind_screen = ind_screen,   # Flag indicating screening.
-    mat_ana = mat_ana,         # Matrix of ensemble indicators for ANA.
-    mat_screen = mat_screen    # Matrix of ensemble indicators for screening.
-  )
-  
-  stan_data_list[[k]] <- stan_data
-}
-
-fit_extract_average <- function(stan_data) {
-  # # Estimate with VB.
-  # fit <- rstan::vb(
-  #   stan_model(here::here("Code", "src", "hmnl_ensemble.stan")),
-  #   data = stan_data,
-  #   init = 0,
-  #   seed = 42,
-  #   output_samples = 100
-  # )
-  
-  # # Estimate with full posterior sampling.
-  # fit <- stan(
-  #   here::here("code", "src", "hmnl_ensemble.stan"),
-  #   data = stan_data,
-  #   chains = 1,
-  #   thin = 10,
-  #   seed = 42
-  # )
-  
-  # # Extract the posterior draws for Gamma, Sigma, and log_lik.
-  # draws <- rstan::extract(fit, pars = c("Gamma", "Sigma", "log_lik"))
-  
-  # Compute posterior means.
-  ensemble_draws <- NULL
-  ensemble_draws$Gamma <- apply(draws$Gamma, c(2, 3), mean)
-  ensemble_draws$Sigma <- apply(draws$Sigma, c(2, 3), mean)
-  ensemble_draws$log_lik <- draws$log_lik
-  
-  return(ensemble_draws)
-}
 
 # ensemble_draws <- parallel::mclapply(stan_data_list, fit_extract_average, mc.cores = parallel::detectCores())
 
