@@ -5,11 +5,11 @@ library(rstan)
 library(loo)
 
 # Source functions.
-source(here::here("Code", "Source", "predictive_fit_stacking.R"))
-# source(here::here("Code", "Source", "predictive_fit_hmnl.R"))
-# source(here::here("Code", "Source", "predictive_fit_ensemble.R"))
-source(here::here("Code", "Source", "predictive_fit_hmnl_test.R"))
-source(here::here("Code", "Source", "predictive_fit_ensemble_test.R"))
+source(here::here("Code", "src", "predictive_fit_stacking.R"))
+# source(here::here("Code", "src", "predictive_fit_hmnl.R"))
+# source(here::here("Code", "src", "predictive_fit_ensemble.R"))
+source(here::here("Code", "src", "predictive_fit_hmnl_test.R"))
+source(here::here("Code", "src", "predictive_fit_ensemble_test.R"))
 
 # Set the simulation seed.
 set.seed(42)
@@ -109,7 +109,7 @@ for (k in 1:length(ensemble_fit$ensemble_weights)) {
 # rstan_options(auto_write = FALSE)
 # 
 # meta_fit <- stan(
-#   here::here("Code", "Source", "mnl.stan"),
+#   here::here("Code", "src", "mnl.stan"),
 #   data = stan_data,
 #   seed = 42
 # )

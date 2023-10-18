@@ -7,8 +7,8 @@ library(bayesm)
 library(RcppArmadillo)
 
 # Source functions.
-source(here::here("code", "source", "ana_hmnl.R"))
-source(here::here("code", "source", "conj_hmnl_e.R"))
+source(here::here("code", "src", "ana_hmnl.R"))
+source(here::here("code", "src", "conj_hmnl_e.R"))
 
 # Set the simulation seed.
 set.seed(42)

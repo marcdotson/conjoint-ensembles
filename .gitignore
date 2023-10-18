@@ -9,7 +9,11 @@ output/*
 private/*
 
 # Files
-code/source/*.rds
+code/src/*
+!code/src/*.R
+!code/src/*.py
+!code/src/*.cpp
+!code/src/*.stan
 data/emp_*
 *.pdf
 

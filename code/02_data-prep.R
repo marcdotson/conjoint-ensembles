@@ -3,8 +3,8 @@
 library(tidyverse)
 
 # Source functions.
-source(here::here("code", "source", "simulate_data.R"))
-source(here::here("code", "source", "clever_randomization.R"))
+source(here::here("code", "src", "simulate_data.R"))
+source(here::here("code", "src", "clever_randomization.R"))
 
 # Set the simulation seed.
 set.seed(42)

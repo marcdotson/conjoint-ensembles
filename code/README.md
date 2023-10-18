@@ -18,7 +18,7 @@ corresponding scripts.
 
 ## Functions
 
-The following functions are stored in `/code/source`.
+The following functions are stored in `/code/src`.
 
 - `ana_hbmnl.R` One of two functions to estimate an HMNL with attribute
   non-attendance.

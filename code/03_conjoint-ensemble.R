@@ -40,7 +40,7 @@ if (!file.exists(here::here("output", str_c("hmnl-fit_", ifelse(ind_sim == 1, fi
     Z = data$train_Z          # Matrix of population-level covariates.
   )
   
-  hmnl <- cmdstan_model(here::here("code", "source", "hmnl.stan"))
+  hmnl <- cmdstan_model(here::here("code", "src", "hmnl.stan"))
   
   hmnl_fit <- hmnl$sample(
     data = stan_data,
@@ -133,7 +133,7 @@ if (!file.exists(here::here("output", str_c("hmnl-fit_", ifelse(ind_sim == 1, fi
 # 
 #   # # Estimate with VB.
 #   # fit <- rstan::vb(
-#   #   stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
+#   #   stan_model(here::here("Code", "src", "hmnl_ensemble.stan")),
 #   #   data = stan_data,
 #   #   init = 0,
 #   #   # init = init_fun,
@@ -145,7 +145,7 @@ if (!file.exists(here::here("output", str_c("hmnl-fit_", ifelse(ind_sim == 1, fi
 #   
 #   # Estimate with full posterior sampling.
 #   fit <- stan(
-#     here::here("Code", "Source", "hmnl_ensemble.stan"),
+#     here::here("Code", "src", "hmnl_ensemble.stan"),
 #     data = stan_data,
 #     chains = 1,
 #     thin = 10,
@@ -225,7 +225,7 @@ for (k in 1:nmember) {
 fit_extract_average <- function(stan_data) {
   # # Estimate with VB.
   # fit <- rstan::vb(
-  #   stan_model(here::here("Code", "Source", "hmnl_ensemble.stan")),
+  #   stan_model(here::here("Code", "src", "hmnl_ensemble.stan")),
   #   data = stan_data,
   #   init = 0,
   #   seed = 42,
@@ -234,7 +234,7 @@ fit_extract_average <- function(stan_data) {
   
   # # Estimate with full posterior sampling.
   # fit <- stan(
-  #   here::here("code", "source", "hmnl_ensemble.stan"),
+  #   here::here("code", "src", "hmnl_ensemble.stan"),
   #   data = stan_data,
   #   chains = 1,
   #   thin = 10,
