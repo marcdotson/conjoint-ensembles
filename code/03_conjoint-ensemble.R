@@ -49,7 +49,8 @@ if (!file.exists(here::here("output", str_c("hmnl-fit_", ifelse(ind_sim == 1, fi
   )
 
   # Save HMNL fit.
-  write_rds(hmnl_fit, here::here("output", str_c("hmnl-fit_", file_id, ".rds")))
+  # write_rds(hmnl_fit, here::here("output", str_c("hmnl-fit_", file_id, ".rds")))
+  hmnl_fit$save_object(here::here("output", str_c("hmnl-fit_", file_id, ".rds")))
 } else {
   # Read HMNL fit.
   if (ind_sim == 1) hmnl_fit <- read_rds(here::here("output", str_c("hmnl-fit_", file_id, ".rds")))

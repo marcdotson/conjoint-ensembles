@@ -37,7 +37,10 @@ predictive_fit_ensemble <- function(indices, ensemble_weights, ensemble_draws, t
   memb_probs <- NULL
   for (memb in 1:nmemb) {
     # Get the mean of distribution of heterogeneity.
-    Gamma_mean <- ensemble_draws[[memb]]$Gamma
+    # Gamma_mean <- ensemble_draws[[memb]]$Gamma
+    Gamma_mean <- ensemble_fit$ensemble_draws[[1]]$Gamma |> 
+      select("mean") |> 
+      as.matrix()
     
     # Predict Y.
     hits <- NULL
@@ -49,8 +52,10 @@ predictive_fit_ensemble <- function(indices, ensemble_weights, ensemble_draws, t
         X_scn <- test_X[resp, scn,,]
         
         # Compute hit and probability.
-        hits <- c(hits, Y_scn == which.max(X_scn %*% t(Gamma_mean)))
-        probs <- c(probs, exp(ll_mnl(t(Gamma_mean), Y_scn, X_scn)))
+        # hits <- c(hits, Y_scn == which.max(X_scn %*% t(Gamma_mean)))
+        # probs <- c(probs, exp(ll_mnl(t(Gamma_mean), Y_scn, X_scn)))
+        hits <- c(hits, Y_scn == which.max(X_scn %*% Gamma_mean))
+        probs <- c(probs, exp(ll_mnl(Gamma_mean, Y_scn, X_scn)))
       }
     }
     

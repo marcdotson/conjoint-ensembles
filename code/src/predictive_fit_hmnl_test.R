@@ -30,7 +30,12 @@ predictive_fit_hmnl <- function(hmnl_draws, test_X, test_Y, test_Z) {
   }
   
   # Get the mean of distribution of heterogeneity.
-  Gamma_mean <- apply(hmnl_draws$Gamma, c(2,3), mean)
+  # Gamma_mean <- apply(hmnl_draws$Gamma, c(2,3), mean)
+  Gamma_mean <- hmnl_draws |> 
+    subset_draws(variable = "Gamma") |> 
+    summarize_draws("mean") |> 
+    select("mean") |> 
+    as.matrix()
   
   # Predict Y.
   hits <- NULL
@@ -42,8 +47,10 @@ predictive_fit_hmnl <- function(hmnl_draws, test_X, test_Y, test_Z) {
       X_scn <- test_X[resp, scn,,]
       
       # Compute hit and probability.
-      hits <- c(hits, Y_scn == which.max(X_scn %*% t(Gamma_mean)))
-      probs <- c(probs, exp(ll_mnl(t(Gamma_mean), Y_scn, X_scn)))
+      # hits <- c(hits, Y_scn == which.max(X_scn %*% t(Gamma_mean)))
+      # probs <- c(probs, exp(ll_mnl(t(Gamma_mean), Y_scn, X_scn)))
+      hits <- c(hits, Y_scn == which.max(X_scn %*% Gamma_mean))
+      probs <- c(probs, exp(ll_mnl(Gamma_mean, Y_scn, X_scn)))
     }
   }
   
