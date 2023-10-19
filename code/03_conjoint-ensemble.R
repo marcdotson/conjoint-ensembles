@@ -59,31 +59,38 @@ if (!file.exists(here::here("output", str_c("hmnl-fit_", ifelse(ind_sim == 1, fi
 # Use posteriors to construct priors for the ensemble.
 hmnl_draws <- hmnl_fit$draws(format = "df")
 
-######
-# Do we use gather_draws()? Take blog notes on posterior vs. tidybayes.
-######
-
-names(hmnl_draws) |> as.data.frame()
-
-test <- gather_draws(hmnl_fit, Gamma[j, i], Omega[h, n], tau[k], Delta[r, v])
-
-spread_rvars(model, b[i,v])
-
-subset_draws(hmnl_draws, variable = "Gamma") |> as_tibble() |> select(contains("Gamma")) |> as.vector() |> str()
-
-hmnl_draws |> 
+Gamma_mean <- hmnl_draws |> 
   select(contains("Gamma")) |> 
+  pivot_longer(everything()) |> 
+  summarize(mean = mean(value)) |> 
+  pull()
   
+Gamma_scale <- hmnl_draws |> 
+  select(contains("Gamma")) |> 
+  pivot_longer(everything()) |> 
+  summarize(sd = sd(value)) |> 
+  pull()
 
-hmnl_draws <- extract(hmnl_fit, pars = c("Gamma", "Omega", "tau", "Delta"))
-Gamma_mean <- mean(hmnl_draws$Gamma)
-Gamma_scale <- sqrt(var(hmnl_draws$Gamma))
-Omega_shape <- mean(hmnl_draws$Omega)
-tau_mean <- mean(hmnl_draws$tau)
-tau_scale <- sqrt(var(as.vector(hmnl_draws$tau)))
+Omega_shape <- hmnl_draws |> 
+  select(contains("Omega")) |> 
+  pivot_longer(everything()) |> 
+  summarize(mean = mean(value)) |> 
+  pull()
+
+tau_mean <- hmnl_draws |> 
+  select(contains("tau")) |> 
+  pivot_longer(everything()) |> 
+  summarize(mean = mean(value)) |> 
+  pull()
+
+tau_scale <- hmnl_draws |> 
+  select(contains("tau")) |> 
+  pivot_longer(everything()) |> 
+  summarize(sd = sd(value)) |> 
+  pull()
 
 # Run HMNL Ensemble -------------------------------------------------------
-# Pathfinder could be run in place of the full posterior, perhaps without any initalization.
+# Pathfinder could be run in place of the full posterior, perhaps without any initialization.
 # Specify data as a list of lists.
 stan_data_list <- vector(mode = "list", length = nmember)
 for (k in 1:nmember) {
@@ -132,8 +139,10 @@ for (k in 1:nmember) {
     
     ind_ana = ind_ana,         # Flag indicating attribute non-attendance.
     ind_screen = ind_screen,   # Flag indicating screening.
-    mat_ana = mat_ana,         # Matrix of ensemble indicators for ANA.
-    mat_screen = mat_screen    # Matrix of ensemble indicators for screening.
+    # mat_ana = mat_ana,         # Matrix of ensemble indicators for ANA.
+    # mat_screen = mat_screen    # Matrix of ensemble indicators for screening.
+    mat_ana = matrix(mat_ana, nrow = 1),         # Matrix of ensemble indicators for ANA.
+    mat_screen = matrix(mat_screen, nrow = 1)    # Matrix of ensemble indicators for screening.
   )
   
   stan_data_list[[k]] <- stan_data
@@ -149,26 +158,36 @@ fit_extract_average <- function(stan_data) {
   #   output_samples = 100
   # )
   
-  # Estimate with full posterior sampling.
-  fit <- stan(
-    here::here("code", "src", "hmnl_ensemble.stan"),
+  # Compile and estimate the model.
+  hmnl_ensemble <- cmdstan_model(here::here("code", "src", "hmnl_ensemble.stan"))
+  fit <- hmnl_ensemble$sample(
     data = stan_data,
+    seed = 42,
     chains = 1,
-    thin = 10,
-    seed = 42
+    thin = 10
+    # chains = 4,
+    # parallel_chains = 4
   )
 
   # Extract the posterior draws for Gamma, Sigma, and log_lik.
-  draws <- rstan::extract(fit, pars = c("Gamma", "Sigma", "log_lik"))
+  draws <- fit$draws(format = "df", variables = c("Gamma", "Sigma", "log_lik"))
   
   # Compute posterior means.
   ensemble_draws <- NULL
-  ensemble_draws$Gamma <- apply(draws$Gamma, c(2, 3), mean)
-  ensemble_draws$Sigma <- apply(draws$Sigma, c(2, 3), mean)
-  ensemble_draws$log_lik <- draws$log_lik
+  ensemble_draws$Gamma <- draws |> subset_draws(variable = "Gamma") |> summarize_draws("mean")
+  ensemble_draws$Sigma <- draws |> subset_draws(variable = "Sigma") |> summarize_draws("mean")
+  ensemble_draws$log_lik <- draws |> subset_draws(variable = "log_lik")
   
   return(ensemble_draws)
 }
+
+ensemble_draws <- parallel::mclapply(stan_data_list, fit_extract_average, mc.cores = parallel::detectCores())
+
+# Save ensemble fit.
+ensemble_fit <- list(mat_ana = mat_ana, mat_screen = mat_screen, ensemble_draws = ensemble_draws)
+write_rds(ensemble_fit, here::here("output", str_c("ensemble-fit_", file_id, "_", nmember, ".rds")))
+
+rempBayes(lgtdata = stan_data) # WHAT IS THIS?
 
 # # NOT PARALLELIZED
 # temp <- vector(mode = "list", length = nmember)
@@ -267,12 +286,4 @@ fit_extract_average <- function(stan_data) {
 # 
 #   temp[[k]] <- ensemble_draws
 # }
-
-# ensemble_draws <- parallel::mclapply(stan_data_list, fit_extract_average, mc.cores = parallel::detectCores())
-
-# Save ensemble fit.
-ensemble_fit <- list(mat_ana = mat_ana, mat_screen = mat_screen, ensemble_draws = ensemble_draws)
-write_rds(ensemble_fit, here::here("output", str_c("ensemble-fit_", file_id, "_", nmember, ".rds")))
-
-rempBayes(lgtdata = stan_data)
 
