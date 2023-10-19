@@ -49,6 +49,7 @@ model {
   for (r in 1:R) {
     Delta[r,] ~ normal(0, 1);
     for (s in 1:S) {
+      // Y[r, s] ~ categorical_logit(X[r, s] * Beta[r,]');
       Y[r, s] ~ categorical_logit(X[r, s,,] * Beta[r,]');
     }
   }
@@ -60,6 +61,7 @@ generated quantities {
   matrix[R, S] log_lik;
   for (r in 1:R) {
     for (s in 1:S) {
+      // log_lik[r, s] = categorical_logit_lpmf(Y[r, s] | X[r, s] * Beta[r,]');
       log_lik[r, s] = categorical_logit_lpmf(Y[r, s] | X[r, s,,] * Beta[r,]');
     }
   }
