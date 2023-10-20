@@ -16,13 +16,13 @@ if (ind_emp == 1) {
 }
 
 # Indicate which pathologies to randomize for.
-ind_none <- 0       # Indicates no pathologies.
-ind_ana <- 1        # Indicates attribute non-attendance.
+ind_none <- 1       # Indicates no pathologies.
+ind_ana <- 0        # Indicates attribute non-attendance.
 ind_screen <- 0     # Indicates screening.
 ind_resp <- 0       # Indicates respondent quality (still a bootstrap).
 
 # Decide on pathology heterogeneity and the size of the ensemble.
-ind_hetero <- 0     # Indicates if pathologies differ by individual.
+ind_hetero <- 1     # Indicates if pathologies differ by individual.
 nmember <- 1000     # Indicates the number of ensemble members.
 if (ind_test == 1) {
   nmember <- 1      # Constrain tests to a single, best-performing model.
@@ -64,8 +64,24 @@ source(here::here("code", "03_conjoint-ensemble.R"))
 # # Run the models specific to the indicated pathology.
 # source(here::here("code", "05_competing-models.R"))
 
-# # Compute and compare fit across models.
-# source(here::here("code", "06_model-comparison.R"))
+# Compute and compare fit across models.
+source(here::here("code", "06_model-comparison.R"))
 # ensemble_fit$ensemble_weights
 # model_comparison
+
+# Print results.
+model_comparison
+
+# Upper bounds.
+upper_bounds <- tibble(
+  Model = rep(c("HMNL", "Ensemble"), 4),
+  Pathologies = c(rep("None", 2), rep("ANA", 2), rep("Screen", 2), rep("ANA & Screen", 2)),
+  Heterogeneous = rep("No", 8),
+  LOO = NA,
+  "Hit Rate" = c(0.578, 0.574, 0.614, 0.604, 0.739, 0.742, 0.865, 0.717),
+  "Hit Prob" = c(0.483, 0.482, 0.532, 0.527, 0.685, 0.609, 0.832, 0.682)
+)
+
+model_comparison
+upper_bounds
 

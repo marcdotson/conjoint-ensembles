@@ -188,7 +188,7 @@ ensemble_draws <- parallel::mclapply(stan_data_list, fit_extract_average, mc.cor
 ensemble_fit <- list(mat_ana = mat_ana, mat_screen = mat_screen, ensemble_draws = ensemble_draws)
 write_rds(ensemble_fit, here::here("output", str_c("ensemble-fit_", file_id, "_", nmember, ".rds")))
 
-rempBayes(lgtdata = stan_data) # WHAT IS THIS?
+# rempBayes(lgtdata = stan_data) # WHAT IS THIS?
 
 # # NOT PARALLELIZED
 # temp <- vector(mode = "list", length = nmember)
