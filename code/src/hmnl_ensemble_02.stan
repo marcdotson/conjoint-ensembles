@@ -37,49 +37,11 @@ parameters {
 // Deterministic transformation.
 transformed parameters {
   // Matrix of centered observation-level parameters.
-  matrix[R, I] Beta;
+  matrix[R, I] Beta_old;
 
   // Non-centered parameterization.
   for (r in 1:R) {
-    Beta[r,] = Z[r,] * Gamma + Delta[r,] * quad_form_diag(Omega, tau);
-  }
-  
-  // Impose fixed values using ensemble indicator matrices.
-  // for (r in 1:R) {
-  //   for (i in 1:I) {
-  //     if (ind_ana == 1) {
-  //       if (mat_ana[k, i] == 1) {
-  //         Beta[r, i] = 0;
-  //       }
-  //     }
-  //     if (ind_screen == 1) {
-  //       if (mat_screen[k, i] == 1) {
-  //         Beta[r, i] = -1000;
-  //       }
-  //     }
-  //   }
-  // }
-  
-  // Impose fixed values using ANA indicator matrix.
-  if (ind_ana == 1) {
-    for (r in 1:R) {
-      for (i in 1:I) {
-        if (mat_ana[k, i] == 1) {
-          Beta[r, i] = 0;
-        }
-      }
-    }
-  }
-  
-  // Impose fixed values using screening indicator matrix.
-  if (ind_screen == 1) {
-    for (r in 1:R) {
-      for (i in 1:I) {
-        if (mat_screen[k, i] == 1) {
-          Beta[r, i] = -100;
-        }
-      }
-    }
+    Beta_old[r,] = Z[r,] * Gamma + Delta[r,] * quad_form_diag(Omega, tau);
   }
 }
 
@@ -94,8 +56,8 @@ model {
   for (r in 1:R) {
     Delta[r,] ~ normal(0, 1);
     for (s in 1:S) {
-      // Y[r, s] ~ categorical_logit(X[r, s] * Beta[r,]');
-      Y[r, s] ~ categorical_logit(X[r, s,,] * Beta[r,]');
+      // Y[r, s] ~ categorical_logit(X[r, s] * Beta_old[r,]');
+      Y[r, s] ~ categorical_logit(X[r, s,,] * Beta_old[r,]');
     }
   }
 }
@@ -104,11 +66,40 @@ model {
 generated quantities {
   matrix[R, S] log_lik; // Matrix of log likelihood values.
   matrix[I, I] Sigma;   // Covariance matrix for the population model.
+  matrix[R, I] Beta;    // Matrix of modified observation-level parameters.
+  
+  // Compute the log-likelihood.
   for (r in 1:R) {
     for (s in 1:S) {
-      // log_lik[r, s] = categorical_logit_lpmf(Y[r, s] | X[r, s] * Beta[r,]');
-      log_lik[r, s] = categorical_logit_lpmf(Y[r, s] | X[r, s,,] * Beta[r,]');
+      // log_lik[r, s] = categorical_logit_lpmf(Y[r, s] | X[r, s] * Beta_old[r,]');
+      log_lik[r, s] = categorical_logit_lpmf(Y[r, s] | X[r, s,,] * Beta_old[r,]');
     }
   }
   Sigma = quad_form_diag(Omega, tau);
+  
+  // Impose fixed values using ANA indicator matrix.
+  if (ind_ana == 1) {
+    for (r in 1:R) {
+      for (i in 1:I) {
+        if (mat_ana[k, i] == 1) {
+          Beta[r, i] = 0;
+        } else {
+          Beta[r, i] = Beta_old[r, i];
+        }
+      }
+    }
+  }
+  
+  // Impose fixed values using screening indicator matrix.
+  if (ind_screen == 1) {
+    for (r in 1:R) {
+      for (i in 1:I) {
+        if (mat_screen[k, i] == 1) {
+          Beta[r, i] = -100;
+        } else {
+          Beta[r, i] = Beta_old[r, i];
+        }
+      }
+    }
+  }
 }

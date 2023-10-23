@@ -160,8 +160,9 @@ fit_extract_average <- function(stan_data) {
   # )
   
   # Compile and estimate the model.
-  hmnl_ensemble <- cmdstan_model(here::here("code", "src", "hmnl_ensemble.stan"))
-  fit <- hmnl_ensemble$sample(
+  # hmnl_ensemble <- cmdstan_model(here::here("code", "src", "hmnl_ensemble.stan"))
+  hmnl_ensemble_02 <- cmdstan_model(here::here("code", "src", "hmnl_ensemble_02.stan"))
+  fit <- hmnl_ensemble_02$sample(
     data = stan_data,
     seed = 42,
     chains = 1,
