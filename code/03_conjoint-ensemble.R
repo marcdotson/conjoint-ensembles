@@ -140,10 +140,15 @@ for (k in 1:nmember) {
     
     ind_ana = ind_ana,         # Flag indicating attribute non-attendance.
     ind_screen = ind_screen,   # Flag indicating screening.
-    # mat_ana = mat_ana,         # Matrix of ensemble indicators for ANA.
-    # mat_screen = mat_screen    # Matrix of ensemble indicators for screening.
-    mat_ana = matrix(mat_ana, nrow = 1),         # Matrix of ensemble indicators for ANA.
-    mat_screen = matrix(mat_screen, nrow = 1)    # Matrix of ensemble indicators for screening.
+    mat_ana = mat_ana,         # Matrix of ensemble indicators for ANA.
+    mat_screen = mat_screen    # Matrix of ensemble indicators for screening.
+    
+    ##############
+    # Need to get matrices to work for homogeneous and heterogeneous pathologies.
+    ##############
+    
+    # mat_ana = matrix(mat_ana, nrow = 1),         # Matrix of ensemble indicators for ANA.
+    # mat_screen = matrix(mat_screen, nrow = 1)    # Matrix of ensemble indicators for screening.
   )
   
   stan_data_list[[k]] <- stan_data
@@ -160,9 +165,9 @@ fit_extract_average <- function(stan_data) {
   # )
   
   # Compile and estimate the model.
-  # hmnl_ensemble <- cmdstan_model(here::here("code", "src", "hmnl_ensemble.stan"))
-  hmnl_ensemble_02 <- cmdstan_model(here::here("code", "src", "hmnl_ensemble_02.stan"))
-  fit <- hmnl_ensemble_02$sample(
+  # hmnl_ensemble <- cmdstan_model(here::here("code", "src", "hmnl_ensemble_01.stan"))
+  hmnl_ensemble <- cmdstan_model(here::here("code", "src", "hmnl_ensemble_02.stan"))
+  fit <- hmnl_ensemble$sample(
     data = stan_data,
     seed = 42,
     chains = 1,
@@ -172,10 +177,12 @@ fit_extract_average <- function(stan_data) {
   )
 
   # Extract the posterior draws for Gamma, Sigma, and log_lik.
-  draws <- fit$draws(format = "df", variables = c("Gamma", "Sigma", "log_lik"))
+  # draws <- fit$draws(format = "df", variables = c("Gamma", "Sigma", "log_lik"))
+  draws <- fit$draws(format = "df", variables = c("Beta", "Gamma", "Sigma", "log_lik"))
   
   # Compute posterior means.
   ensemble_draws <- NULL
+  ensemble_draws$Beta <- draws |> subset_draws(variable = "Beta") #|> summarize_draws("mean")
   ensemble_draws$Gamma <- draws |> subset_draws(variable = "Gamma") |> summarize_draws("mean")
   ensemble_draws$Sigma <- draws |> subset_draws(variable = "Sigma") |> summarize_draws("mean")
   ensemble_draws$log_lik <- draws |> subset_draws(variable = "log_lik")
