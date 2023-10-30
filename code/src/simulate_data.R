@@ -75,6 +75,11 @@ simulate_data <- function(
   ####################################
   
   # If heterogeneity isn't flagged, have the first iteration of ANA and screening apply for all members.
+  
+  #######
+  # Need to make this a matrix regardless of hetero.
+  #######
+  
   if (hetero == FALSE) {
     ana.vec <- ana.mat[1,]
     screen.vec <- screen.mat[1,]

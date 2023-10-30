@@ -1,6 +1,7 @@
 # Preamble ----------------------------------------------------------------
 # Load packages.
 library(tidyverse)
+library(tidybayes)
 library(cmdstanr)
 library(posterior)
 library(loo)
@@ -22,10 +23,8 @@ if (ind_sim == 1) data <- read_rds(here::here("data", str_c("sim_", file_id, ".r
 if (ind_emp == 1) data <- read_rds(here::here("data", str_c("emp_", data_id, ".rds")))
 data$test_Z <- matrix(rep(1, nrow(data$test_Y)), ncol = 1)
 
-####################
 # Problem importing fit objects with read_rds()? Fixed with fit$save_object()?
 # But the ensemble_fit object has a list, not a data frame?
-####################
 
 if (ind_sim == 1) hmnl_fit <- read_rds(here::here("output", str_c("hmnl-fit_", file_id, ".rds")))
 if (ind_emp == 1) hmnl_fit <- read_rds(here::here("output", str_c("hmnl-fit_", data_id, ".rds")))
@@ -42,9 +41,7 @@ hmnl_pred_fit <- predictive_fit_hmnl(
   test_Z = data$test_Z
 )
 
-####################
 # Problem with loo working with a cmdstanr object?
-####################
 
 # Create a model comparison data frame.
 model_comparison <- tibble(

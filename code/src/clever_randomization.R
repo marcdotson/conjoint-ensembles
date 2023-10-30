@@ -67,8 +67,8 @@ clever_randomization <- function(
                 mat_resp = mat_resp))
   }
   if (test == 1) {
-    return(list(train_Y = train_Y, train_X = train_X, test_Y = test_Y,
-                test_X = test_X, mat_ana = data$mat_ana, mat_screen = data$mat_screen,
+    return(list(train_Y = train_Y, train_X = train_X, test_Y = test_Y, test_X = test_X,
+                mat_ana = data$mat_ana, mat_screen = data$mat_screen,
                 mat_resp = mat_resp, betas = data$betas, bbar = data$bbar))
   }
 }
