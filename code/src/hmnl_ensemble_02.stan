@@ -78,28 +78,28 @@ generated quantities {
   Sigma = quad_form_diag(Omega, tau);
   
   // Impose fixed values using ANA indicator matrix.
-  if (ind_ana == 1) {
-    for (r in 1:R) {
-      for (i in 1:I) {
-        if (mat_ana[k, i] == 1) {
-          Beta[r, i] = 0;
-        } else {
-          Beta[r, i] = Beta_old[r, i];
-        }
+  // if (ind_ana == 1) {
+  for (r in 1:R) {
+    for (i in 1:I) {
+      if (mat_ana[k, i] == 1) {
+        Beta[r, i] = 0;
+      } else {
+        Beta[r, i] = Beta_old[r, i];
       }
     }
   }
+  // }
   
   // Impose fixed values using screening indicator matrix.
-  if (ind_screen == 1) {
-    for (r in 1:R) {
-      for (i in 1:I) {
-        if (mat_screen[k, i] == 1) {
-          Beta[r, i] = -100;
-        } else {
-          Beta[r, i] = Beta_old[r, i];
-        }
+  // if (ind_screen == 1) {
+  for (r in 1:R) {
+    for (i in 1:I) {
+      if (mat_screen[k, i] == 1) {
+        Beta[r, i] = -100;
+      } else {
+        Beta[r, i] = Beta_old[r, i];
       }
     }
   }
+  // }
 }

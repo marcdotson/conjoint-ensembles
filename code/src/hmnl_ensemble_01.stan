@@ -50,7 +50,7 @@ transformed parameters {
       for (i in 1:I) {
         if (mat_ana[k, i] == 1) {
           Beta[r, i] = 0;
-        }
+        } // Need else statement?
       }
     }
   }
@@ -61,7 +61,7 @@ transformed parameters {
       for (i in 1:I) {
         if (mat_screen[k, i] == 1) {
           Beta[r, i] = -100;
-        }
+        } // Need else statement?
       }
     }
   }
