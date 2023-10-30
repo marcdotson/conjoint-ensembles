@@ -23,8 +23,13 @@ if (ind_sim == 1) {
       ana = ind_ana,       # Attribute non-attendance flag.
       screen = ind_screen, # Screening flag.
       resp = ind_resp,     # Respondent quality flag.
-      hetero = ind_hetero  # Pathologies differ by individual flag.
+      hetero = ind_hetero, # Pathologies differ by individual flag.
+      test = ind_test      # Test flag.
     )
+    
+    ####################################################
+    # Test was missing above -- do I need to re-run everything?!
+    ####################################################
     
     data <- clever_randomization(
       Y = data$Y,          # Choice data to cleverly randomize.
@@ -32,7 +37,9 @@ if (ind_sim == 1) {
       natt = 5,            # Number of attributes across design matrices.
       nlevels = rep(3, 5), # Vector of number of attribute levels for each attribute.
       pct_test = .20,      # Percent of data to be saved for testing.
-      nmember = 2000       # Number of possible members in the ensemble.
+      nmember = 2000,      # Number of possible members in the ensemble.
+      test = ind_test,     # Test flag.
+      data = data          # Simulated data list.
     )
     
     # Save simulated data.
