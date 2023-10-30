@@ -22,7 +22,7 @@ ind_screen <- 0     # Indicates screening.
 ind_resp <- 0       # Indicates respondent quality (still a bootstrap).
 
 # Decide on pathology heterogeneity and the size of the ensemble.
-ind_hetero <- 0     # Indicates if pathologies differ by individual.
+ind_hetero <- 1     # Indicates if pathologies differ by individual.
 nmember <- 1000     # Indicates the number of ensemble members.
 if (ind_test == 1) {
   nmember <- 1      # Constrain tests to a single, best-performing model.
@@ -78,18 +78,20 @@ upper_bounds <- tibble(
   Pathologies = c(rep("None", 2), rep("ANA", 2), rep("Screen", 2), rep("ANA & Screen", 2)),
   Heterogeneous = rep("No", 8),
   LOO = NA,
-  "Hit Rate" = c(0.578, 0.574, 0.614, 0.604, 0.739, 0.742, 0.865, 0.717),
-  "Hit Prob" = c(0.483, 0.482, 0.532, 0.527, 0.685, 0.609, 0.832, 0.682)
+  "Hit Rate" = c(0.582, 0.578, 0.614, 0.615, 0.739, 0.738, 0.865, 0.846),
+  "Hit Prob" = c(0.484, 0.482, 0.532, 0.529, 0.685, 0.685, 0.832, 0.804)
 )
 
 # Upper bounds using the generated quantities block in hmnl_ensemble_02.
 upper_bounds <- tibble(
   Model = rep(c("HMNL", "Ensemble"), 4),
   Pathologies = c(rep("None", 2), rep("ANA", 2), rep("Screen", 2), rep("ANA & Screen", 2)),
-  Heterogeneous = rep("No", 8),
+  Heterogeneous = c(rep("No", 8), rep("Yes", 8)),
   LOO = NA,
-  "Hit Rate" = c(0.578, 0.574, ),
-  "Hit Prob" = c(0.483, 0.482, )
+  "Hit Rate" = c(0.582, 0.578, 0.614, 0.614, 0.739, 0.738, 0.865, 0.846,
+                 ),
+  "Hit Prob" = c(0.484, 0.482, 0.532, 0.530, 0.685, 0.686, 0.832, 0.808,
+                 )
 )
 
 model_comparison
