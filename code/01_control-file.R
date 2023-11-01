@@ -96,6 +96,13 @@ upper_bounds_02 <- tibble(
                  0.484, 0.482, 0.369, 0.368, 0.525, 0.548, 0.551, 0.565)
 )
 
-upper_bounds_01
-upper_bounds_02
+upper_bounds_01 |> 
+  ggplot(aes(x = Model, y = `Hit Prob`)) +
+  geom_col() +
+  facet_grid(Pathologies ~ Heterogeneous)
+
+upper_bounds_02 |> 
+  ggplot(aes(x = Model, y = `Hit Prob`)) +
+  geom_col() +
+  facet_grid(Pathologies ~ Heterogeneous)
 
