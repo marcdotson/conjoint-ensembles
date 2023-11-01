@@ -22,8 +22,10 @@ data {
   
   int ind_ana;                       // Flag indicating attribute non-attendance.
   int ind_screen;                    // Flag indicating screening.
-  matrix[K, I] mat_ana;              // Matrix of ensemble indicators for ANA.
-  matrix[K, I] mat_screen;           // Matrix of ensemble indicators for screening.
+  // matrix[K, I] mat_ana;              // Matrix of ensemble indicators for ANA.
+  // matrix[K, I] mat_screen;           // Matrix of ensemble indicators for screening.
+  matrix[R, I] mat_ana;              // Matrix of ensemble indicators for ANA.
+  matrix[R, I] mat_screen;           // Matrix of ensemble indicators for screening.
 }
 
 // Parameters and hyperparameters.
@@ -81,7 +83,8 @@ generated quantities {
   // if (ind_ana == 1) {
   for (r in 1:R) {
     for (i in 1:I) {
-      if (mat_ana[k, i] == 1) {
+      // if (mat_ana[k, i] == 1) {
+      if (mat_ana[r, i] == 1) {
         Beta[r, i] = 0;
       } else {
         Beta[r, i] = Beta_old[r, i];
@@ -94,7 +97,8 @@ generated quantities {
   // if (ind_screen == 1) {
   for (r in 1:R) {
     for (i in 1:I) {
-      if (mat_screen[k, i] == 1) {
+      // if (mat_screen[k, i] == 1) {
+      if (mat_screen[r, i] == 1) {
         Beta[r, i] = -100;
       } else {
         Beta[r, i] = Beta_old[r, i];

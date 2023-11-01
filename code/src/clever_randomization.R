@@ -14,7 +14,8 @@ clever_randomization <- function(
   
   ####################################
   # Needs to be modified to all for control over the type of pathology investigated 
-  # and the number of attribute levels used for both screening and ANA.
+  # and the number of attribute levels used for both screening and ANA, for both
+  # homogeneous and heterogeneous outcomes.
   ####################################
   
   ####################################
@@ -37,17 +38,12 @@ clever_randomization <- function(
   test_Y <- Y[test_ind,]
   test_X <- X[test_ind,,,]
   
-  # Create randomization patterns for each pathology, no flag necessary.
-  mat_ana <- mat_screen <- matrix(double(nmember * nlevels_tot), nrow = nmember)
-  nobs_train <- nrow(train_Y)
-  mat_resp <- matrix(double(nmember * nobs_train), ncol = nobs_train)
-  
-  for (i in 1:nmember) {
-    # Randomize respondent quality such that we continue with the same number of bootstrapped respondents.
-    mat_resp[i,] <- sort(sample(1:nobs_train, nobs_train, replace = TRUE))
-  }
-  
   if (test == 0) {
+    # Create randomization patterns for each pathology, no flag necessary.
+    mat_ana <- mat_screen <- matrix(double(nmember * nlevels_tot), nrow = nmember)
+    nobs_train <- nrow(train_Y)
+    mat_resp <- matrix(double(nmember * nobs_train), ncol = nobs_train)
+    
     for (i in 1:nmember) {
       # Randomize ANA such that each respondent pays attention to at least one attribute 
       # and has non-attendance for at least one attribute.
@@ -62,13 +58,18 @@ clever_randomization <- function(
       # mat_resp[i,] <- sort(sample(1:nobs_train, nobs_train, replace = TRUE))
     }
     
-    return(list(train_Y = train_Y, train_X = train_X, test_Y = test_Y,
-                test_X = test_X, mat_ana = mat_ana, mat_screen = mat_screen,
-                mat_resp = mat_resp))
+    return(list(train_Y = train_Y, train_X = train_X, test_Y = test_Y, test_X = test_X, 
+                mat_ana = mat_ana, mat_screen = mat_screen, mat_resp = mat_resp))
   }
   if (test == 1) {
+    # Split pathology matrices into training.
+    mat_ana <- data$mat_ana[train_ind,]
+    mat_screen <- data$mat_screen[train_ind,]
+    nobs_train <- nrow(train_Y)
+    mat_resp <- matrix(double(nmember * nobs_train), ncol = nobs_train)
+    
     return(list(train_Y = train_Y, train_X = train_X, test_Y = test_Y, test_X = test_X,
-                mat_ana = data$mat_ana, mat_screen = data$mat_screen,
-                mat_resp = mat_resp, betas = data$betas, bbar = data$bbar))
+                mat_ana = mat_ana, mat_screen = mat_screen, mat_resp = mat_resp,
+                betas = data$betas, bbar = data$bbar))
   }
 }

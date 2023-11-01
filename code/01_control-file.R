@@ -18,7 +18,7 @@ if (ind_emp == 1) {
 # Indicate which pathologies to randomize for.
 ind_none <- 0       # Indicates no pathologies.
 ind_ana <- 1        # Indicates attribute non-attendance.
-ind_screen <- 0     # Indicates screening.
+ind_screen <- 1     # Indicates screening.
 ind_resp <- 0       # Indicates respondent quality (still a bootstrap).
 
 # Decide on pathology heterogeneity and the size of the ensemble.
@@ -52,8 +52,8 @@ if (ind_emp == 1) {
 file_id
 
 # Run the Ensemble and Competing Models -----------------------------------
-# Simulate data or clean empirical data and induce randomization.
-source(here::here("code", "02_data-prep.R"))
+# # Simulate data or clean empirical data and induce randomization.
+# source(here::here("code", "02_data-prep.R"))
 
 # Run the conjoint ensemble using the clever randomization.
 source(here::here("code", "03_conjoint-ensemble.R"))
@@ -73,27 +73,29 @@ source(here::here("code", "06_model-comparison.R"))
 model_comparison
 
 # Upper bounds using the transformed parameters block in hmnl_ensemble_01.
-upper_bounds <- tibble(
-  Model = rep(c("HMNL", "Ensemble"), 4),
-  Pathologies = c(rep("None", 2), rep("ANA", 2), rep("Screen", 2), rep("ANA & Screen", 2)),
-  Heterogeneous = rep("No", 8),
+upper_bounds_01 <- tibble(
+  Model = rep(c("HMNL", "Ensemble Upper Bound"), 8),
+  Pathologies = rep(c(rep("None", 2), rep("ANA", 2), rep("Screen", 2), rep("ANA & Screen", 2)), 2),
+  Heterogeneous = c(rep("No", 8), rep("Yes", 8)),
   LOO = NA,
-  "Hit Rate" = c(0.582, 0.578, 0.614, 0.615, 0.739, 0.738, 0.865, 0.846),
-  "Hit Prob" = c(0.484, 0.482, 0.532, 0.529, 0.685, 0.685, 0.832, 0.804)
+  "Hit Rate" = c(0.582, 0.578, 0.450, 0.457, 0.875, 0.867, 0.911, 0.910,
+                 0.582, 0.578, 0.410, 0.421, 0.546, 0.556, 0.594, 0.569),
+  "Hit Prob" = c(0.484, 0.482, 0.384, 0.383, 0.862, 0.854, 0.892, 0.881,
+                 0.484, 0.482, 0.369, 0.372, 0.525, 0.552, 0.551, 0.566)
 )
 
 # Upper bounds using the generated quantities block in hmnl_ensemble_02.
-upper_bounds <- tibble(
-  Model = rep(c("HMNL", "Ensemble"), 4),
-  Pathologies = c(rep("None", 2), rep("ANA", 2), rep("Screen", 2), rep("ANA & Screen", 2)),
+upper_bounds_02 <- tibble(
+  Model = rep(c("HMNL", "Ensemble Upper Bound"), 8),
+  Pathologies = rep(c(rep("None", 2), rep("ANA", 2), rep("Screen", 2), rep("ANA & Screen", 2)), 2),
   Heterogeneous = c(rep("No", 8), rep("Yes", 8)),
   LOO = NA,
-  "Hit Rate" = c(0.582, 0.578, 0.614, 0.614, 0.739, 0.738, 0.865, 0.846,
-                 ),
-  "Hit Prob" = c(0.484, 0.482, 0.532, 0.530, 0.685, 0.686, 0.832, 0.808,
-                 )
+  "Hit Rate" = c(0.582, 0.578, 0.450, 0.450, 0.875, 0.865, 0.911, 0.903,
+                 0.582, 0.578, 0.410, 0.410, 0.546, 0.551, 0.594, 0.569),
+  "Hit Prob" = c(0.484, 0.482, 0.384, 0.383, 0.862, 0.851, 0.892, 0.883,
+                 0.484, 0.482, 0.369, 0.368, 0.525, 0.548, 0.551, 0.565)
 )
 
-model_comparison
-upper_bounds
+upper_bounds_01
+upper_bounds_02
 

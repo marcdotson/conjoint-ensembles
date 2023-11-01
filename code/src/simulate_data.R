@@ -77,7 +77,7 @@ simulate_data <- function(
   # If heterogeneity isn't flagged, have the first iteration of ANA and screening apply for all members.
   
   #######
-  # Need to make this a matrix regardless of hetero.
+  # Need to make this an array regardless of hetero.
   #######
   
   if (hetero == FALSE) {

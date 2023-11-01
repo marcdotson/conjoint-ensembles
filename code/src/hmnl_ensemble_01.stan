@@ -5,6 +5,9 @@ data {
   int<lower = 2> A;                  // Number of choice alternatives.
   int<lower = 1> I;                  // Number of observation-level covariates.
   int<lower = 1> J;                  // Number of population-level covariates.
+  
+  // Do I need both K and k? Yes, K for the array dimensions and k to index.
+  
   int<lower = 1> K;                  // Number of models in the ensemble.
   int<lower = 1> k;                  // Current model number in the ensemble.
 
@@ -22,8 +25,14 @@ data {
   
   int ind_ana;                       // Flag indicating attribute non-attendance.
   int ind_screen;                    // Flag indicating screening.
-  matrix[K, I] mat_ana;              // Matrix of ensemble indicators for ANA.
-  matrix[K, I] mat_screen;           // Matrix of ensemble indicators for screening.
+  
+  // These need to handle both matrices (homogeneous pathologies across members) and arrays
+  // (heterogeneous pathologies across members).
+  
+  // matrix[K, I] mat_ana;              // Matrix of ensemble indicators for ANA.
+  // matrix[K, I] mat_screen;           // Matrix of ensemble indicators for screening.
+  matrix[R, I] mat_ana;              // Matrix of ensemble indicators for ANA.
+  matrix[R, I] mat_screen;           // Matrix of ensemble indicators for screening.
 }
 
 // Parameters and hyperparameters.
@@ -48,7 +57,8 @@ transformed parameters {
   if (ind_ana == 1) {
     for (r in 1:R) {
       for (i in 1:I) {
-        if (mat_ana[k, i] == 1) {
+        // if (mat_ana[k, i] == 1) {
+        if (mat_ana[r, i] == 1) {
           Beta[r, i] = 0;
         } // Need else statement?
       }
@@ -59,7 +69,8 @@ transformed parameters {
   if (ind_screen == 1) {
     for (r in 1:R) {
       for (i in 1:I) {
-        if (mat_screen[k, i] == 1) {
+        // if (mat_screen[k, i] == 1) {
+        if (mat_screen[r, i] == 1) {
           Beta[r, i] = -100;
         } // Need else statement?
       }

@@ -13,9 +13,23 @@ set.seed(42)
 if (ind_sim == 1) data <- read_rds(here::here("data", str_c("sim_", file_id, ".rds")))
 if (ind_emp == 1) data <- read_rds(here::here("data", str_c("emp_", data_id, ".rds")))
 data$train_Z <- matrix(rep(1, nrow(data$train_Y)), ncol = 1)
-mat_ana <- data$mat_ana[sample(nrow(data$mat_ana), nmember),]
-mat_screen <- data$mat_screen[sample(nrow(data$mat_screen), nmember),]
-mat_resp <- data$mat_resp[sample(nrow(data$mat_resp), nmember),]
+
+######################
+# The following mat_* code doesn't work for heterogeneous pathologies.
+# Confirm all changes continue to work for homogeneous pathologies.
+# Temporary fix:
+if (ind_test == 1) {
+  # If it's a test, we can't draw from mat_ana and mat_screen -- we use the whole thing.
+  mat_ana <- data$mat_ana
+  mat_screen <- data$mat_screen
+}
+
+# # These need to handle both matrices (homogeneous pathologies across members) and arrays
+# # (heterogeneous pathologies across members).
+# mat_ana <- data$mat_ana[sample(nrow(data$mat_ana), nmember),]
+# mat_screen <- data$mat_screen[sample(nrow(data$mat_screen), nmember),]
+# # mat_resp <- data$mat_resp[sample(nrow(data$mat_resp), nmember),]
+######################
 
 # Run HMNL to Initialize Ensemble -----------------------------------------
 # Pathfinder alone could be used to initialize, if needed.
@@ -100,21 +114,21 @@ for (k in 1:nmember) {
   train_X1 <- data$train_X
   train_Z1 <- data$train_Z
   
-  # Reconstruct data for each ensemble member for respondent quality.
-  if (ind_resp == 1) {
-    # Pull respondents for the specific member.
-    mat_vec <- mat_resp[k,]
-    for (i in 1:length(mat_vec)) {
-      train_Y1[i,] <- data$train_Y[mat_vec[i],]
-      train_X1[i,,,] <- data$train_X[mat_vec[i],,,]
-      train_Z1[i,] <- data$train_Z[mat_vec[i],]
-    }
-    
-    # # Overwrite the original data. WHY?! DON'T DO THIS.
-    # data$train_Y <- train_Y1
-    # data$train_X <- train_X1
-    # data$train_Z <- train_Z1
-  }
+  # # Reconstruct data for each ensemble member for respondent quality.
+  # if (ind_resp == 1) {
+  #   # Pull respondents for the specific member.
+  #   mat_vec <- mat_resp[k,]
+  #   for (i in 1:length(mat_vec)) {
+  #     train_Y1[i,] <- data$train_Y[mat_vec[i],]
+  #     train_X1[i,,,] <- data$train_X[mat_vec[i],,,]
+  #     train_Z1[i,] <- data$train_Z[mat_vec[i],]
+  #   }
+  #   
+  #   # # Overwrite the original data. WHY?! DON'T DO THIS.
+  #   # data$train_Y <- train_Y1
+  #   # data$train_X <- train_X1
+  #   # data$train_Z <- train_Z1
+  # }
   
   stan_data <- list(
     R = dim(data$train_X)[1],  # Number of respondents.
@@ -140,6 +154,13 @@ for (k in 1:nmember) {
     
     ind_ana = ind_ana,         # Flag indicating attribute non-attendance.
     ind_screen = ind_screen,   # Flag indicating screening.
+    
+    ##############
+    # These need to handle both matrices (homogeneous pathologies across members) and arrays
+    # (heterogeneous pathologies across members).
+    # NO -- ARRAYS FOR BOTH.
+    ##############
+    
     mat_ana = mat_ana,         # Matrix of ensemble indicators for ANA.
     mat_screen = mat_screen    # Matrix of ensemble indicators for screening.
     
@@ -165,8 +186,8 @@ fit_extract_average <- function(stan_data) {
   # )
   
   # Compile and estimate the model.
-  # hmnl_ensemble <- cmdstan_model(here::here("code", "src", "hmnl_ensemble_01.stan"))
-  hmnl_ensemble <- cmdstan_model(here::here("code", "src", "hmnl_ensemble_02.stan"))
+  hmnl_ensemble <- cmdstan_model(here::here("code", "src", "hmnl_ensemble_01.stan"))
+  # hmnl_ensemble <- cmdstan_model(here::here("code", "src", "hmnl_ensemble_02.stan"))
   fit <- hmnl_ensemble$sample(
     data = stan_data,
     seed = 42,
