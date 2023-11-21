@@ -24,8 +24,6 @@ The following functions are stored in `/code/src`.
   non-attendance.
 - `ana_hmnl.R` One of two functions to estimate an HMNL with attribute
   non-attendance.
-- `clever_randomization.R` Induce clever randomization and split into
-  train and test data.
 - `conj_hmnl.R` Estimate an HMNL with conjunctive screening rules.
 - `conj_hmnl.cpp` Helper functions in C++ for `conj_hmnl.R`.
 - `ensemble_weights.R` Generate ensemble weights with a `stanfit` object
@@ -39,4 +37,3 @@ The following functions are stored in `/code/src`.
 - `predictive_fit_ensemble.R` Compute predictive fit for an ensemble of
   models.
 - `predictive_fit_hmnl.R` Compute predictive fit for an HMNL.
-- `simulate_data.R` Simulate choice data with and without pathologies.
