@@ -1,32 +1,23 @@
-# Set Indicator Flags -----------------------------------------------------
-# Indicate simulated or empirical data.
-ind_sim <- 1        # Indicates simulated data.
-ind_emp <- 0        # Indicates empirical data.
+# Preamble ----------------------------------------------------------------
+# This script is used to initialize and run subsequent scripts in the conjoint
+# ensembles workflow, including testing for constraint recovery, simulation
+# experiments, and estimating models using real data.
 
-if (ind_sim == 1) {
-  # Indicates a test where we pass on the actual constraint 
-  # matrices and estimate a single, best-performing model.
-  ind_test <- 1
-}
+# Use indicator flags to initialize the conjoint ensemble.
+ind_none <- 1   # Control for no pathologies.
+ind_ana <- 0    # Control for attribute non-attendance.
+ind_screen <- 0 # Control for screening.
+ind_resp <- 0   # Control foespondent quality.
+ind_hetero <- 1 # Allow for heterogeneous pathologies.
+ind_test <- 1   # Test for constraint recovery.
+ind_sim <- 1    # Run a simulation experiment.
+ind_emp <- 0    # Use real, empirical data.
+ind_beef <- 0   # Use Ground Beef empirical data.
+ind_zero <- 0   # Use Zerorez empirical data.
 
-if (ind_emp == 1) {
-  # Indicate which empirical data to use.
-  ind_beef <- 1     # Indicates Ground Beef.
-  ind_zero <- 0     # Indicates Zerorez.
-}
-
-# Indicate which pathologies to randomize for.
-ind_none <- 1       # Indicates no pathologies.
-ind_ana <- 0        # Indicates attribute non-attendance.
-ind_screen <- 0     # Indicates screening.
-ind_resp <- 0       # Indicates respondent quality (still a bootstrap).
-
-# Decide on pathology heterogeneity and the size of the ensemble.
-ind_hetero <- 1     # Indicates if pathologies differ by individual.
-nmember <- 1000     # Indicates the number of ensemble members.
-if (ind_test == 1) {
-  nmember <- 1      # Constrain tests to a single, best-performing model.
-}
+# Specify the number of ensemble members.
+nmember <- 1000
+if (ind_test == 1) nmember <- 1
 
 # Construct the file_id conditioned on flags.
 if (ind_none == 1) file_id <- "none"
@@ -39,21 +30,15 @@ if (ind_screen == 1 & ind_resp == 1) file_id <- "screen-resp"
 if (ind_ana == 1 & ind_screen == 1 & ind_resp == 1) file_id <- "ana-screen-resp"
 if (ind_hetero == 1) file_id <- paste(file_id, "-hetero", sep = "")
 if (ind_hetero == 0) file_id <- paste(file_id, "-homo", sep = "")
-
-# Finalize the file_id conditioned on flags.
 if (ind_test == 1) file_id <- paste(file_id, "-test", sep = "")
-
-if (ind_emp == 1) {
-  if (ind_beef == 1) data_id <- "ground-beef"
-  if (ind_zero == 1) data_id <- "zerorez"
-  file_id <- paste(data_id, "_", file_id, sep = "")
-}
+if (ind_beef == 1) file_id <- paste("ground-beef", "_", file_id, sep = "")
+if (ind_zero == 1) file_id <- paste("zerorez", "_", file_id, sep = "")
 
 file_id
 
 # Run the Ensemble and Competing Models -----------------------------------
-# # Simulate data or clean empirical data and induce randomization.
-# source(here::here("code", "02_data-prep.R"))
+# Simulate data or clean empirical data and induce randomization.
+source(here::here("code", "02_data-prep.R"))
 
 # Run the conjoint ensemble using the clever randomization.
 source(here::here("code", "03_conjoint-ensemble.R"))
