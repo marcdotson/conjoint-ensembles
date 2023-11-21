@@ -1,23 +1,38 @@
 # Preamble ----------------------------------------------------------------
 # This script is used to initialize and run subsequent scripts in the conjoint
-# ensembles workflow, including testing for constraint recovery, simulation
-# experiments, and estimating models using real data.
+# ensembles workflow, including testing parameter and constraint recovery, 
+# simulation experiments, and estimating models using real data.
+
+# Load packages.
+library(tidyverse)
+library(AlgDesign)
+
+# Set the simulation seed.
+set.seed(40)
 
 # Use indicator flags to initialize the conjoint ensemble.
-ind_none <- 1   # Control for no pathologies.
-ind_ana <- 0    # Control for attribute non-attendance.
-ind_screen <- 0 # Control for screening.
-ind_resp <- 0   # Control foespondent quality.
-ind_hetero <- 1 # Allow for heterogeneous pathologies.
-ind_test <- 1   # Test for constraint recovery.
-ind_sim <- 1    # Run a simulation experiment.
-ind_emp <- 0    # Use real, empirical data.
-ind_beef <- 0   # Use Ground Beef empirical data.
-ind_zero <- 0   # Use Zerorez empirical data.
+ind_none <- 0       # Control for no pathologies.
+ind_ana <- 1        # Control for attribute non-attendance.
+ind_screen <- 1     # Control for screening.
+ind_resp <- 1       # Control for respondent quality.
+ind_hetero <- 1     # Control for heterogeneous pathologies.
+ind_test <- 1       # Test for parameter and constraint recovery.
+ind_sim <- 1        # Run a simulation experiment.
+ind_emp <- 0        # Use real empirical data.
+ind_beef <- 0       # Use Ground Beef data.
+ind_zero <- 0       # Use Zerorez data.
 
-# Specify the number of ensemble members.
-nmember <- 1000
-if (ind_test == 1) nmember <- 1
+# Specify the arguments for the ensemble members.
+nresp <- 300        # Number of respondents.
+ntask <- 12         # Number of choice tasks.
+nalt <- 3           # Number of choice alternatives.
+natt <- 5           # Number of (discrete) attributes.
+nlevel <- 3         # Number of attribute levels for each attribute.
+nversion <- 10      # Number of versions of the experimental design.
+nmember <- 1000     # Number of ensemble members.
+prob_ana <- 0.75    # Probability of ANA.
+prob_screen <- 0.75 # Probability of screening.
+prob_resp <- 0.75   # Probability of respondent quality.
 
 # Construct the file_id conditioned on flags.
 if (ind_none == 1) file_id <- "none"
