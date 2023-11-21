@@ -37,6 +37,11 @@ predictive_fit_ensemble <- function(indices, ensemble_weights, ensemble_draws, t
   memb_probs <- NULL
   for (memb in 1:nmemb) {
     # Get the mean of distribution of heterogeneity.
+    
+    ####################################################
+    # We use the average of Beta as the population mean without reference to Sigma.
+    ####################################################
+    
     # Gamma_mean <- ensemble_draws[[memb]]$Gamma
     # Gamma_mean <- ensemble_fit$ensemble_draws$Gamma |> 
     #   select("mean") |> 

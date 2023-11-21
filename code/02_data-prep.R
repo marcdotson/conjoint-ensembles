@@ -28,7 +28,7 @@ if (ind_sim == 1) {
     )
     
     ####################################################
-    # Test was missing above -- do I need to re-run everything?!
+    # Test was missing above -- do I need to re-run everything?! I did anyway.
     ####################################################
     
     data <- clever_randomization(

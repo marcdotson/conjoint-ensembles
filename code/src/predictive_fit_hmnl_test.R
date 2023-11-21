@@ -30,6 +30,11 @@ predictive_fit_hmnl <- function(hmnl_draws, test_X, test_Y, test_Z) {
   }
   
   # Get the mean of distribution of heterogeneity.
+  
+  ####################################################
+  # We use the average of Beta as the population mean without reference to Sigma.
+  ####################################################
+  
   # Gamma_mean <- apply(hmnl_draws$Gamma, c(2,3), mean)
   # Gamma_mean <- hmnl_draws |> 
   #   subset_draws(variable = "Gamma") |> 

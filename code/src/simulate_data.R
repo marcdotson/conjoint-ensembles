@@ -47,6 +47,12 @@ simulate_data <- function(
   ana.mat <- matrix(double(nbeta * nhh), ncol = nbeta) + 1
   screen.mat <- matrix(double(nbeta * nhh), ncol = nbeta)
   
+  ####################################################
+  # We don't include the probability of there being ANA if ana == TRUE.
+  # We don't include the probability of there being screening if screen == TRUE.
+  # Allows for screening on ANA levels as well as price.
+  ####################################################
+  
   for (i in 1:nhh) {
     # If ANA is flagged, simulate ANA where each respondent pays attention to at least one attribute and 
     # has non-attendance for at least one attribute.

@@ -44,6 +44,12 @@ clever_randomization <- function(
     nobs_train <- nrow(train_Y)
     mat_resp <- matrix(double(nmember * nobs_train), ncol = nobs_train)
     
+    ####################################################
+    # We don't include the probability of there being ANA if ana == TRUE.
+    # We don't include the probability of there being screening if screen == TRUE.
+    # Allows for screening on ANA levels as well as price.
+    ####################################################
+    
     for (i in 1:nmember) {
       # Randomize ANA such that each respondent pays attention to at least one attribute 
       # and has non-attendance for at least one attribute.
