@@ -4,23 +4,23 @@
 # simulation experiments, and estimating models using real data.
 
 # Load packages.
-library(tidyverse)
 library(AlgDesign)
+library(tidyverse)
 
 # Set the simulation seed.
 set.seed(40)
 
 # Use indicator flags to initialize the conjoint ensemble.
+ind_test <- 1       # Test for parameter and constraint recovery.
+ind_sim <- 1        # Run a simulation experiment.
+# ind_emp <- 0        # Use real empirical data.
+# ind_beef <- 0       # Use Ground Beef data.
+# ind_zero <- 0       # Use Zerorez data.
 ind_none <- 0       # Control for no pathologies.
 ind_ana <- 1        # Control for attribute non-attendance.
 ind_screen <- 1     # Control for screening.
 ind_qual <- 1       # Control for respondent quality.
 ind_hetero <- 1     # Control for heterogeneous pathologies.
-ind_sim <- 1        # Run a simulation experiment.
-ind_test <- 1       # Test for parameter and constraint recovery.
-ind_emp <- 0        # Use real empirical data.
-ind_beef <- 0       # Use Ground Beef data.
-ind_zero <- 0       # Use Zerorez data.
 
 # Specify the arguments for the ensemble members.
 nresp <- 300        # Number of respondents.
@@ -35,25 +35,28 @@ prob_screen <- 0.75 # Probability of screening.
 prob_qual <- 0.75   # Probability of respondent quality.
 pct_train <- 0.80   # Percent of data used for training.
 
-# Construct the file_id conditioned on flags.
-if (ind_none == 1) file_id <- "none"
-if (ind_ana == 1) file_id <- "ana"
-if (ind_screen == 1) file_id <- "screen"
-if (ind_qual == 1) file_id <- "qual"
-if (ind_ana == 1 & ind_screen == 1) file_id <- "ana-screen"
-if (ind_ana == 1 & ind_qual == 1) file_id <- "ana-qual"
-if (ind_screen == 1 & ind_qual == 1) file_id <- "screen-qual"
-if (ind_ana == 1 & ind_screen == 1 & ind_qual == 1) file_id <- "ana-screen-qual"
-if (ind_hetero == 1) file_id <- paste(file_id, "-hetero", sep = "")
-if (ind_hetero == 0) file_id <- paste(file_id, "-homo", sep = "")
-if (ind_test == 1) file_id <- paste(file_id, "-test", sep = "")
-if (ind_beef == 1) file_id <- paste("ground-beef", "_", file_id, sep = "")
-if (ind_zero == 1) file_id <- paste("zerorez", "_", file_id, sep = "")
+# Construct the patho_id conditioned on flags.
+if (ind_sim == 1) data_id <- "sim"
+# if (ind_emp == 1) data_id <- "emp"
+# if (ind_beef == 1) data_id <- str_c(data_id, "_", "ground-beef")
+# if (ind_zero == 1) data_id <- str_c(data_id, "_", "zerorez")
+if (ind_none == 1) patho_id <- "none"
+if (ind_ana == 1) patho_id <- "ana"
+if (ind_screen == 1) patho_id <- "screen"
+if (ind_qual == 1) patho_id <- "qual"
+if (ind_ana == 1 & ind_screen == 1) patho_id <- "ana-screen"
+if (ind_ana == 1 & ind_qual == 1) patho_id <- "ana-qual"
+if (ind_screen == 1 & ind_qual == 1) patho_id <- "screen-qual"
+if (ind_ana == 1 & ind_screen == 1 & ind_qual == 1) patho_id <- "ana-screen-qual"
+if (ind_hetero == 0) patho_id <- str_c(patho_id, "-homo")
+if (ind_hetero == 1) patho_id <- str_c(patho_id, "-hetero")
+if (ind_test == 1) patho_id <- str_c(patho_id, "-test")
 
-file_id
+data_id
+patho_id
 
 # Run the Ensemble and Competing Models -----------------------------------
-# Simulate data or clean empirical data and induce randomization.
+# Prepare choice data and induce clever randomization.
 source(here::here("code", "02_data-prep.R"))
 
 # Run the conjoint ensemble using the clever randomization.
