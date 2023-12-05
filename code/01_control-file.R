@@ -33,6 +33,7 @@ nmember <- 1000     # Number of ensemble members.
 prob_ana <- 0.75    # Probability of ANA.
 prob_screen <- 0.75 # Probability of screening.
 prob_qual <- 0.75   # Probability of respondent quality.
+pct_train <- 0.80   # Percent of data used for training.
 
 # Construct the file_id conditioned on flags.
 if (ind_none == 1) file_id <- "none"

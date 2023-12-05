@@ -35,8 +35,8 @@ if (ind_sim == 1) {
     
     # Prepare to impose pathologies probabilistically, conditioned on indicator flags.
     nbeta <- natt * nlevel - natt
-    mat_ana <- matrix(double(nbeta * nresp), ncol = nbeta) + 1
-    mat_screen <- matrix(double(nbeta * nresp), ncol = nbeta)
+    mat_ana <- matrix(double(nresp * nbeta), ncol = nbeta) + 1
+    mat_screen <- matrix(double(nresp * nbeta), ncol = nbeta)
     mat_qual <- matrix(double(nresp), ncol = 1)
     for (resp in 1:nresp) {
       # If ANA is flagged, with prob_ana, simulate ANA where a respondent pays attention to at 
@@ -55,30 +55,27 @@ if (ind_sim == 1) {
         mat_screen[resp, draw_screen] <- -100
       }
       
-      # If respondent quality is flagged, with prob_qual, simulate respondent quality where a random
+      # If respondent quality is flagged, with prob_qual, simulate respondent quality where a (random?)
       # value is added to a respondent's latent utility.
-      if (ind_qual == TRUE & runif(1) < prob_qual) {
-        draw_qual <- sample(1:5, size = 1)
-        mat_qual[resp, 1] <- draw_qual
-      }
+      if (ind_qual == TRUE & runif(1) < prob_qual) mat_qual[resp, 1] <- 5
     }
     
-    # If heterogeneity isn't flagged, have the first iteration of pathologies apply for all members.
-    if (ind_hetero == FALSE) {
-      vec_ana <- mat_ana[1,]
-      vec_screen <- mat_screen[1,]
-      vec_qual <- mat_qual[1,]
+    # If heterogeneity isn't flagged, have the first iteration of pathologies apply for all respondents.
+    if (ind_hetero == 0) {
+      tmp_ana <- mat_ana[1,]
+      tmp_screen <- mat_screen[1,]
+      tmp_qual <- mat_qual[1,]
       for (resp in 1:nresp) {
-        mat_ana[resp,] <- vec_ana
-        mat_screen[resp,] <- vec_screen
-        mat_qual[resp,] <- vec_qual
+        mat_ana[resp,] <- tmp_ana
+        mat_screen[resp,] <- tmp_screen
+        mat_qual[resp,] <- tmp_qual
       }
     }
     
     # Generate respondent-level betas as a deviation from the population average, gamma, conditioned
     # on the simulated pathologies. Use the respondent-level betas to produce choice data.
     Gamma <- matrix(runif(nbeta, -1, 2), ncol = nbeta)
-    Beta <- matrix(double(nbeta * nresp), ncol = nbeta)
+    Beta <- matrix(double(nresp * nbeta), ncol = nbeta)
     X <- array(double(nresp * ntask * nalt * nbeta), dim = c(nresp, ntask, nalt, nbeta))
     Y <- matrix(double(nresp * ntask), ncol = ntask)
     for (resp in 1:nresp) {
@@ -104,101 +101,82 @@ if (ind_sim == 1) {
       }
     }
     
-    ####################################################
-    # Incorporate clever_randomization.R
-    ####################################################
-    
-    data <- clever_randomization(
-      Y = data$Y,          # Choice data to cleverly randomize.
-      X = data$X,          # Design matrices to cleverly randomize.
-      natt = 5,            # Number of attributes across design matrices.
-      nlevels = rep(3, 5), # Vector of number of attribute levels for each attribute.
-      pct_test = .20,      # Percent of data to be saved for testing.
-      nmember = 2000,      # Number of possible members in the ensemble.
-      test = ind_test,     # Test flag.
-      data = data          # Simulated data list.
-    )
-    
-    Y = NULL,        # Choice data to cleverly randomize.
-    X = NULL,        # Design matrices to cleverly randomize.
-    natt = NULL,     # Number of attributes across design matrices.
-    nlevels = NULL,  # Vector of number of attribute levels for each attribute.
-    pct_test = .20,  # Percent of data to be saved for testing.
-    nmember = 100,   # Number of members in the ensemble.
-    test = ind_test, # Test flag.
-    data = data      # Simulated data list.
-    
-    # This function splits and returns training and testing data and 
-    # two matrices that indicates if an attribute level is used for 
-    # screening or is not attended to.
-    
-    ####################################
-    # Needs to be modified to all for control over the type of pathology investigated 
-    # and the number of attribute levels used for both screening and ANA, for both
-    # homogeneous and heterogeneous outcomes.
-    ####################################
-    
-    ####################################
-    # How do we think about covering the potential models space?
-    ####################################
-    
-    # Determine the number of observation nunits and total number of levels.
-    nobs <- dim(X)[1]
-    nlevels_tot <- sum(nlevels) - natt
-    
-    # Randomly draw respondents in the testing data.
-    ntest <- round(pct_test * nobs, 0)
-    test_ind <- sort(sample(1:nobs, ntest, replace = FALSE))
+    # Randomly assign respondents into training and testing data.
     '%!in%' <- function(x, y)!('%in%'(x, y))
-    train_ind <- which(c(1:nobs) %!in% test_ind)
+    nresp_train <- round(pct_train * nresp, 0)
+    nresp_test <- round((1 - pct_train) * nresp, 0)
+    index_train <- sort(sample(1:nresp_train, nresp_train, replace = FALSE))
+    index_test <- which(c(1:nresp_train) %!in% index_train)
     
-    # Split into training and testing.
-    train_Y <- Y[train_ind,]
-    train_X <- X[train_ind,,,]
-    test_Y <- Y[test_ind,]
-    test_X <- X[test_ind,,,]
+    # Split the choice data and design matrices into training and testing.
+    train_Y <- Y[index_train,]
+    train_X <- X[index_train,,,]
+    test_Y <- Y[index_test,]
+    test_X <- X[index_test,,,]
     
-    if (test == 0) {
-      # Create randomization patterns for each pathology, no flag necessary.
-      mat_ana <- mat_screen <- matrix(double(nmember * nlevels_tot), nrow = nmember)
-      nobs_train <- nrow(train_Y)
-      mat_resp <- matrix(double(nmember * nobs_train), ncol = nobs_train)
-      
-      ####################################################
-      # We don't include the probability of there being ANA if ana == TRUE.
-      # We don't include the probability of there being screening if screen == TRUE.
-      # Allows for screening on ANA levels as well as price.
-      ####################################################
-      
-      for (i in 1:nmember) {
-        # Randomize ANA such that each respondent pays attention to at least one attribute 
+    # Generate an array of clever randomization patterns for each possible pathology
+    # for each respondent in the training data for each possible member of the ensemble.
+    array_ana <- array(double(nbeta * nresp_train * nmember), dim = c(nresp_train, nbeta, nmember))
+    array_screen <- array(double(nbeta * nresp_train * nmember), dim = c(nresp_train, nbeta, nmember))
+    array_qual <- array(double(nresp_train * nmember), dim = c(nresp_train, 1, nmember))
+    for (member in 1:nmember) {
+      for (resp_train in 1:nresp) {
+        # With prob_ana, randomize ANA where a respondent pays attention to at least one attribute
         # and has non-attendance for at least one attribute.
-        ana.ind <- sample(1:natt, size = round(runif(n = 1, min = 1, max = natt - 1)), replace = FALSE)
-        for (j in 1:natt) {
-          if (j %in% ana.ind) mat_ana[i, ((sum(nlevels[1:j]) - j) - (nlevels[j] - 2)):(sum(nlevels[1:j]) - j)] <- 1
+        if (runif(1) < prob_ana) {
+          draw_ana <- sample(1:natt, size = round(runif(n = 1, min = 1, max = natt - 1)), replace = FALSE)
+          for (att in 1:natt) {
+            if (att %in% draw_ana) {
+              array_ana[resp_train, ((att * nlevel - att) - 1):(att * nlevel - att), member] <- 1
+            }
+          }
         }
-        # Randomize screening such that each respondent screens based on at least one attribute level.
-        screen.ind <- sample(1:nlevels_tot, size = round(runif(n = 1, min = 1, max = nlevels_tot)), replace = FALSE)
-        mat_screen[i, screen.ind] <- 1
-        # # Randomize respondent quality such that we continue with the same number of bootstrapped respondents.
-        # mat_resp[i,] <- sort(sample(1:nobs_train, nobs_train, replace = TRUE))
+        
+        # With prob_screen, randomize screening where a respondent screens based on at least one attribute
+        # level but not all of them.
+        if (runif(1) < prob_screen) {
+          draw_screen <- sample(1:nbeta, size = round(runif(n = 1, min = 1, max = nbeta - 1)), replace = FALSE)
+          array_screen[resp_train, draw_screen, member] <- 1
+        }
+        
+        # With prob_qual, randomize respondent quality where a random value is added to a 
+        # respondent's latent utility.
+        if (runif(1) < prob_qual) array_qual[resp_train, 1, member] <- 1
       }
-      
-      return(list(train_Y = train_Y, train_X = train_X, test_Y = test_Y, test_X = test_X, 
-                  mat_ana = mat_ana, mat_screen = mat_screen, mat_resp = mat_resp))
-    }
-    if (test == 1) {
-      # Split pathology matrices into training.
-      mat_ana <- data$mat_ana[train_ind,]
-      mat_screen <- data$mat_screen[train_ind,]
-      nobs_train <- nrow(train_Y)
-      mat_resp <- matrix(double(nmember * nobs_train), ncol = nobs_train)
-      
-      return(list(train_Y = train_Y, train_X = train_X, test_Y = test_Y, test_X = test_X,
-                  mat_ana = mat_ana, mat_screen = mat_screen, mat_resp = mat_resp,
-                  betas = data$betas, bbar = data$bbar))
     }
     
+    # If heterogeneity isn't flagged, have the first iteration of pathologies apply for all respondents
+    # in the training data for each member of the pathology.
+    if (ind_hetero == 0) {
+      for (member in 1:nmember) {
+        tmp_ana <- array_ana[1,,member]
+        tmp_screen <- array_screen[1,,member]
+        tmp_qual <- array_qual[1,,member]
+        for (resp_train in 1:nresp_train) {
+          array_ana[resp_train,,member] <- tmp_ana
+          array_screen[resp_train,,member] <- tmp_screen
+          array_qual[resp_train,,member] <- tmp_qual
+        }
+      }
+    }
+    
+    # If testing is flagged, modify the known simulated pathology matrices into an array
+    # with flags for estimation.
+    if (ind_test == 1) {
+      mat_ana <- ifelse(mat_ana == 0, 1, 0)
+      mat_screen <- ifelse(mat_screen != 0, 1, 0)
+      mat_qual <- ifelse(mat_qual != 0, 1, 0)
+      for (member in 1:nmember) {
+        array_ana[,,member] <- mat_ana
+        array_screen[,,member] <- mat_screen
+        array_qual[,,member] <- mat_qual
+      }
+    }
+    
+    ####################################################
+    # What do we need to write in the data file?
+    # return(list(train_Y = train_Y, train_X = train_X, test_Y = test_Y, test_X = test_X, 
+    #             mat_ana = mat_ana, mat_screen = mat_screen, mat_resp = mat_resp))
     ####################################################
     
     # Save simulated data.
@@ -250,12 +228,4 @@ if (ind_emp == 1) {
     write_rds(data, here::here("data", str_c("emp_", data_id, ".rds")))
   }
 }
-
-#############################
-# Need to modify pathology matrices for estimation...
-# if (ind_test == 1) {
-#   mat_ana <- ifelse(ana.mat == 0, 1, 0)
-#   mat_screen <- ifelse(screen.mat != 0, 1, 0)
-# }
-#############################
 
