@@ -14,10 +14,10 @@ set.seed(40)
 ind_none <- 0       # Control for no pathologies.
 ind_ana <- 1        # Control for attribute non-attendance.
 ind_screen <- 1     # Control for screening.
-ind_resp <- 1       # Control for respondent quality.
+ind_qual <- 1       # Control for respondent quality.
 ind_hetero <- 1     # Control for heterogeneous pathologies.
-ind_test <- 1       # Test for parameter and constraint recovery.
 ind_sim <- 1        # Run a simulation experiment.
+ind_test <- 1       # Test for parameter and constraint recovery.
 ind_emp <- 0        # Use real empirical data.
 ind_beef <- 0       # Use Ground Beef data.
 ind_zero <- 0       # Use Zerorez data.
@@ -32,17 +32,17 @@ nversion <- 10      # Number of versions of the experimental design.
 nmember <- 1000     # Number of ensemble members.
 prob_ana <- 0.75    # Probability of ANA.
 prob_screen <- 0.75 # Probability of screening.
-prob_resp <- 0.75   # Probability of respondent quality.
+prob_qual <- 0.75   # Probability of respondent quality.
 
 # Construct the file_id conditioned on flags.
 if (ind_none == 1) file_id <- "none"
 if (ind_ana == 1) file_id <- "ana"
 if (ind_screen == 1) file_id <- "screen"
-if (ind_resp == 1) file_id <- "resp"
+if (ind_qual == 1) file_id <- "qual"
 if (ind_ana == 1 & ind_screen == 1) file_id <- "ana-screen"
-if (ind_ana == 1 & ind_resp == 1) file_id <- "ana-resp"
-if (ind_screen == 1 & ind_resp == 1) file_id <- "screen-resp"
-if (ind_ana == 1 & ind_screen == 1 & ind_resp == 1) file_id <- "ana-screen-resp"
+if (ind_ana == 1 & ind_qual == 1) file_id <- "ana-qual"
+if (ind_screen == 1 & ind_qual == 1) file_id <- "screen-qual"
+if (ind_ana == 1 & ind_screen == 1 & ind_qual == 1) file_id <- "ana-screen-qual"
 if (ind_hetero == 1) file_id <- paste(file_id, "-hetero", sep = "")
 if (ind_hetero == 0) file_id <- paste(file_id, "-homo", sep = "")
 if (ind_test == 1) file_id <- paste(file_id, "-test", sep = "")

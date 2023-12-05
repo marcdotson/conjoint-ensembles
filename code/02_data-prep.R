@@ -1,12 +1,6 @@
 # Simulate Data and Induce Clever Randomization ---------------------------
 if (ind_sim == 1) {
   if (!file.exists(here::here("data", str_c("sim_", file_id, ".rds")))) {
-    
-    ####################################################
-    # Incorporate simulate_data.R
-    # Reference /archive01: run.ensemble.R, simData.all.R, design.R
-    ####################################################
-    
     # Generate a full factorial design and corresponding row index.
     design_full <- gen.factorial(rep(nlevel, times = natt), ntask, center = FALSE)
     index_full <- c(1:nrow(design_full))
@@ -39,135 +33,79 @@ if (ind_sim == 1) {
     out <- lm(y ~ ., design_dummy, x = TRUE)
     design_dummy <- out$x[,-1]
     
-    ####################################################
-    # START HERE...
-    ####################################################
-    
-    
-    # Generate betas and prepare to impose pathologies if flagged.
+    # Prepare to impose pathologies probabilistically, conditioned on indicator flags.
     nbeta <- natt * nlevel - natt
-    ana.mat <- matrix(double(nbeta * nresp), ncol = nbeta) + 1
-    screen.mat <- matrix(double(nbeta * nresp), ncol = nbeta)
-    
-    ####################################################
-    # We don't include the probability of there being ANA if ind_ana == TRUE.
-    # We don't include the probability of there being screening if ind_screen == TRUE.
-    # Allows for screening on ANA levels as well as price.
-    ####################################################
-    
-    for (i in 1:nresp) {
-      # If ANA is flagged, simulate ANA where each respondent pays attention to at least one attribute and 
-      # has non-attendance for at least one attribute.
-      if (ind_ana == TRUE) {
-        ana.draw <- sample(1:natt, size = round(runif(n = 1, min = 1, max = natt - 1)), replace = FALSE)
-        for (j in 1:natt) {
-          if (j %in% ana.draw) ana.mat[i, ((j * nlevel - j) - 1):(j * nlevel - j)] <- 0
+    mat_ana <- matrix(double(nbeta * nresp), ncol = nbeta) + 1
+    mat_screen <- matrix(double(nbeta * nresp), ncol = nbeta)
+    mat_qual <- matrix(double(nresp), ncol = 1)
+    for (resp in 1:nresp) {
+      # If ANA is flagged, with prob_ana, simulate ANA where a respondent pays attention to at 
+      # least one attribute and has non-attendance for at least one attribute.
+      if (ind_ana == TRUE & runif(1) < prob_ana) {
+        draw_ana <- sample(1:natt, size = round(runif(n = 1, min = 1, max = natt - 1)), replace = FALSE)
+        for (att in 1:natt) {
+          if (att %in% draw_ana) mat_ana[resp, ((att * nlevel - att) - 1):(att * nlevel - att)] <- 0
         }
       }
-      # If screening is flagged, simulate screening where each respondent screens based on at least one 
-      # attribute level but not all of them.
-      if (ind_screen == TRUE) {
-        screen.draw <- sample(1:nbeta, size = round(runif(n = 1, min = 1, max = nbeta -1)), replace = FALSE)
-        screen.mat[i, screen.draw] <- -100
+      
+      # If screening is flagged, with prob_screen, simulate screening where a respondent screens based 
+      # on at least one attribute level but not all of them.
+      if (ind_screen == TRUE & runif(1) < prob_screen) {
+        draw_screen <- sample(1:nbeta, size = round(runif(n = 1, min = 1, max = nbeta - 1)), replace = FALSE)
+        mat_screen[resp, draw_screen] <- -100
+      }
+      
+      # If respondent quality is flagged, with prob_qual, simulate respondent quality where a random
+      # value is added to a respondent's latent utility.
+      if (ind_qual == TRUE & runif(1) < prob_qual) {
+        draw_qual <- sample(1:5, size = 1)
+        mat_qual[resp, 1] <- draw_qual
       }
     }
     
-    # If respondent quality is flagged, randomly determine up to 25 low-quality respondents.
-    # force a random choice for up to 25 respondents.
-    ####################################
-    # REWRITE TO MIRROR ANA & SCREENING (always heterogeneous) as a deviation from latent utility.
-    resp.id <- 0
-    if (ind_resp == TRUE) {
-      resp.id <- sample(1:nresp, sample(0:25, 1), replace = FALSE)
-    }
-    ####################################
-    
-    # If heterogeneity isn't flagged, have the first iteration of ANA and screening apply for all members.
-    
-    #######
-    # Need to make this an array regardless of hetero.
-    #######
-    
+    # If heterogeneity isn't flagged, have the first iteration of pathologies apply for all members.
     if (ind_hetero == FALSE) {
-      ana.vec <- ana.mat[1,]
-      screen.vec <- screen.mat[1,]
-      for (i in 1:nresp) {
-        ana.mat[i,] <- ana.vec
-        screen.mat[i,] <- screen.vec
+      vec_ana <- mat_ana[1,]
+      vec_screen <- mat_screen[1,]
+      vec_qual <- mat_qual[1,]
+      for (resp in 1:nresp) {
+        mat_ana[resp,] <- vec_ana
+        mat_screen[resp,] <- vec_screen
+        mat_qual[resp,] <- vec_qual
       }
     }
     
-    # Generate average betas.
-    bbar <- runif(nbeta, -1, 2)
-    betas <- NULL
-    
-    # Generate Y|X.
-    regdata <- NULL
-    for (i in 1:nresp) {
-      X <- array(double(ntask * nalt * nbeta), dim = c(nalt, nbeta, ntask))
-      Y <- double(ntask)
-      nver <- sample(1:nversion, 1)
-      tmp <- design_dummy[which(design_dummy[,1] == nver),]
-      ana.vec <- ana.mat[i,]
-      screen.vec <- screen.mat[i,]
-      # Generate betas as a deviation from the average.
-      betah <- bbar + rnorm(length(bbar), 0, 1)
-      betas[[i]] <- betah
-      for (j in 1:ntask) {
-        # Multiply betas by an ANA indicator and add screening (defaults to 1 and 0, respectively).
-        xtmp <- as.matrix(tmp[which(tmp[,2] == j), 4:(ncol(design_dummy))])
-        betah <- betas[[i]] * ana.vec + screen.vec
-        U <- as.vector(xtmp %*% betah)
-        prob.y <- exp(U) / sum(exp(U))
-        # If respondent quality is flagged, force a random choice for the up to 25 respondents.
-        if (i %in% resp.id) prob.y <- prob.y * 0 + 1 / nalt
-        Y[j] <- sample(1:nalt, 1, prob = prob.y)
-        X[,,j] = xtmp
-      }
-      regdata[[i]] = list(X = X, Y = Y)
-    }
-    
-    # Format data for Stan.
+    # Generate respondent-level betas as a deviation from the population average, gamma, conditioned
+    # on the simulated pathologies. Use the respondent-level betas to produce choice data.
+    Gamma <- matrix(runif(nbeta, -1, 2), ncol = nbeta)
+    Beta <- matrix(double(nbeta * nresp), ncol = nbeta)
     X <- array(double(nresp * ntask * nalt * nbeta), dim = c(nresp, ntask, nalt, nbeta))
     Y <- matrix(double(nresp * ntask), ncol = ntask)
-    for(i in 1:nresp) {
-      Y[i,] <- as.vector(regdata[[i]]$Y)
-      for(j in 1:ntask) {
-        X[i,j,,] <- regdata[[i]]$X[,,j]
+    for (resp in 1:nresp) {
+      # Randomly draw a specific version of design_dummy for this respondent along with
+      # the associated pathology matrices to modify the utility function.
+      resp_ver <- sample(1:nversion, 1)
+      resp_design <- design_dummy[which(design_dummy[,1] == resp_ver),]
+      resp_ana <- mat_ana[resp,]
+      resp_screen <- mat_screen[resp,]
+      resp_qual <- mat_qual[resp,]
+      
+      # Generate respondent-level betas (conditioned on pathologies) and generate choice data.
+      Beta[resp,] <- (Gamma + rnorm(length(Gamma), 0, 1)) * resp_ana + resp_screen
+      for (task in 1:ntask) {
+        # Draw the design matrix for this specific task, compute the latent utility function
+        # (conditioned on pathologies) and apply the logit function to produce probabilities 
+        # of choosing each alternative. Use the choice probabilities to make a choice.
+        task_design <- resp_design[which(resp_design[,2] == task), 4:(ncol(resp_design))]
+        resp_util <- as.vector(task_design %*% Beta[resp,]) + resp_qual
+        prob_y <- exp(resp_util) / sum(exp(resp_util))
+        Y[resp, task] <- sample(1:nalt, 1, prob = prob_y)
+        X[resp, task,,] <- matrix(task_design, nrow = nalt, ncol = ncol(task_design))
       }
     }
     
-    if (ind_test == 0) {
-      return(
-        list(
-          X = X,      # Design matrix.
-          Y = Y,      # Choice data.
-          bbar = bbar # Average betas.
-        )
-      )
-    }
-    if (ind_test == 1) {
-      mat_ana <- ifelse(ana.mat == 0, 1, 0)
-      mat_screen <- ifelse(screen.mat != 0, 1, 0)
-      ####################################
-      # REWRITE TO MIRROR ANA & SCREENING (always heterogeneous).
-      # mat_resp <- 1:nresp
-      # mat_resp <- sort(c(mat_resp[-resp.id], mat_resp)[1:nresp])
-      ####################################
-      
-      return(
-        list(
-          X = X,      # Design matrix.
-          Y = Y,      # Choice data.
-          mat_ana = mat_ana,
-          mat_screen = mat_screen,
-          # mat_resp = mat_resp, # Requires REWRITE TO MIRROR ANA & SCREENING (always heterogeneous).
-          bbar = bbar, # Average betas.
-          betas = betas
-        )
-      )
-    }
-    
+    ####################################################
+    # Incorporate clever_randomization.R
     ####################################################
     
     data <- clever_randomization(
@@ -180,10 +118,6 @@ if (ind_sim == 1) {
       test = ind_test,     # Test flag.
       data = data          # Simulated data list.
     )
-    
-    ####################################################
-    # Incorporate clever_randomization.R
-    ####################################################
     
     Y = NULL,        # Choice data to cleverly randomize.
     X = NULL,        # Design matrices to cleverly randomize.
@@ -316,4 +250,12 @@ if (ind_emp == 1) {
     write_rds(data, here::here("data", str_c("emp_", data_id, ".rds")))
   }
 }
+
+#############################
+# Need to modify pathology matrices for estimation...
+# if (ind_test == 1) {
+#   mat_ana <- ifelse(ana.mat == 0, 1, 0)
+#   mat_screen <- ifelse(screen.mat != 0, 1, 0)
+# }
+#############################
 
