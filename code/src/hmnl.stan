@@ -11,10 +11,8 @@ data {
   real<lower=0> Omega_shape;         // Shape of population-level scale.
   real tau_mean;                     // Mean of population-level scale.
   real<lower=0> tau_scale;           // Scale of population-level scale.
-
-  // int<lower = 1, upper = A> Y[R, S]; // Matrix of observations.
-  // matrix[A, I] X[R, S];              // Array of observation-level covariates.
-  array[R, S] int<lower = 1, upper = A> Y; // Matrix of observations.
+  
+  array[R, S] int Y;                 // Matrix of observations.
   array[R, S] matrix[A, I] X;        // Array of observation-level covariates.
   matrix[R, J] Z;                    // Matrix of population-level covariates.
 }
@@ -49,7 +47,6 @@ model {
   for (r in 1:R) {
     Delta[r,] ~ normal(0, 1);
     for (s in 1:S) {
-      // Y[r, s] ~ categorical_logit(X[r, s] * Beta[r,]');
       Y[r, s] ~ categorical_logit(X[r, s,,] * Beta[r,]');
     }
   }
@@ -61,7 +58,6 @@ generated quantities {
   matrix[R, S] log_lik;
   for (r in 1:R) {
     for (s in 1:S) {
-      // log_lik[r, s] = categorical_logit_lpmf(Y[r, s] | X[r, s] * Beta[r,]');
       log_lik[r, s] = categorical_logit_lpmf(Y[r, s] | X[r, s,,] * Beta[r,]');
     }
   }

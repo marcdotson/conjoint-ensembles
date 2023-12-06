@@ -105,11 +105,18 @@ if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
   }
   
   # Generate respondent-level betas as a deviation from the population average, Gamma, conditioned
-  # on the simulated pathologies. Use the respondent-level betas to produce choice data.
-  Gamma <- matrix(runif(nbeta, -1, 2), ncol = nbeta)
+  # on population-level covariates and simulated pathologies. Produce choice data.
+  
+  ##########################
+  # Consider simulating population-level covariates to try and improve predicting
+  # test betas and their subsequent out-of-sample choices.
+  ##########################
+  
+  Gamma <- matrix(runif(nbeta * (ncov + 1), -1, 2), ncol = nbeta)
   Beta <- matrix(double(nresp * nbeta), ncol = nbeta)
   X <- array(double(nresp * ntask * nalt * nbeta), dim = c(nresp, ntask, nalt, nbeta))
   Y <- matrix(double(nresp * ntask), ncol = ntask)
+  Z <- matrix(rep(1, nresp), ncol = ncov + 1)
   for (resp in 1:nresp) {
     # Randomly draw a specific version of design_dummy for this respondent along with
     # the associated pathology matrices to modify the utility function.
@@ -120,7 +127,7 @@ if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
     resp_qual <- mat_qual[resp,]
     
     # Generate respondent-level betas (conditioned on pathologies) and generate choice data.
-    Beta[resp,] <- (Gamma + rnorm(length(Gamma), 0, 1)) * resp_ana + resp_screen
+    Beta[resp,] <- (Gamma * Z[resp,] + rnorm(length(Gamma), 0, 1)) * resp_ana + resp_screen
     for (task in 1:ntask) {
       # Draw the design matrix for this specific task, compute the latent utility function
       # (conditioned on pathologies) and apply the logit function to produce probabilities 
@@ -143,8 +150,10 @@ if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
   # Split the choice data and design matrices into training and testing.
   train_Y <- Y[index_train,]
   train_X <- X[index_train,,,]
+  train_Z <- as.matrix(Z[index_train,])
   test_Y <- Y[index_test,]
   test_X <- X[index_test,,,]
+  test_Z <- as.matrix(Z[index_test,])
   
   # Generate an array of clever randomization patterns for each possible pathology
   # for each respondent in the training data for each possible member of the ensemble.
@@ -208,7 +217,8 @@ if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
   # Save the simulated data.
   data <- list(
     # Training and testing data.
-    train_Y = train_Y, train_X = train_X, test_Y = test_Y, test_X = test_X,
+    train_Y = train_Y, train_X = train_X, train_Z = train_Z,  
+    test_Y = test_Y, test_X = test_X, test_Z = test_Z,
     # Pathology arrays.
     array_ana = array_ana, array_screen = array_screen, array_qual = array_qual,
     # Population mean Gamma and Beta matrix.

@@ -6,6 +6,9 @@
 # Load packages.
 library(AlgDesign)
 library(tidyverse)
+library(cmdstanr)
+library(posterior)
+library(tidybayes)
 
 # Set the simulation seed.
 set.seed(40)
@@ -28,8 +31,9 @@ ntask <- 12         # Number of choice tasks.
 nalt <- 3           # Number of choice alternatives.
 natt <- 5           # Number of (discrete) attributes.
 nlevel <- 3         # Number of attribute levels for each attribute.
+ncov <- 0           # Number of population-level covariates.
 nversion <- 10      # Number of versions of the experimental design.
-nmember <- 1000     # Number of ensemble members.
+nmember <- 1        # Number of ensemble members.
 prob_ana <- 0.75    # Probability of ANA.
 prob_screen <- 0.75 # Probability of screening.
 prob_qual <- 0.75   # Probability of respondent quality.
@@ -50,7 +54,7 @@ if (ind_screen == 1 & ind_qual == 1) patho_id <- "screen-qual"
 if (ind_ana == 1 & ind_screen == 1 & ind_qual == 1) patho_id <- "ana-screen-qual"
 if (ind_hetero == 0) patho_id <- str_c(patho_id, "-homo")
 if (ind_hetero == 1) patho_id <- str_c(patho_id, "-hetero")
-if (ind_test == 1) patho_id <- str_c(patho_id, "-test")
+if (ind_test == 1) patho_id <- str_c(patho_id, "_test")
 
 data_id
 patho_id
@@ -59,7 +63,7 @@ patho_id
 # Prepare choice data and induce clever randomization.
 source(here::here("code", "02_data-prep.R"))
 
-# Run the conjoint ensemble using the clever randomization.
+# Run the conjoint ensemble using clever randomization.
 source(here::here("code", "03_conjoint-ensemble.R"))
 
 # # Produce weights using the ensemble output.
