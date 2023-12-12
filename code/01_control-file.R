@@ -9,9 +9,11 @@ library(tidyverse)
 library(cmdstanr)
 library(posterior)
 library(tidybayes)
+library(loo)
 
-# Set the simulation seed.
+# Set the simulation seed, loo option.
 set.seed(40)
+options(mc.cores = 4)
 
 # Use indicator flags to initialize the conjoint ensemble.
 ind_test <- 1       # Test for parameter and constraint recovery.
@@ -75,42 +77,4 @@ source(here::here("code", "03_conjoint-ensemble.R"))
 # Compute and compare fit across models.
 source(here::here("code", "06_model-comparison.R"))
 # ensemble_fit$ensemble_weights
-# model_comparison
-
-# Print results.
 model_comparison
-
-# Upper bounds using the transformed parameters block in hmnl_ensemble_01.
-upper_bounds_01 <- tibble(
-  Model = rep(c("HMNL", "Ensemble Upper Bound"), 8),
-  Pathologies = rep(c(rep("None", 2), rep("ANA", 2), rep("Screen", 2), rep("ANA & Screen", 2)), 2),
-  Heterogeneous = c(rep("No", 8), rep("Yes", 8)),
-  LOO = NA,
-  "Hit Rate" = c(0.582, 0.578, 0.450, 0.457, 0.875, 0.867, 0.911, 0.910,
-                 0.582, 0.578, 0.410, 0.421, 0.546, 0.556, 0.594, 0.569),
-  "Hit Prob" = c(0.484, 0.482, 0.384, 0.383, 0.862, 0.854, 0.892, 0.881,
-                 0.484, 0.482, 0.369, 0.372, 0.525, 0.552, 0.551, 0.566)
-)
-
-# Upper bounds using the generated quantities block in hmnl_ensemble_02.
-upper_bounds_02 <- tibble(
-  Model = rep(c("HMNL", "Ensemble Upper Bound"), 8),
-  Pathologies = rep(c(rep("None", 2), rep("ANA", 2), rep("Screen", 2), rep("ANA & Screen", 2)), 2),
-  Heterogeneous = c(rep("No", 8), rep("Yes", 8)),
-  LOO = NA,
-  "Hit Rate" = c(0.582, 0.578, 0.450, 0.450, 0.875, 0.865, 0.911, 0.903,
-                 0.582, 0.578, 0.410, 0.410, 0.546, 0.551, 0.594, 0.569),
-  "Hit Prob" = c(0.484, 0.482, 0.384, 0.383, 0.862, 0.851, 0.892, 0.883,
-                 0.484, 0.482, 0.369, 0.368, 0.525, 0.548, 0.551, 0.565)
-)
-
-upper_bounds_01 |> 
-  ggplot(aes(x = Model, y = `Hit Prob`)) +
-  geom_col() +
-  facet_grid(Pathologies ~ Heterogeneous)
-
-upper_bounds_02 |> 
-  ggplot(aes(x = Model, y = `Hit Prob`)) +
-  geom_col() +
-  facet_grid(Pathologies ~ Heterogeneous)
-

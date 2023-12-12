@@ -1,34 +1,376 @@
-# Preamble ----------------------------------------------------------------
-# Load packages.
-library(tidyverse)
-library(tidybayes)
-library(cmdstanr)
-library(posterior)
-library(loo)
+####################
+# Import data and draws.
+# Compute predictive fit for ind_test of normative, constrained, post-hoc.
+####################
 
-options(mc.cores = 4) # loo option.
+# Compute and compare fit across models.
+data <- read_rds(here::here("data", str_c(data_id, "_", patho_id, ".rds")))
+hmnl_fit <- read_rds(here::here("output", str_c("hmnl-fit_", data_id, "_", patho_id, ".rds")))
+ensemble_draws <- read_rds(here::here("output", str_c("ensemble-fit_", data_id, "_", patho_id, "_", nmember, ".rds")))
 
-# Source functions.
-source(here::here("code", "src", "predictive_fit_stacking.R"))
-# source(here::here("code", "src", "predictive_fit_hmnl.R"))
-# source(here::here("code", "src", "predictive_fit_ensemble.R"))
-source(here::here("code", "src", "predictive_fit_hmnl_test.R"))
-source(here::here("code", "src", "predictive_fit_ensemble_test.R"))
-
-# Set the simulation seed.
-set.seed(42)
-
-# Load data, ensemble, and competing model fit.
-if (ind_sim == 1) data <- read_rds(here::here("data", str_c("sim_", file_id, ".rds")))
-if (ind_emp == 1) data <- read_rds(here::here("data", str_c("emp_", data_id, ".rds")))
-data$test_Z <- matrix(rep(1, nrow(data$test_Y)), ncol = 1)
+# # Load data, ensemble, and competing model fit.
+# if (ind_sim == 1) data <- read_rds(here::here("data", str_c("sim_", file_id, ".rds")))
+# if (ind_emp == 1) data <- read_rds(here::here("data", str_c("emp_", data_id, ".rds")))
+# data$test_Z <- matrix(rep(1, nrow(data$test_Y)), ncol = 1)
 
 # Problem importing fit objects with read_rds()? Fixed with fit$save_object()?
 # But the ensemble_fit object has a list, not a data frame?
 
-if (ind_sim == 1) hmnl_fit <- read_rds(here::here("output", str_c("hmnl-fit_", file_id, ".rds")))
-if (ind_emp == 1) hmnl_fit <- read_rds(here::here("output", str_c("hmnl-fit_", data_id, ".rds")))
-ensemble_fit <- read_rds(here::here("output", str_c("ensemble-fit_", file_id, "_", nmember, ".rds")))
+# if (ind_sim == 1) hmnl_fit <- read_rds(here::here("output", str_c("hmnl-fit_", file_id, ".rds")))
+# if (ind_emp == 1) hmnl_fit <- read_rds(here::here("output", str_c("hmnl-fit_", data_id, ".rds")))
+# ensemble_fit <- read_rds(here::here("output", str_c("ensemble-fit_", file_id, "_", nmember, ".rds")))
+
+####################
+# Incorporate predictive_fit_hmnl.
+# predictive_fit_hmnl = function(hmnl_draws, test_X, test_Y, test_Z){
+#   # Compute the hit rate for the indicated model.
+#   #   hmnl_fit - hmnl output with log_lik, betadraws, gammadraws, and Omegadraws
+#   #   test_Y - choices (hold-out sample)
+#   #   test_X - design matrices (hold-out sample)
+#   #   test_Z - matrix of covariates
+#   
+#   ndraw <- length(hmnl_draws$Gamma[,1,1]) # Number of draws
+#   nresp <- length(test_Y[,1])           # Number of respondents
+#   nscns <- length(test_X[1, ,1,1])      # Number of choice tasks
+#   nalts <- length(test_X[1,1, ,1])      # Number of alternatives 
+#   nlvls <- length(test_X[1,1,1, ])      # Number of att levels
+#   if(is.null(test_Z)){test_Z <- matrix(1, nr=nresp, nc = 1)}
+#   
+#   #stack resps and scns to avoid loops (this needs changed if using hold out tasks)
+#   test_X_stacked <- NULL
+#   for(resp in 1:nresp){
+#     for(scn in 1:nscns){
+#       test_X_stacked <- rbind(test_X_stacked,test_X[resp,scn,,])
+#     }
+#   }
+#   
+#   #stack scn choices to avoid loops
+#   test_Y_stacked <- matrix(t(test_Y),nc=1)
+#   
+#   #get utilities for 2 different hit rate calculations:
+#   #using mean (over draws) of the mean of the post dist
+#   Umat <-  matrix(0, nr = nresp*nscns*nalts)
+#   
+#   #loop over respondents
+#   for(resp in 1:nresp){
+#     #use upper level to get mean of dist of heterogeneity
+#     gammadraws=hmnl_draws$Gamma
+#     #transpose dimensions of gammadraw array
+#     meangammas <- apply(gammadraws,c(2,3),mean)
+#     #multiply by Z to get mean of dist of het
+#     betas <- matrix(test_Z[resp,]%*%meangammas, nc=1)
+#     
+#     #get utility for each alternative
+#     # Umat_meangammas[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),] <- 
+#     #   exp(test_X_stacked[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),]%*%
+#     #         matrix(betas))
+#     Umat[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),] <- 
+#       exp(test_X_stacked[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),]%*%
+#             matrix(betas))
+#   }
+#   
+#   #find probabilities for each task, resp
+#   # Umat_byscn <- matrix(Umat_meangammas, nr = nalts) 
+#   Umat_byscn <- matrix(Umat, nr = nalts) 
+#   sums <- t(matrix(rep(colSums(Umat_byscn),nalts), nc=nalts))
+#   probs <- (Umat_byscn/sums)
+#   
+#   #find location of highest prob
+#   locs <- apply(probs,2,which.max)
+#   
+#   #calculate hits meangammas
+#   hits <- double(nresp*nscns*ndraw)
+#   hits[locs ==test_Y_stacked] <- 1
+#   
+#   #calculate hit probs meangammas
+#   hit_probs<- colSums(probs*diag(nalts)[,test_Y_stacked])
+#   
+#   return(list(hit_prob=mean(hit_probs), hit_rate=mean(hits)))
+# }
+
+predictive_fit_hmnl <- function(hmnl_draws, test_X, test_Y, test_Z) {
+  # Compute the hit rate for the indicated model.
+  #   hmnl_draws - hmnl output with Beta, Gamma, Omega, and tau draws
+  #   test_Y - choices (hold-out sample)
+  #   test_X - design matrices (hold-out sample)
+  #   test_Z - matrix of covariates
+  
+  nresp <- dim(test_X)[1] # Number of respondents.
+  nscns <- dim(test_X)[2] # Number of choice tasks.
+  
+  # Log-likelihood function for the MNL.
+  ll_mnl = function (beta, y, X) {
+    nvars = ncol(X)        # Number of attribute levels.
+    nscns = length(y)      # Number of choice tasks.
+    nalts = nrow(X)/nscns  # Number of alternatives.
+    
+    # Compute Xbeta across all choice tasks.
+    Xbeta = matrix(exp(X%*%beta),byrow=TRUE,ncol=nalts)
+    
+    # Numerator: Xbeta values associated with each choice.
+    choices = cbind(c(1:nscns),y)
+    numerator = Xbeta[choices]
+    
+    # Denominator: Xbeta values associated with each task.
+    iota = c(rep(1,nalts))
+    denominator = Xbeta%*%iota
+    
+    # Return the logit summed across choice tasks.
+    return(sum(log(numerator) - log(denominator)))
+  }
+  
+  # Get the mean of distribution of heterogeneity.
+  
+  ####################################################
+  # We use the average of Beta as the population mean without reference to Sigma.
+  ####################################################
+  
+  # Gamma_mean <- apply(hmnl_draws$Gamma, c(2,3), mean)
+  # Gamma_mean <- hmnl_draws |> 
+  #   subset_draws(variable = "Gamma") |> 
+  #   summarize_draws("mean") |> 
+  #   select("mean") |> 
+  #   as.matrix()
+  Gamma_mean <- hmnl_draws |> 
+    spread_draws(Beta[, j]) |> 
+    summarize(mean = mean(Beta)) |> 
+    select("mean") |> 
+    as.matrix()
+  
+  # Predict Y.
+  hits <- NULL
+  probs <- NULL
+  for (resp in 1:nresp) {
+    for (scn in 1:nscns) {
+      # Pull the relevant Y and X.
+      Y_scn <- test_Y[resp, scn]
+      X_scn <- test_X[resp, scn,,]
+      
+      # Compute hit and probability.
+      # hits <- c(hits, Y_scn == which.max(X_scn %*% t(Gamma_mean)))
+      # probs <- c(probs, exp(ll_mnl(t(Gamma_mean), Y_scn, X_scn)))
+      
+      ####################################
+      # In-sample predictive fit using betas.
+      # Will need to use $Beta along with $Gamma.
+      ####################################
+      
+      hits <- c(hits, Y_scn == which.max(X_scn %*% Gamma_mean))
+      probs <- c(probs, exp(ll_mnl(Gamma_mean, Y_scn, X_scn)))
+    }
+  }
+  
+  # Return the average hit rate and hit probability.
+  return(list(hit_prob = mean(probs), hit_rate = mean(hits)))
+}
+####################
+
+
+
+####################
+# Incorporate predictive_fit_ensemble.
+# predictive_fit_ensemble = function(indices, ensemble_weights, ensemble_draws, 
+#                                    test_X, test_Y, mat_ana, mat_screen, test_Z){
+#   # Compute the hit rate, hit prob, and loo metrics for the ensemble model.
+#   #   ensemble_weights - estimated weights for each of the models
+#   #   ensemble_draws - ensemble output with log_lik, betadraws, gammas, and Omegas for each model
+#   #   test_Y - choices (hold-out sample)
+#   #   test_X - design matrices (hold-out sample)
+#   #   test_Z - matrix of covariates
+#   
+#   nens <- length(ensemble_draws)
+#   ndraw <- length(ensemble_draws[[1]]$log_lik[,1,1]) # Number of draws
+#   nresp <- length(test_Y[,1])           # Number of respondents
+#   nscns <- length(test_X[1, ,1,1])      # Number of choice tasks
+#   nalts <- length(test_X[1,1, ,1])      # Number of alternatives 
+#   nlvls <- length(test_X[1,1,1, ])      # Number of att levels
+#   if( is.null(test_Z) ) test_Z <- matrix(1, nr = nresp, nc = 1)
+#   
+#   #weight log_lik for each model to get log_lik for ensemble
+#   LLmat_ens = matrix(0, nr=ndraw , 
+#                      # nc=exp(sum(log(dim(ensemble_draws[[k]]$log_lik))))/ndraw)
+#                      nc = dim(ensemble_draws[[1]]$log_lik)[2] * dim(ensemble_draws[[1]]$log_lik)[3])
+#   # loglik=ensemble_draws[[1]]$log_lik
+#   # ndraw=dim(loglik)[1]
+#   for(k in 1:nens){
+#     #extract log_lik array from each stanfit object
+#     loglik=ensemble_draws[[k]]$log_lik
+#     LLmat <- matrix(loglik, nr=ndraw)
+#     LLmat_ens <- LLmat_ens + ensemble_weights[k]*LLmat
+#   }
+#   
+#   #get effective sample size
+#   cores <- parallel::detectCores()
+#   r_eff_ens <- loo::relative_eff(x = exp(LLmat_ens), chain_id = double(ndraw)+1, cores = cores)
+#   
+#   #apply PSIS via loo to ensemble likelihoods (loo fit metrics)
+#   loo_fit_ens <- loo::loo.matrix(LLmat_ens, r_eff = r_eff_ens,
+#                                  cores = cores, save_psis = FALSE)
+#   
+#   # OR IS THERE A DEFAULT FOR THE EFFECTIVE SAMPLE SIZE?
+#   
+#   #stack resps and scns to avoid loops (this needs changed if using hold out tasks)
+#   test_X_stacked <- NULL
+#   for(resp in 1:nresp){
+#     for(scn in 1:nscns){
+#       test_X_stacked <- rbind(test_X_stacked,test_X[resp,scn,,])
+#     }
+#   }
+#   
+#   #stack scn choices to avoid loops
+#   test_Y_stacked <- matrix(t(test_Y),nc=1)
+#   
+#   #loop over ensemble models to calculate individual hit probs 
+#   probs_ens <- matrix(0, nr = nalts , nc = nresp*nscns)
+#   
+#   #loop over models
+#   for(model in 1:nens){
+#     #get betas for different hit rate calculations
+#     #using mean (over draws) of the mean of the post dist
+#     Umat <- matrix(0, nr = nresp*nscns*nalts)
+#     
+#     #get gammas
+#     meangammas=ensemble_draws[[model]]$Gamma
+#     
+#     # WHAT IS THIS?!
+#     # GAMMAS THAT AREN'T ATTENDED TO OR BEING SCREENED ON ARE UNIDENTIFIED
+#     # SO PASS ON THE INFORMATION FROM THE CLEVER RANDOMIZATION TO ZERO OUT
+#     # UNIDENTIFIED PARAMETERS FOR EACH ENSEMBLE MEMBER.
+#     
+#     # #adjust due to pathology approach in ensembles
+#     # index_ana <- mat_ana[model,]
+#     
+#     #loop over respondents
+#     for(resp in 1:nresp){
+#       #multiply by Z to get mean of dist of het for resp
+#       betas <- matrix(test_Z[resp,]%*%meangammas, nc=1)
+#       
+#       # WHAT IS THIS?!
+#       # #set gammadraws_mat column = 0 if ensemble ignores the level
+#       # betas[index_ana==1,] <- 0
+#       
+#       #get utility for each alternative
+#       Umat[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),] <- 
+#         exp(test_X_stacked[((resp-1)*nalts*nscns+1):((resp)*nalts*nscns),]%*%
+#               matrix(betas))
+#     }
+#     
+#     #find probabilities for each task and resp
+#     Umat_byscn <- matrix(Umat, nr = nalts) 
+#     sums <- t(matrix(rep(colSums(Umat_byscn),nalts), nc=nalts))
+#     #combine with other model probs weight by ensemble weights 
+#     probs_ens <- probs_ens + 
+#       (Umat_byscn/sums)*ensemble_weights[model]
+#   }
+#   
+#   #find location of highest prob meangammas
+#   locs <- apply(probs_ens,2,which.max)
+#   
+#   #calculate hits meangammas
+#   hits <- double(nresp*nscns)
+#   hits[locs==test_Y_stacked] <- 1
+#   
+#   #calculate hit probs
+#   hit_probs <- colSums(probs_ens*diag(nalts)[,test_Y_stacked])
+#   
+#   return(list(hit_rate = mean(hits), hit_prob = mean(hit_probs), loo_fit=loo_fit_ens))
+# }
+
+predictive_fit_ensemble <- function(indices, ensemble_weights, ensemble_draws, test_X, test_Y, mat_ana, mat_screen, test_Z, ensemble_fit) {
+  # Compute the hit rate, hit prob, and loo metrics for the ensemble model.
+  #   ensemble_weights - estimated weights for each of the models
+  #   ensemble_draws - ensemble output with log_lik, betadraws, gammas, and Omegas for each model
+  #   test_Y - choices (hold-out sample)
+  #   test_X - design matrices (hold-out sample)
+  #   test_Z - matrix of covariates
+  
+  nmemb <- length(ensemble_draws) # Number of ensemble members.
+  nresp <- dim(test_X)[1]         # Number of respondents.
+  nscns <- dim(test_X)[2]         # Number of choice tasks.
+  
+  # Log-likelihood function for the MNL.
+  ll_mnl = function (beta, y, X) {
+    nvars = ncol(X)        # Number of attribute levels.
+    nscns = length(y)      # Number of choice tasks.
+    nalts = nrow(X)/nscns  # Number of alternatives.
+    
+    # Compute Xbeta across all choice tasks.
+    Xbeta = matrix(exp(X%*%beta),byrow=TRUE,ncol=nalts)
+    
+    # Numerator: Xbeta values associated with each choice.
+    choices = cbind(c(1:nscns),y)
+    numerator = Xbeta[choices]
+    
+    # Denominator: Xbeta values associated with each task.
+    iota = c(rep(1,nalts))
+    denominator = Xbeta%*%iota
+    
+    # Return the logit summed across choice tasks.
+    return(sum(log(numerator) - log(denominator)))
+  }
+  
+  # Compute LOO and predict Y.
+  memb_loo <- NULL
+  memb_hits <- NULL
+  memb_probs <- NULL
+  for (memb in 1:nmemb) {
+    # Get the mean of distribution of heterogeneity.
+    
+    ####################################################
+    # We use the average of Beta as the population mean without reference to Sigma.
+    ####################################################
+    
+    # Gamma_mean <- ensemble_draws[[memb]]$Gamma
+    # Gamma_mean <- ensemble_fit$ensemble_draws$Gamma |> 
+    #   select("mean") |> 
+    #   as.matrix()
+    Gamma_mean <- ensemble_draws[[memb]]$Beta |> 
+      spread_draws(Beta[, j]) |> 
+      summarize(mean = mean(Beta)) |> 
+      select("mean") |> 
+      as.matrix()
+    
+    # Predict Y.
+    hits <- NULL
+    probs <- NULL
+    for (resp in 1:nresp) {
+      for (scn in 1:nscns) {
+        # Pull the relevant Y and X.
+        Y_scn <- test_Y[resp, scn]
+        X_scn <- test_X[resp, scn,,]
+        
+        # Compute hit and probability.
+        # hits <- c(hits, Y_scn == which.max(X_scn %*% t(Gamma_mean)))
+        # probs <- c(probs, exp(ll_mnl(t(Gamma_mean), Y_scn, X_scn)))
+        
+        ####################################
+        # In-sample predictive fit using (modified) betas.
+        # Will need to save $Beta along with $Gamma.
+        ####################################
+        
+        hits <- c(hits, Y_scn == which.max(X_scn %*% Gamma_mean))
+        probs <- c(probs, exp(ll_mnl(Gamma_mean, Y_scn, X_scn)))
+      }
+    }
+    
+    # Compute LOO, the average hit rate, and hit probability.
+    # memb_loo <- c(memb_loo, loo(ensemble_fit[[memb]])$elpd_loo)
+    memb_loo <- c(memb_loo, 0)
+    memb_hits <- c(memb_hits, mean(hits))
+    memb_probs <- c(memb_probs, mean(probs))
+  }
+  
+  # Return the weighted average hit rate and hit probability.
+  return(list(
+    hit_rate = ensemble_weights %*% memb_hits, 
+    hit_prob = ensemble_weights %*% memb_probs, 
+    loo_fit = ensemble_weights %*% memb_loo
+  ))
+}
+####################
+
+
+
 
 ####################
 # Temp: Estimating the upper bounds.
@@ -93,7 +435,42 @@ model_comparison
 ####################
 
 
+####################
+# Fit table construction...
+# Upper bounds using the transformed parameters block in hmnl_ensemble_01.
+upper_bounds_01 <- tibble(
+  Model = rep(c("HMNL", "Ensemble Upper Bound"), 8),
+  Pathologies = rep(c(rep("None", 2), rep("ANA", 2), rep("Screen", 2), rep("ANA & Screen", 2)), 2),
+  Heterogeneous = c(rep("No", 8), rep("Yes", 8)),
+  LOO = NA,
+  "Hit Rate" = c(0.582, 0.578, 0.450, 0.457, 0.875, 0.867, 0.911, 0.910,
+                 0.582, 0.578, 0.410, 0.421, 0.546, 0.556, 0.594, 0.569),
+  "Hit Prob" = c(0.484, 0.482, 0.384, 0.383, 0.862, 0.854, 0.892, 0.881,
+                 0.484, 0.482, 0.369, 0.372, 0.525, 0.552, 0.551, 0.566)
+)
 
+# Upper bounds using the generated quantities block in hmnl_ensemble_02.
+upper_bounds_02 <- tibble(
+  Model = rep(c("HMNL", "Ensemble Upper Bound"), 8),
+  Pathologies = rep(c(rep("None", 2), rep("ANA", 2), rep("Screen", 2), rep("ANA & Screen", 2)), 2),
+  Heterogeneous = c(rep("No", 8), rep("Yes", 8)),
+  LOO = NA,
+  "Hit Rate" = c(0.582, 0.578, 0.450, 0.450, 0.875, 0.865, 0.911, 0.903,
+                 0.582, 0.578, 0.410, 0.410, 0.546, 0.551, 0.594, 0.569),
+  "Hit Prob" = c(0.484, 0.482, 0.384, 0.383, 0.862, 0.851, 0.892, 0.883,
+                 0.484, 0.482, 0.369, 0.368, 0.525, 0.548, 0.551, 0.565)
+)
+
+upper_bounds_01 |> 
+  ggplot(aes(x = Model, y = `Hit Prob`)) +
+  geom_col() +
+  facet_grid(Pathologies ~ Heterogeneous)
+
+upper_bounds_02 |> 
+  ggplot(aes(x = Model, y = `Hit Prob`)) +
+  geom_col() +
+  facet_grid(Pathologies ~ Heterogeneous)
+####################
 
 
 
@@ -336,3 +713,7 @@ model_comparison
 #   ggsave(here::here("Figures", str_c("parameter-recovery_", file_id, ".png")), width = 7, height = 3)
 # }
 # 
+
+####################
+# Compare to model_fit and predictive_fit_stacking.
+####################

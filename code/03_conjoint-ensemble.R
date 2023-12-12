@@ -77,41 +77,31 @@ tau_scale <- hmnl_draws |>
 stan_data_list <- vector(mode = "list", length = nmember)
 for (member in 1:nmember) {
   stan_data <- list(
-    R = dim(data$train_X)[1],                   # Number of respondents.
-    S = dim(data$train_X)[2],                   # Number of choice tasks.
-    A = dim(data$train_X)[3],                   # Number of choice alternatives.
-    I = dim(data$train_X)[4],                   # Number of observation-level covariates.
-    J = ncol(data$train_Z),                     # Number of population-level covariates.
+    R = dim(data$train_X)[1],                         # Number of respondents.
+    S = dim(data$train_X)[2],                         # Number of choice tasks.
+    A = dim(data$train_X)[3],                         # Number of choice alternatives.
+    I = dim(data$train_X)[4],                         # Number of observation-level covariates.
+    J = ncol(data$train_Z),                           # Number of population-level covariates.
               
-    Gamma_mean = Gamma_mean,                    # Mean of population-level means.
-    Gamma_scale = Gamma_scale,                  # Scale of population-level means.
-    Omega_shape = Omega_shape,                  # Shape of population-level scale.
-    tau_mean = tau_mean,                        # Mean of population-level scale.
-    tau_scale = tau_scale,                      # Scale of population-level scale.
+    Gamma_mean = Gamma_mean,                          # Mean of population-level means.
+    Gamma_scale = Gamma_scale,                        # Scale of population-level means.
+    Omega_shape = Omega_shape,                        # Shape of population-level scale.
+    tau_mean = tau_mean,                              # Mean of population-level scale.
+    tau_scale = tau_scale,                            # Scale of population-level scale.
               
-    Y = data$train_Y,                           # Array of observations.
-    X = data$train_X,                           # Array of observation-level covariates.
-    Z = data$train_Z,                           # Matrix of population-level covariates.
-    array_ana = data$array_ana[,,member],       # Array of ensemble indicators for ANA.
-    array_screen = data$array_screen[,,member], # Array of ensemble indicators for screening.
-    
-    ##########################
-    # C'mon dimensions...
-    ##########################
-    
-    array_qual = as.matrix(data$array_qual[,,member])      # Array of ensemble indicators for respondent quality.
+    Y = data$train_Y,                                 # Array of observations.
+    X = data$train_X,                                 # Array of observation-level covariates.
+    Z = data$train_Z,                                 # Matrix of population-level covariates.
+    array_ana = data$array_ana[,,member],             # Array of ensemble indicators for ANA.
+    array_screen = data$array_screen[,,member],       # Array of ensemble indicators for screening.
+    array_qual = as.matrix(data$array_qual[,,member]) # Array of ensemble indicators for respondent quality.
   )
   
   stan_data_list[[member]] <- stan_data
 }
 
-##########################
-# Do I need to compile every time?
-# Do I need to pass a vector of arguments to parallel::mclapply()?
-##########################
-
 # Specify a function to fit each ensemble, extract the posterior draws, and average them.
-fit_extract_average <- function(stan_data) {
+fit_extract_average <- function(stan_data, hmnl_ensemble) {
   # Estimate the model.
   hmnl_ensemble <- cmdstan_model(here::here("code", "src", "hmnl_ensemble.stan"))
   fit <- hmnl_ensemble$sample(
@@ -135,7 +125,15 @@ fit_extract_average <- function(stan_data) {
 }
 
 # Fit the ensemble.
-ensemble_draws <- parallel::mclapply(stan_data_list, fit_extract_average, mc.cores = parallel::detectCores())
+ensemble_draws <- parallel::mclapply(
+  stan_data_list, 
+  fit_extract_average, 
+  mc.cores = parallel::detectCores()
+)
+
+####################
+# 19% divergent transitions?
+####################
 
 # Save the ensemble fit.
 write_rds(ensemble_draws, here::here("output", str_c("ensemble-fit_", data_id, "_", patho_id, "_", nmember, ".rds")))
