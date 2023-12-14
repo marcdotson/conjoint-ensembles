@@ -55,6 +55,15 @@ transformed parameters {
     }
   }
   
+  // Impose fixed values using respondent quality indicator array.
+  for (r in 1:R) {
+    if (array_qual[r, 1] == 1) {
+      Beta[r,] = Beta[r,] * 0;
+    } else {
+      Beta[r,] = Beta[r,];
+    }
+  }
+  
   // Non-centered parameterization.
   for (r in 1:R) {
     Beta[r,] = Z[r,] * Gamma + Delta[r,] * quad_form_diag(Omega, tau);
@@ -72,12 +81,7 @@ model {
   for (r in 1:R) {
     Delta[r,] ~ normal(0, 1);
     for (s in 1:S) {
-      // Impose fixed values using respondent quality indicator array.
-      if (array_ana[r, 1] == 1) {
-        Y[r, s] ~ categorical_logit((X[r, s,,] * Beta[r,]') + 5);
-      } else {
-        Y[r, s] ~ categorical_logit(X[r, s,,] * Beta[r,]');
-      }
+      Y[r, s] ~ categorical_logit(X[r, s,,] * Beta[r,]');
     }
   }
 }
@@ -88,12 +92,7 @@ generated quantities {
   matrix[I, I] Sigma;   // Covariance matrix for the population model.
   for (r in 1:R) {
     for (s in 1:S) {
-      // Impose fixed values using respondent quality indicator array.
-      if (array_ana[r, 1] == 1) {
-        log_lik[r, s] = categorical_logit_lpmf(Y[r, s] | (X[r, s,,] * Beta[r,]') + 5);
-      } else {
-        log_lik[r, s] = categorical_logit_lpmf(Y[r, s] | X[r, s,,] * Beta[r,]');
-      }
+      log_lik[r, s] = categorical_logit_lpmf(Y[r, s] | X[r, s,,] * Beta[r,]');
     }
   }
   Sigma = quad_form_diag(Omega, tau);

@@ -104,6 +104,11 @@ if (!file.exists(here::here("output", str_c("ensemble-fit_", data_id, "_", patho
   # Specify a function to fit each ensemble, extract the posterior draws, and average them.
   fit_extract_average <- function(stan_data, hmnl_ensemble) {
     # Estimate the model.
+    
+    ####################
+    # Here's where we can use Pathfinder instead of $sample().
+    ####################
+    
     hmnl_ensemble <- cmdstan_model(here::here("code", "src", "hmnl_ensemble.stan"))
     fit <- hmnl_ensemble$sample(
       data = stan_data,
@@ -133,7 +138,7 @@ if (!file.exists(here::here("output", str_c("ensemble-fit_", data_id, "_", patho
   )
   
   ####################
-  # 19% divergent transitions?
+  # 8% divergent transitions?
   ####################
   
   # Save the ensemble fit.
