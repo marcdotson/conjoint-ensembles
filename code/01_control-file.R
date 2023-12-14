@@ -36,9 +36,9 @@ nlevel <- 3         # Number of attribute levels for each attribute.
 ncov <- 0           # Number of population-level covariates.
 nversion <- 10      # Number of versions of the experimental design.
 nmember <- 1        # Number of ensemble members.
-prob_ana <- 0.75    # Probability of ANA.
+prob_ana <- 0.50    # Probability of ANA.
 prob_screen <- 0.75 # Probability of screening.
-prob_qual <- 0.75   # Probability of respondent quality.
+prob_qual <- 0.20   # Probability of respondent quality.
 pct_train <- 0.80   # Percent of data used for training.
 
 # Construct the patho_id conditioned on flags.
