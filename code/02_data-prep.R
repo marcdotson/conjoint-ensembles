@@ -69,7 +69,7 @@ if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
   nbeta <- natt * nlevel - natt
   mat_ana <- matrix(double(nresp * nbeta), ncol = nbeta) + 1
   mat_screen <- matrix(double(nresp * nbeta), ncol = nbeta)
-  mat_qual <- matrix(double(nresp), ncol = 1)
+  mat_qual <- matrix(double(nresp), ncol = 1) + 1
   for (resp in 1:nresp) {
     # If ANA is flagged, with prob_ana, simulate ANA where a respondent pays attention to at 
     # least one attribute and has non-attendance for at least one attribute.
@@ -87,9 +87,9 @@ if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
       mat_screen[resp, draw_screen] <- -100
     }
     
-    # If respondent quality is flagged, with prob_qual, simulate respondent quality where a (random?)
-    # value is added to a respondent's latent utility.
-    if (ind_qual == TRUE & runif(1) < prob_qual) mat_qual[resp, 1] <- 5
+    # If respondent quality is flagged, with prob_qual, simulate respondent quality where a respondent's
+    # betas are all set to zero, making their resulting choices random.
+    if (ind_qual == TRUE & runif(1) < prob_qual) mat_qual[resp, 1] <- 0
   }
   
   # If heterogeneity isn't flagged, have the first iteration of pathologies apply for all respondents.
@@ -127,13 +127,13 @@ if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
     resp_qual <- mat_qual[resp,]
     
     # Generate respondent-level betas (conditioned on pathologies) and generate choice data.
-    Beta[resp,] <- (Gamma * Z[resp,] + rnorm(length(Gamma), 0, 1)) * resp_ana + resp_screen
+    Beta[resp,] <- ((Gamma * Z[resp,] + rnorm(length(Gamma), 0, 1)) * resp_ana + resp_screen) * resp_qual
     for (task in 1:ntask) {
       # Draw the design matrix for this specific task, compute the latent utility function
-      # (conditioned on pathologies) and apply the logit function to produce probabilities 
-      # of choosing each alternative. Use the choice probabilities to make a choice.
+      # and apply the logit function to produce probabilities of choosing each alternative.
+      # Use the choice probabilities to make a choice.
       task_design <- resp_design[which(resp_design[,2] == task), 4:(ncol(resp_design))]
-      resp_util <- as.vector(task_design %*% Beta[resp,]) + resp_qual
+      resp_util <- as.vector(task_design %*% Beta[resp,])
       prob_y <- exp(resp_util) / sum(exp(resp_util))
       Y[resp, task] <- sample(1:nalt, 1, prob = prob_y)
       X[resp, task,,] <- matrix(task_design, nrow = nalt, ncol = ncol(task_design))
@@ -180,8 +180,8 @@ if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
         array_screen[resp_train, draw_screen, member] <- 1
       }
       
-      # With prob_qual, randomize respondent quality where a random value is added to a 
-      # respondent's latent utility.
+      # With prob_qual, simulate respondent quality where a respondent's betas are all set to zero, 
+      # making their resulting choices random.
       if (runif(1) < prob_qual) array_qual[resp_train, 1, member] <- 1
     }
   }
@@ -206,7 +206,7 @@ if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
   if (ind_test == 1) {
     mat_ana <- ifelse(mat_ana == 0, 1, 0)
     mat_screen <- ifelse(mat_screen != 0, 1, 0)
-    mat_qual <- ifelse(mat_qual != 0, 1, 0)
+    mat_qual <- ifelse(mat_qual == 0, 1, 0)
     for (member in 1:nmember) {
       array_ana[,,member] <- mat_ana[index_train,]
       array_screen[,,member] <- mat_screen[index_train,]
@@ -224,7 +224,9 @@ if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
     # Population mean Gamma and Beta matrix.
     Gamma = Gamma, Beta = Beta,
     # Index for training and testing.
-    index_train = index_train, index_test = index_test
+    index_train = index_train, index_test = index_test,
+    # Hidden probability and percent arguments.
+    prob_ana = prob_ana, prob_screen = prob_screen, prob_qual = prob_qual, pct_train = pct_train
   )
   write_rds(data, here::here("data", str_c(data_id, "_", patho_id, ".rds")))
 }
