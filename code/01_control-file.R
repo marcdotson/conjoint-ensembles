@@ -80,3 +80,12 @@ source(here::here("code", "06_model-comparison.R"))
 
 read_rds(here::here("figures", str_c("model_comparison.rds")))
 
+# Visualize Model Fit -----------------------------------------------------
+model_comparison <- read_rds(here::here("figures", str_c("model_comparison.rds")))
+
+model_comparison |> 
+  mutate(Model = fct_inorder(Model)) |> 
+  ggplot(aes(x = `Hit Rate`, y = ID, fill = Model)) +
+  geom_col(position = "dodge") +
+  labs(x = "", y = "Pathology")
+
