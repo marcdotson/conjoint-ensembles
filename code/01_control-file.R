@@ -77,4 +77,6 @@ source(here::here("code", "03_conjoint-ensemble.R"))
 # Compute and compare fit across models.
 source(here::here("code", "06_model-comparison.R"))
 # ensemble_fit$ensemble_weights
-model_comparison
+
+read_rds(here::here("figures", str_c("model_comparison.rds")))
+
