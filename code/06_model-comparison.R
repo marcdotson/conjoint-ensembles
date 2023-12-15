@@ -44,14 +44,14 @@ for (iter in 1:dim(beta_draws)[1]) {
         # on the parameter estimates directly that we do as part of the transformed
         # parameters in the actual ensemble setup.
         for (level in 1:dim(data$train_X)[4]) {
-          # Impose fixed values using ANA indicator array.
-          if (data$array_ana[resp_train,level,member] == 1) {
-            beta_draws_temp[resp_train,level] = 0
-          }
-          
           # Impose fixed values using screening indicator array.
           if (data$array_screen[resp_train,level,member] == 1) {
             beta_draws_temp[resp_train,level] = -100
+          }
+          
+          # Impose fixed values using ANA indicator array.
+          if (data$array_ana[resp_train,level,member] == 1) {
+            beta_draws_temp[resp_train,level] = 0
           }
         }
         
@@ -126,8 +126,6 @@ model_comparison[2, 4] <- round(mean(hits_02), 3)
 model_comparison[2, 5] <- round(mean(probs_02), 3)
 model_comparison[3, 4] <- round(mean(hits_03), 3)
 model_comparison[3, 5] <- round(mean(probs_03), 3)
-
-model_comparison
 
 ####################
 # Compare to model_fit and predictive_fit_stacking.

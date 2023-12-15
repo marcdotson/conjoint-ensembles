@@ -22,8 +22,8 @@ ind_sim <- 1        # Run a simulation experiment.
 # ind_beef <- 0       # Use Ground Beef data.
 # ind_zero <- 0       # Use Zerorez data.
 ind_none <- 0       # Control for no pathologies.
-ind_ana <- 1        # Control for attribute non-attendance.
 ind_screen <- 1     # Control for screening.
+ind_ana <- 1        # Control for attribute non-attendance.
 ind_qual <- 1       # Control for respondent quality.
 ind_hetero <- 1     # Control for heterogeneous pathologies.
 
@@ -36,8 +36,8 @@ nlevel <- 3         # Number of attribute levels for each attribute.
 ncov <- 0           # Number of population-level covariates.
 nversion <- 10      # Number of versions of the experimental design.
 nmember <- 1        # Number of ensemble members.
-prob_ana <- 0.50    # Probability of ANA.
 prob_screen <- 0.75 # Probability of screening.
+prob_ana <- 0.50    # Probability of ANA.
 prob_qual <- 0.20   # Probability of respondent quality.
 pct_train <- 0.80   # Percent of data used for training.
 
@@ -47,13 +47,13 @@ if (ind_sim == 1) data_id <- "sim"
 # if (ind_beef == 1) data_id <- str_c(data_id, "_", "ground-beef")
 # if (ind_zero == 1) data_id <- str_c(data_id, "_", "zerorez")
 if (ind_none == 1) patho_id <- "none"
-if (ind_ana == 1) patho_id <- "ana"
 if (ind_screen == 1) patho_id <- "screen"
+if (ind_ana == 1) patho_id <- "ana"
 if (ind_qual == 1) patho_id <- "qual"
-if (ind_ana == 1 & ind_screen == 1) patho_id <- "ana-screen"
-if (ind_ana == 1 & ind_qual == 1) patho_id <- "ana-qual"
+if (ind_screen == 1 & ind_ana == 1) patho_id <- "screen-ana"
 if (ind_screen == 1 & ind_qual == 1) patho_id <- "screen-qual"
-if (ind_ana == 1 & ind_screen == 1 & ind_qual == 1) patho_id <- "ana-screen-qual"
+if (ind_ana == 1 & ind_qual == 1) patho_id <- "ana-qual"
+if (ind_screen == 1 & ind_ana == 1 & ind_qual == 1) patho_id <- "screen-ana-qual"
 if (ind_hetero == 0) patho_id <- str_c(patho_id, "-homo")
 if (ind_hetero == 1) patho_id <- str_c(patho_id, "-hetero")
 if (ind_test == 1) patho_id <- str_c(patho_id, "_test")

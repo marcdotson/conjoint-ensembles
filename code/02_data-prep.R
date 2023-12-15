@@ -67,10 +67,17 @@ if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
   
   # Prepare to impose pathologies probabilistically, conditioned on indicator flags.
   nbeta <- natt * nlevel - natt
-  mat_ana <- matrix(double(nresp * nbeta), ncol = nbeta) + 1
   mat_screen <- matrix(double(nresp * nbeta), ncol = nbeta)
+  mat_ana <- matrix(double(nresp * nbeta), ncol = nbeta) + 1
   mat_qual <- matrix(double(nresp), ncol = 1) + 1
   for (resp in 1:nresp) {
+    # If screening is flagged, with prob_screen, simulate screening where a respondent screens based 
+    # on at least one attribute level but not all of them.
+    if (ind_screen == TRUE & runif(1) < prob_screen) {
+      draw_screen <- sample(1:nbeta, size = round(runif(n = 1, min = 1, max = nbeta - 1)), replace = FALSE)
+      mat_screen[resp, draw_screen] <- -100
+    }
+    
     # If ANA is flagged, with prob_ana, simulate ANA where a respondent pays attention to at 
     # least one attribute and has non-attendance for at least one attribute.
     if (ind_ana == TRUE & runif(1) < prob_ana) {
@@ -80,13 +87,6 @@ if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
       }
     }
     
-    # If screening is flagged, with prob_screen, simulate screening where a respondent screens based 
-    # on at least one attribute level but not all of them.
-    if (ind_screen == TRUE & runif(1) < prob_screen) {
-      draw_screen <- sample(1:nbeta, size = round(runif(n = 1, min = 1, max = nbeta - 1)), replace = FALSE)
-      mat_screen[resp, draw_screen] <- -100
-    }
-    
     # If respondent quality is flagged, with prob_qual, simulate respondent quality where a respondent's
     # betas are all set to zero, making their resulting choices random.
     if (ind_qual == TRUE & runif(1) < prob_qual) mat_qual[resp, 1] <- 0
@@ -94,12 +94,12 @@ if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
   
   # If heterogeneity isn't flagged, have the first iteration of pathologies apply for all respondents.
   if (ind_hetero == 0) {
-    tmp_ana <- mat_ana[1,]
     tmp_screen <- mat_screen[1,]
+    tmp_ana <- mat_ana[1,]
     tmp_qual <- mat_qual[1,]
     for (resp in 1:nresp) {
-      mat_ana[resp,] <- tmp_ana
       mat_screen[resp,] <- tmp_screen
+      mat_ana[resp,] <- tmp_ana
       mat_qual[resp,] <- tmp_qual
     }
   }
@@ -122,8 +122,8 @@ if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
     # the associated pathology matrices to modify the utility function.
     resp_ver <- sample(1:nversion, 1)
     resp_design <- design_dummy[which(design_dummy[,1] == resp_ver),]
-    resp_ana <- mat_ana[resp,]
     resp_screen <- mat_screen[resp,]
+    resp_ana <- mat_ana[resp,]
     resp_qual <- mat_qual[resp,]
     
     # Generate respondent-level betas (conditioned on pathologies) and generate choice data.
@@ -157,11 +157,18 @@ if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
   
   # Generate an array of clever randomization patterns for each possible pathology
   # for each respondent in the training data for each possible member of the ensemble.
-  array_ana <- array(double(nbeta * nresp_train * nmember), dim = c(nresp_train, nbeta, nmember))
   array_screen <- array(double(nbeta * nresp_train * nmember), dim = c(nresp_train, nbeta, nmember))
+  array_ana <- array(double(nbeta * nresp_train * nmember), dim = c(nresp_train, nbeta, nmember))
   array_qual <- array(double(nresp_train * nmember), dim = c(nresp_train, 1, nmember))
   for (member in 1:nmember) {
     for (resp_train in 1:nresp_train) {
+      # With prob_screen, randomize screening where a respondent screens based on at least one attribute
+      # level but not all of them.
+      if (runif(1) < prob_screen) {
+        draw_screen <- sample(1:nbeta, size = round(runif(n = 1, min = 1, max = nbeta - 1)), replace = FALSE)
+        array_screen[resp_train, draw_screen, member] <- 1
+      }
+      
       # With prob_ana, randomize ANA where a respondent pays attention to at least one attribute
       # and has non-attendance for at least one attribute.
       if (runif(1) < prob_ana) {
@@ -171,13 +178,6 @@ if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
             array_ana[resp_train, ((att * nlevel - att) - 1):(att * nlevel - att), member] <- 1
           }
         }
-      }
-      
-      # With prob_screen, randomize screening where a respondent screens based on at least one attribute
-      # level but not all of them.
-      if (runif(1) < prob_screen) {
-        draw_screen <- sample(1:nbeta, size = round(runif(n = 1, min = 1, max = nbeta - 1)), replace = FALSE)
-        array_screen[resp_train, draw_screen, member] <- 1
       }
       
       # With prob_qual, simulate respondent quality where a respondent's betas are all set to zero, 
@@ -190,12 +190,12 @@ if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
   # in the training data for each member of the pathology.
   if (ind_hetero == 0) {
     for (member in 1:nmember) {
-      tmp_ana <- array_ana[1,,member]
       tmp_screen <- array_screen[1,,member]
+      tmp_ana <- array_ana[1,,member]
       tmp_qual <- array_qual[1,,member]
       for (resp_train in 1:nresp_train) {
-        array_ana[resp_train,,member] <- tmp_ana
         array_screen[resp_train,,member] <- tmp_screen
+        array_ana[resp_train,,member] <- tmp_ana
         array_qual[resp_train,,member] <- tmp_qual
       }
     }
@@ -204,12 +204,12 @@ if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
   # If testing is flagged, modify the known simulated pathology matrices into an array
   # with flags for estimation.
   if (ind_test == 1) {
-    mat_ana <- ifelse(mat_ana == 0, 1, 0)
     mat_screen <- ifelse(mat_screen != 0, 1, 0)
+    mat_ana <- ifelse(mat_ana == 0, 1, 0)
     mat_qual <- ifelse(mat_qual == 0, 1, 0)
     for (member in 1:nmember) {
-      array_ana[,,member] <- mat_ana[index_train,]
       array_screen[,,member] <- mat_screen[index_train,]
+      array_ana[,,member] <- mat_ana[index_train,]
       array_qual[,,member] <- mat_qual[index_train,]
     }
   }
@@ -220,13 +220,13 @@ if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
     train_Y = train_Y, train_X = train_X, train_Z = train_Z,  
     test_Y = test_Y, test_X = test_X, test_Z = test_Z,
     # Pathology arrays.
-    array_ana = array_ana, array_screen = array_screen, array_qual = array_qual,
+    array_screen = array_screen, array_ana = array_ana, array_qual = array_qual,
     # Population mean Gamma and Beta matrix.
     Gamma = Gamma, Beta = Beta,
     # Index for training and testing.
     index_train = index_train, index_test = index_test,
     # Hidden probability and percent arguments.
-    prob_ana = prob_ana, prob_screen = prob_screen, prob_qual = prob_qual, pct_train = pct_train
+    prob_screen = prob_screen, prob_ana = prob_ana, prob_qual = prob_qual, pct_train = pct_train
   )
   write_rds(data, here::here("data", str_c(data_id, "_", patho_id, ".rds")))
 }

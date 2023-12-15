@@ -93,8 +93,8 @@ if (!file.exists(here::here("output", str_c("ensemble-fit_", data_id, "_", patho
       Y = data$train_Y,                                 # Array of observations.
       X = data$train_X,                                 # Array of observation-level covariates.
       Z = data$train_Z,                                 # Matrix of population-level covariates.
-      array_ana = data$array_ana[,,member],             # Array of ensemble indicators for ANA.
       array_screen = data$array_screen[,,member],       # Array of ensemble indicators for screening.
+      array_ana = data$array_ana[,,member],             # Array of ensemble indicators for ANA.
       array_qual = as.matrix(data$array_qual[,,member]) # Array of ensemble indicators for respondent quality.
     )
     

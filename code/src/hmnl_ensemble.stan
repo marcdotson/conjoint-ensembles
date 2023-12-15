@@ -15,17 +15,17 @@ data {
   array[R, S] int Y;              // Array of observations.
   array[R, S] matrix[A, I] X;     // Array of observation-level covariates.
   matrix[R, J] Z;                 // Matrix of population-level covariates.
-  array[R, I] int array_ana;      // Array of ensemble indicators for ANA.
   array[R, I] int array_screen;   // Array of ensemble indicators for screening.
+  array[R, I] int array_ana;      // Array of ensemble indicators for ANA.
   array[R, 1] int array_qual;     // Array of ensemble indicators for respondent quality.
 }
 
 // Parameters and hyperparameters.
 parameters {
-  matrix[J, I] Gamma;                // Matrix of population-level hyperparameters.
-  corr_matrix[I] Omega;              // Population model correlation matrix hyperparameters.
-  vector<lower = 0>[I] tau;          // Population model vector of scale hyperparameters.
-  matrix[R, I] Delta;                // Matrix of non-centered observation-level parameters.
+  matrix[J, I] Gamma;             // Matrix of population-level hyperparameters.
+  corr_matrix[I] Omega;           // Population model correlation matrix hyperparameters.
+  vector<lower = 0>[I] tau;       // Population model vector of scale hyperparameters.
+  matrix[R, I] Delta;             // Matrix of non-centered observation-level parameters.
 }
 
 // Deterministic transformation.
@@ -33,22 +33,22 @@ transformed parameters {
   // Matrix of centered observation-level parameters.
   matrix[R, I] Beta;
   
-  // Impose fixed values using ANA indicator array.
+  // Impose fixed values using screening indicator array.
   for (r in 1:R) {
     for (i in 1:I) {
-      if (array_ana[r, i] == 1) {
-        Beta[r, i] = 0;
+      if (array_screen[r, i] == 1) {
+        Beta[r, i] = -100;
       } else {
         Beta[r, i] = Beta[r, i];
       }
     }
   }
   
-  // Impose fixed values using screening indicator array.
+  // Impose fixed values using ANA indicator array.
   for (r in 1:R) {
     for (i in 1:I) {
-      if (array_screen[r, i] == 1) {
-        Beta[r, i] = -100;
+      if (array_ana[r, i] == 1) {
+        Beta[r, i] = 0;
       } else {
         Beta[r, i] = Beta[r, i];
       }
