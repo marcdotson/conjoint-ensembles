@@ -21,28 +21,60 @@ Gamma_mean_01 <- hmnl_draws |>
 beta_draws <- hmnl_draws |> 
   subset_draws(variable = "Beta") |> 
   as_draws_array()
-for (iter in dim(beta_draws)[1]) {
-  for (chain in dim(beta_draws)[2]) {
-    ####################################################
-    # Convert back to impose constraint directly on betas...
-    # mat_ana <- ifelse(mat_ana == 0, 1, 0)
-    # mat_screen <- ifelse(mat_screen != 0, 1, 0)
-    # mat_qual <- ifelse(mat_qual != 0, 1, 0)
-    # for (member in 1:nmember) {
-    #   array_ana[,,member] <- mat_ana[index_train,]
-    #   array_screen[,,member] <- mat_screen[index_train,]
-    #   array_qual[,,member] <- mat_qual[index_train,]
-    # }
-    
-    # ANA
-    # Screen
-    # Quality? Doesn't influence Betas so can't apply to predictive fit?
-    ####################################################
-    beta_draws[1,1,] * as.vector(data$array_screen)
+
+####################################################
+# Revisit specifying actual pre-built data structure for beta_draws_new
+# that accounts for many ensemble members, if needed?
+####################################################
+
+# beta_draws_new <- array(NA, dim = dim(data$array_ana))
+beta_draws_new <- NULL
+for (iter in 1:dim(beta_draws)[1]) {
+  for (chain in 1:dim(beta_draws)[2]) {
+    # Restructure the specific draw to match the pathology arrays.
+    beta_draws_temp <- matrix(
+      beta_draws[iter, chain,], 
+      nrow = dim(data$train_X)[1], 
+      ncol = dim(data$train_X)[4], 
+      byrow = TRUE
+    )
+    for (member in 1:dim(data$array_ana)[3]) {
+      for (resp_train in 1:dim(data$train_X)[1]) {
+        # Match the dimensions of the arrays to impose the same sort of constraints
+        # on the parameter estimates directly that we do as part of the transformed
+        # parameters in the actual ensemble setup.
+        for (level in 1:dim(data$train_X)[4]) {
+          # Impose fixed values using ANA indicator array.
+          if (data$array_ana[resp_train,level,member] == 1) {
+            beta_draws_temp[resp_train,level] = 0
+          }
+          
+          # Impose fixed values using screening indicator array.
+          if (data$array_screen[resp_train,level,member] == 1) {
+            beta_draws_temp[resp_train,level] = -100
+          }
+        }
+        
+        # Impose fixed values using respondent quality indicator array.
+        if (data$array_qual[resp_train,1,member] == 1) {
+          beta_draws_temp[resp_train,] = beta_draws_temp[resp_train,] * 0
+        }
+        
+        # Save modified beta_draws_temp.
+        beta_draws_new <- rbind(beta_draws_new, beta_draws_temp[resp_train,])
+      }
+    }
   }
 }
 
+Gamma_mean_02 <- matrix(apply(beta_draws_new, 2, mean), ncol = 1)
+
 # Compute population mean for the choice model with betas constrained during estimation.
+Gamma_mean_03 <- ensemble_draws[[1]][[1]] |> 
+  spread_draws(Beta[, j]) |> 
+  summarize(mean = mean(Beta)) |> 
+  select("mean") |> 
+  as.matrix()
 
 # Create an empty model comparison data frame.
 model_comparison <- tibble(
@@ -73,18 +105,18 @@ for (resp_test in 1:nresp_test) {
     
     # Compute model fit for the choice model with unconstrained betas.
     hits_01[resp_test, task] <- tmp_y == which.max(tmp_X %*% Gamma_mean_01)
-    tmp_XGamma = matrix(exp(tmp_X %*% Gamma_mean_01), byrow = TRUE, ncol = nalt)
+    tmp_XGamma <- matrix(exp(tmp_X %*% Gamma_mean_01), byrow = TRUE, ncol = nalt)
     probs_01[resp_test, task] <- exp(sum(log(tmp_XGamma) - log(sum(tmp_XGamma))))
     
     # Compute model fit for the choice model with betas constrained after estimation.
     hits_02[resp_test, task] <- tmp_y == which.max(tmp_X %*% Gamma_mean_02)
-    tmp_XGamma = matrix(exp(tmp_X %*% Gamma_mean_02), byrow = TRUE, ncol = nalt)
+    tmp_XGamma <- matrix(exp(tmp_X %*% Gamma_mean_02), byrow = TRUE, ncol = nalt)
     probs_02[resp_test, task] <- exp(sum(log(tmp_XGamma) - log(sum(tmp_XGamma))))
     
     # Compute model fit for the choice model with betas constrained during estimation.
     hits_03[resp_test, task] <- tmp_y == which.max(tmp_X %*% Gamma_mean_03)
-    tmp_XGamma = matrix(exp(tmp_X %*% Gamma_mean_03), byrow = TRUE, ncol = nalt)
-    probs_03[resp_test, task] <- exp(ll_mnl(Gamma_mean_03, tmp_y, tmp_X))
+    tmp_XGamma <- matrix(exp(tmp_X %*% Gamma_mean_03), byrow = TRUE, ncol = nalt)
+    probs_03[resp_test, task] <- exp(sum(log(tmp_XGamma) - log(sum(tmp_XGamma))))
   }
 }
 
@@ -95,18 +127,7 @@ model_comparison[2, 5] <- round(mean(probs_02), 3)
 model_comparison[3, 4] <- round(mean(hits_03), 3)
 model_comparison[3, 5] <- round(mean(probs_03), 3)
 
-
-
-
-upper_bounds_01 |> 
-  ggplot(aes(x = Model, y = `Hit Prob`)) +
-  geom_col() +
-  facet_grid(Pathologies ~ Heterogeneous)
-
-upper_bounds_02 |> 
-  ggplot(aes(x = Model, y = `Hit Prob`)) +
-  geom_col() +
-  facet_grid(Pathologies ~ Heterogeneous)
+model_comparison
 
 ####################
 # Compare to model_fit and predictive_fit_stacking.
