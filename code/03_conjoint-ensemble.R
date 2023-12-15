@@ -138,7 +138,7 @@ if (!file.exists(here::here("output", str_c("ensemble-fit_", data_id, "_", patho
   )
   
   ####################
-  # 8% divergent transitions?
+  # Divergent transitions?
   ####################
   
   # Save the ensemble fit.
