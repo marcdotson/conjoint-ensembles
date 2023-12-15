@@ -18,22 +18,26 @@ Gamma_mean_01 <- hmnl_draws |>
   as.matrix()
 
 # Compute population mean for the choice model with betas constrained after estimation.
-beta_draws <- hmnl_draws |> 
-  subset_draws(variable = "Beta") |> 
-  as_draws_array()
 
 ####################################################
+# Do we need to impose the constraints for each iteration and chain instead?
 # Revisit specifying actual pre-built data structure for beta_draws_new
 # that accounts for many ensemble members, if needed?
 ####################################################
 
+beta_draws <- hmnl_draws |> 
+  subset_draws(variable = "Beta") |> 
+  summarize_draws("mean")
+  # as_draws_array()
+
 # beta_draws_new <- array(NA, dim = dim(data$array_ana))
 beta_draws_new <- NULL
-for (iter in 1:dim(beta_draws)[1]) {
-  for (chain in 1:dim(beta_draws)[2]) {
+# for (iter in 1:dim(beta_draws)[1]) {
+#   for (chain in 1:dim(beta_draws)[2]) {
     # Restructure the specific draw to match the pathology arrays.
     beta_draws_temp <- matrix(
-      beta_draws[iter, chain,], 
+      # beta_draws[iter, chain,], 
+      beta_draws$mean,
       nrow = dim(data$train_X)[1], 
       ncol = dim(data$train_X)[4], 
       byrow = TRUE
@@ -64,8 +68,8 @@ for (iter in 1:dim(beta_draws)[1]) {
         beta_draws_new <- rbind(beta_draws_new, beta_draws_temp[resp_train,])
       }
     }
-  }
-}
+#   }
+# }
 
 Gamma_mean_02 <- matrix(apply(beta_draws_new, 2, mean), ncol = 1)
 
@@ -126,6 +130,15 @@ model_comparison[2, 4] <- round(mean(hits_02), 3)
 model_comparison[2, 5] <- round(mean(probs_02), 3)
 model_comparison[3, 4] <- round(mean(hits_03), 3)
 model_comparison[3, 5] <- round(mean(probs_03), 3)
+
+if (!file.exists(here::here("figures", str_c("model_comparison.rds")))) {
+  full_model_comparison <- NULL
+} else {
+  full_model_comparison <- read_rds(here::here("figures", str_c("model_comparison.rds")))
+}
+
+full_model_comparison <- bind_rows(full_model_comparison, model_comparison)
+write_rds(full_model_comparison, here::here("figures", str_c("model_comparison.rds")))
 
 ####################
 # Compare to model_fit and predictive_fit_stacking.
