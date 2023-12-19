@@ -7,9 +7,8 @@ corresponding scripts.
 
 - `01_control-file.R` Control for running the subsequent individual
   scripts.
-- `02_data-prep.R` Simulate data or clean empirical data and induce
-  randomization.
-- `03_conjoint-ensemble.R` Run the conjoint ensemble using the clever
+- `02_data-prep.R` Prepare choice data and induce clever randomization.
+- `03_conjoint-ensemble.R` Run the conjoint ensemble using clever
   randomization.
 - `04_meta-learner.R` Produce weights using the ensemble output.
 - `05_competing-models.R` Run the models specific to the indicated
@@ -28,12 +27,13 @@ The following functions are stored in `/code/src`.
 - `conj_hmnl.cpp` Helper functions in C++ for `conj_hmnl.R`.
 - `ensemble_weights.R` Generate ensemble weights with a `stanfit` object
   as input.
+- `hmnl_ensemble.stan` Estimate an HMNL as part of an ensemble.
+- `hmnl.stan` Estimate an HMNL.
+
+The following function stored in `/code/src` may be deprecated.
+
+- `EmpBayes.R` Raw code for running empirical Bayes.
 - `generate_data.stan` Generate data according to a HMNL.
 - `hit_prob.R` Compute hit probabilities.
 - `hit_rate.R` Compute hit rates.
-- `hmnl_ensemble.stan` Estimate an HMNL as part of an ensemble.
 - `hmnl.R` Estimate an HMNL.
-- `hmnl.stan` Estimate an HMNL.
-- `predictive_fit_ensemble.R` Compute predictive fit for an ensemble of
-  models.
-- `predictive_fit_hmnl.R` Compute predictive fit for an HMNL.

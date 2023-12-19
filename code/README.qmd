@@ -23,9 +23,14 @@ The following functions are stored in `/code/src`.
 - `conj_hmnl.R` Estimate an HMNL with conjunctive screening rules.
 - `conj_hmnl.cpp` Helper functions in C++ for `conj_hmnl.R`.
 - `ensemble_weights.R` Generate ensemble weights with a `stanfit` object as input.
+- `hmnl_ensemble.stan` Estimate an HMNL as part of an ensemble.
+- `hmnl.stan` Estimate an HMNL.
+
+The following function stored in `/code/src` may be deprecated.
+
+- `EmpBayes.R` Raw code for running empirical Bayes.
 - `generate_data.stan` Generate data according to a HMNL.
 - `hit_prob.R` Compute hit probabilities.
 - `hit_rate.R` Compute hit rates.
-- `hmnl_ensemble.stan` Estimate an HMNL as part of an ensemble.
 - `hmnl.R` Estimate an HMNL.
-- `hmnl.stan` Estimate an HMNL.
+
