@@ -3,7 +3,6 @@
 ##########################
 # Integrate cleaning and reformatting specific empirical data and overwriting simulated
 # data to avoid duplication and result in writing the same data structure.
-##########################
 
 # if (ind_emp == 1) {
 #   # Load design.
@@ -31,6 +30,7 @@
 #     }
 #   }
 # }
+##########################
 
 if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
   # Generate a full factorial design and corresponding row index.
@@ -142,10 +142,17 @@ if (!file.exists(here::here("data", str_c(data_id, "_", patho_id, ".rds")))) {
   
   # Randomly assign respondents into training and testing data.
   '%!in%' <- function(x, y)!('%in%'(x, y))
-  nresp_train <- round(pct_train * nresp, 0)
+  # nresp_train <- round(pct_train * nresp, 0)
   nresp_test <- round((1 - pct_train) * nresp, 0)
-  index_train <- sort(sample(1:nresp, nresp_train, replace = FALSE))
-  index_test <- which(c(1:nresp) %!in% index_train)
+  # index_train <- sort(sample(1:nresp, nresp_train, replace = FALSE))
+  # index_test <- which(c(1:nresp) %!in% index_train)
+  
+  ##########################
+  # TEMPORARY LEAKAGE
+  nresp_train <- nresp
+  index_train <- 1:nresp
+  index_test <- sort(sample(1:nresp, nresp_test, replace = FALSE))
+  ##########################
   
   # Split the choice data and design matrices into training and testing.
   train_Y <- Y[index_train,]

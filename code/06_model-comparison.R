@@ -103,8 +103,7 @@ for (resp_test in 1:nresp_test) {
     tmp_X <- data$test_X[resp_test, task,,]
     
     ####################################
-    # In-sample predictive fit would use betas.
-    # Will need to use $Beta along with $Gamma.
+    # In-sample predictive fit would use $Beta.
     ####################################
     
     # Compute model fit for the choice model with unconstrained betas.
@@ -344,9 +343,7 @@ write_rds(full_model_comparison, here::here("figures", str_c("model_comparison.r
 #     loo_fit = ensemble_weights %*% memb_loo
 #   ))
 # }
-####################
 
-####################
 # # Compute fit metrics for ensemble.
 # # ensemble_draws <- ensemble_fit$ensemble_draws$draws(format = "df", variables = c("Beta", "Gamma", "Omega", "tau"))
 # # ensemble_pred_fit <- predictive_fit_hmnl(
@@ -386,7 +383,9 @@ write_rds(full_model_comparison, here::here("figures", str_c("model_comparison.r
 
 
 
-########## # Temp commented.
+#################### 
+# Temporarily commented while we establish a baseline with test alone.
+
 # # Try equal weights.
 # ensemble_fit$ensemble_weights <- rep(NA, length(ensemble_fit$ensemble_draws))
 # for (k in 1:length(ensemble_fit$ensemble_weights)) {
@@ -625,3 +624,5 @@ write_rds(full_model_comparison, here::here("figures", str_c("model_comparison.r
 #   ggsave(here::here("Figures", str_c("parameter-recovery_", file_id, ".png")), width = 7, height = 3)
 # }
 # 
+####################
+

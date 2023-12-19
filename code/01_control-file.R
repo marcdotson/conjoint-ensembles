@@ -56,7 +56,12 @@ if (ind_ana == 1 & ind_qual == 1) patho_id <- "ana-qual"
 if (ind_screen == 1 & ind_ana == 1 & ind_qual == 1) patho_id <- "screen-ana-qual"
 if (ind_hetero == 0) patho_id <- str_c(patho_id, "-homo")
 if (ind_hetero == 1) patho_id <- str_c(patho_id, "-hetero")
-if (ind_test == 1) patho_id <- str_c(patho_id, "_test")
+# if (ind_test == 1) patho_id <- str_c(patho_id, "_test")
+
+########################################
+# TEMPORARY FLAG
+if (ind_test == 1) patho_id <- str_c(patho_id, "_test-leakage")
+########################################
 
 data_id
 patho_id
