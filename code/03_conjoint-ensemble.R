@@ -44,6 +44,10 @@ if (!file.exists(here::here("output", str_c("ensemble-fit_", data_id, "_", patho
   # Extract posteriors draws and construct hyperpriors for the ensemble.
   hmnl_draws <- hmnl_fit$draws(format = "df")
   
+  ####################
+  # Warning message:
+  # Dropping 'draws_df' class as required metadata was removed. 
+
   Gamma_mean <- hmnl_draws |> 
     select(contains("Gamma")) |> 
     pivot_longer(everything()) |> 
@@ -73,6 +77,7 @@ if (!file.exists(here::here("output", str_c("ensemble-fit_", data_id, "_", patho
     pivot_longer(everything()) |> 
     summarize(sd = sd(value)) |> 
     pull()
+  ####################
   
   # Specify data as a list of lists.
   stan_data_list <- vector(mode = "list", length = nmember)
@@ -106,15 +111,16 @@ if (!file.exists(here::here("output", str_c("ensemble-fit_", data_id, "_", patho
     # Estimate the model.
     
     ####################
-    # Here's where we can use Pathfinder instead of $sample().
+    # Here's where we can use $pathfinder() instead of $sample().
     ####################
     
     hmnl_ensemble <- cmdstan_model(here::here("code", "src", "hmnl_ensemble.stan"))
-    fit <- hmnl_ensemble$sample(
+    # fit <- hmnl_ensemble$sample(
+    fit <- hmnl_ensemble$pathfinder(
       data = stan_data,
-      seed = 42,
-      chains = 1,
-      thin = 10
+      seed = 42
+      # chains = 1,
+      # thin = 10
     )
     
     # Extract the posterior draws for Gamma, Sigma, and log_lik.

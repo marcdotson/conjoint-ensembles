@@ -23,9 +23,9 @@ ind_sim <- 1        # Run a simulation experiment.
 # ind_zero <- 0       # Use Zerorez data.
 ind_none <- 0       # Control for no pathologies.
 ind_screen <- 1     # Control for screening.
-ind_ana <- 1        # Control for attribute non-attendance.
-ind_qual <- 1       # Control for respondent quality.
-ind_hetero <- 1     # Control for heterogeneous pathologies.
+ind_ana <- 0        # Control for attribute non-attendance.
+ind_qual <- 0       # Control for respondent quality.
+ind_hetero <- 0     # Control for heterogeneous pathologies.
 
 # Specify the arguments for the ensemble members.
 nresp <- 300        # Number of respondents.
